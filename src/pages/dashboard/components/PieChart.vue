@@ -24,6 +24,7 @@ const initChart = () => {
   const chartDom = document.querySelector(`.${props.className}`) as HTMLElement
   if (chartDom && !chart.value) {
     chart.value = echarts.init(chartDom)
+  }
 
   chart.value.setOption({
     tooltip: {
