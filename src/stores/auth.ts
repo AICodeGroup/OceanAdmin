@@ -44,30 +44,30 @@ export const useAuthStore = defineStore('auth', () => {
         }
       ]
     },
-    {
-      path: '/order',
-      name: 'Order',
-      meta: { title: '订单管理', icon: 'ShoppingCart' },
-      children: [
-        {
-          path: 'list',
-          name: 'OrderList',
-          meta: { title: '订单列表', icon: 'List' }
-        }
-      ]
-    },
-    {
-      path: '/user',
-      name: 'User',
-      meta: { title: '用户管理', icon: 'User' },
-      children: [
-        {
-          path: 'list',
-          name: 'UserList',
-          meta: { title: '用户列表', icon: 'UserFilled' }
-        }
-      ]
-    },
+    // {
+    //   path: '/order',
+    //   name: 'Order',
+    //   meta: { title: '订单管理', icon: 'ShoppingCart' },
+    //   children: [
+    //     {
+    //       path: 'list',
+    //       name: 'OrderList',
+    //       meta: { title: '订单列表', icon: 'List' }
+    //     }
+    //   ]
+    // },
+    // {
+    //   path: '/user',
+    //   name: 'User',
+    //   meta: { title: '用户管理', icon: 'User' },
+    //   children: [
+    //     {
+    //       path: 'list',
+    //       name: 'UserList',
+    //       meta: { title: '用户列表', icon: 'UserFilled' }
+    //     }
+    //   ]
+    // },
     {
       path: '/integral',
       name: 'Integral',
@@ -119,18 +119,18 @@ export const useAuthStore = defineStore('auth', () => {
         }
       ]
     },
-    {
-      path: '/content',
-      name: 'Content',
-      meta: { title: '内容审核', icon: 'Document' },
-      children: [
-        {
-          path: 'audit',
-          name: 'ContentAudit',
-          meta: { title: '内容审核', icon: 'View' }
-        }
-      ]
-    },
+    // {
+    //   path: '/content',
+    //   name: 'Content',
+    //   meta: { title: '内容审核', icon: 'Document' },
+    //   children: [
+    //     {
+    //       path: 'audit',
+    //       name: 'ContentAudit',
+    //       meta: { title: '内容审核', icon: 'View' }
+    //     }
+    //   ]
+    // },
     {
       path: '/badge',
       name: 'Badge',
@@ -178,7 +178,48 @@ export const useAuthStore = defineStore('auth', () => {
           meta: { title: '系统配置', icon: 'Tools' }
         }
       ]
-    }
+    },
+    {
+      path: '/task',
+      name: 'task',
+      meta: { title: '日常任务管理', icon: 'Calendar' },
+      children: [
+        {
+          path: 'list',
+          name: 'TaskList',
+          meta: { title: '日常任务列表', icon: 'List' }
+        }
+      ]
+    },
+    {
+      path: '/newOrder',
+      name: 'newOrder',
+      meta: { title: '订单管理', icon: 'ShoppingCart' },
+      children: [
+        {
+          path: 'orderList',
+          name: 'orderList',
+          meta: { title: '订单列表', icon: 'List' }
+        }
+      ]
+    },
+    {
+      path: '/observe',
+      name: 'Observe',
+      meta: { title: '审核观察记录', icon: 'Reading' },
+      children: [
+        {
+          path: 'judgeObserve',
+          name: 'judgeObserve',
+          meta: { title: '审核观察记录', icon: 'List' }
+        },
+        {
+          path: 'observeList',
+          name: 'observeList',
+          meta: { title: '观察记录列表', icon: 'Menu' }
+        }
+      ]
+    },
   ])
   const userInfo = ref({
     name: '',

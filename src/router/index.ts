@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+// import Layout from '../layout/index.vue'
 import Layout from '@/layout/index.vue'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
@@ -15,6 +16,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/login/index.vue'),
     meta: { title: '登录', hidden: true }
   },
+
   {
     path: '/',
     component: Layout,
@@ -65,20 +67,51 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: '/order',
+    path: '/task',
     component: Layout,
-    redirect: '/order/list',
-    name: 'Order',
-    meta: { title: '订单管理', icon: 'ShoppingCart' },
+    redirect: '/task/list',
+    name: 'task',
+    meta: { title: '日常任务管理', icon: 'Calendar' },
     children: [
       {
         path: 'list',
-        name: 'OrderList',
-        component: () => import('@/pages/order/list.vue'),
+        name: 'TaskList',
+        component: () => import('@/pages/task/list.vue'),
+        meta: { title: '日常任务列表', icon: 'List' }
+      }
+    ]
+  },
+  {
+    path: '/newOrder',
+    component: Layout,
+    redirect: '/newOrder/orderList',
+    name: 'newOrder',
+    meta: { title: '订单管理', icon: 'ShoppingCart' },
+    children: [
+      {
+        path: 'orderList',
+        name: 'orderList',
+        component: () => import('@/pages/newOrder/orderList.vue'),
         meta: { title: '订单列表', icon: 'List' }
       }
     ]
   },
+
+  // {
+  //   path: '/order',
+  //   component: Layout,
+  //   redirect: '/order/list',
+  //   name: 'Order',
+  //   meta: { title: '订单管理', icon: 'ShoppingCart' },
+  //   children: [
+  //     {
+  //       path: 'list',
+  //       name: 'OrderList',
+  //       component: () => import('@/pages/order/list.vue'),
+  //       meta: { title: '订单列表', icon: 'List' }
+  //     }
+  //   ]
+  // },
   {
     path: '/user',
     component: Layout,
@@ -229,6 +262,27 @@ const routes: RouteRecordRaw[] = [
         name: 'SystemConfig',
         component: () => import('@/pages/system/config.vue'),
         meta: { title: '系统配置', icon: 'Tools' }
+      }
+    ]
+  },
+  {
+    path: '/observe',
+    component: Layout,
+    redirect: '/observe/judgeObserve',
+    name: 'Observe',
+    meta: { title: '审核观察记录', icon: 'Reading' },
+    children: [
+      {
+        path: 'judgeObserve',
+        name: 'judgeObserve',
+        component: () => import('@/pages/observe/judgeObserve.vue'),
+        meta: { title: '审核观察记录', icon: 'List' }
+      },
+      {
+        path: 'observeList',
+        name: 'observeList',
+        component: () => import('@/pages/observe/observeList.vue'),
+        meta: { title: '观察记录列表', icon: 'Menu' }
       }
     ]
   },

@@ -1,89 +1,62 @@
-import axios from 'axios'
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { useAuthStore } from '@/stores/auth'
-import { getToken } from '@/utils/auth'
+import axios, { type AxiosRequestConfig } from 'axios'
+import { ElMessage } from 'element-plus'
 
-// 创建axios实例
-const service: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  timeout: 15000
+// 为后端的通用返回结构定义接口
+export interface CommonResult<T = any> {
+  code: number
+  message: string
+  data: T
+}
+
+// 创建 axios 实例
+const service = axios.create({
+  // 重要：请将 baseURL 修改为您的后端 API 地址，或在 vite.config.js 中配置代理（推荐）
+  // 例如: server: { proxy: { '/api': 'http://localhost:8080' } }
+  baseURL: '/api', // API 基础路径
+  timeout: 10000, // 请求超时
 })
 
 // 请求拦截器
 service.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
-    const token = getToken()
-    if (token && config.headers) {
-      config.headers['Authorization'] = `Bearer ${token}`
-    }
+  (config) => {
+    // 这里可以添加发送请求前的逻辑，例如添加 token
+    // const token = localStorage.getItem('token')
+    // if (token && config.headers) {
+    //   config.headers.Authorization = `Bearer ${token}`
+    // }
     return config
   },
   (error) => {
-    console.error('请求错误:', error)
+    console.error('Request Error:', error)
     return Promise.reject(error)
   }
 )
 
 // 响应拦截器
 service.interceptors.response.use(
-  (response: AxiosResponse) => {
-    const { code, message, data } = response.data
+  (response) => {
+    const res: CommonResult = response.data
 
-    // 根据后端约定的状态码处理
-    if (code === 200) {
-      return { data, message }
-    } else if (code === 401) {
-      // token过期或无效
-      ElMessageBox.confirm('登录状态已过期，请重新登录', '系统提示', {
-        confirmButtonText: '重新登录',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        const authStore = useAuthStore()
-        authStore.resetToken()
-        location.reload()
+    // 如果自定义 code 不是 200，则视为错误
+    if (res.code !== 200) {
+      ElMessage({
+        message: res.message || 'Error',
+        type: 'error',
+        duration: 5 * 1000,
       })
-      return Promise.reject(new Error(message || '登录状态已过期'))
+      return Promise.reject(new Error(res.message || 'Error'))
     } else {
-      ElMessage.error(message || '请求失败')
-      return Promise.reject(new Error(message || '请求失败'))
+      // 直接返回响应中的 data 部分
+      return res.data
     }
   },
   (error) => {
-    console.error('响应错误:', error)
-    
-    if (error.response) {
-      const { status, data } = error.response
-      
-      switch (status) {
-        case 400:
-          ElMessage.error(data.message || '请求参数错误')
-          break
-        case 401:
-          ElMessage.error('未授权，请重新登录')
-          const authStore = useAuthStore()
-          authStore.resetToken()
-          location.reload()
-          break
-        case 403:
-          ElMessage.error('拒绝访问')
-          break
-        case 404:
-          ElMessage.error('请求地址不存在')
-          break
-        case 500:
-          ElMessage.error('服务器内部错误')
-          break
-        default:
-          ElMessage.error(data.message || '请求失败')
-      }
-    } else if (error.request) {
-      ElMessage.error('网络错误，请检查网络连接')
-    } else {
-      ElMessage.error('请求配置错误')
-    }
-    
+    console.error('Response Error:', error)
+    ElMessage({
+      message: error.message,
+      type: 'error',
+      duration: 5 * 1000,
+    })
     return Promise.reject(error)
   }
 )

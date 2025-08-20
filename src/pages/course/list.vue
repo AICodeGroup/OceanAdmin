@@ -128,7 +128,7 @@ const tableData = ref([
   {
     id: 1,
     name: '海洋生物探索之旅',
-    cover: 'https://via.placeholder.com/80x60',
+    cover: 'https://beniocean.com/crmebimage/public/user/2025/08/20/f32a31db91c44cc38234c1a15e01c3f2qclstj2jwq.jpg',
     categoryName: '海洋生物',
     price: 299,
     studentCount: 156,

@@ -33,7 +33,7 @@ import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 import Logo from './Logo.vue'
 import SidebarItem from './SidebarItem.vue'
-import variables from '@/styles/variables.scss'
+import variables from '@/styles/variables.scss?inline'
 
 const route = useRoute()
 const appStore = useAppStore()

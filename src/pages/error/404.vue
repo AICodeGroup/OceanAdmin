@@ -2,7 +2,7 @@
   <div class="error-page">
     <div class="error-container">
       <div class="error-image">
-        <img src="/404.svg" alt="404" />
+        <!-- <img src="/404.svg" alt="404" /> -->
       </div>
       <div class="error-content">
         <h1 class="error-title">404</h1>

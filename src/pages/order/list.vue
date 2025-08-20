@@ -70,13 +70,16 @@
         style="width: 100%"
       >
         <el-table-column prop="orderNo" label="订单号" width="180" />
-        <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="courseName" label="课程名称" />
-        <el-table-column prop="amount" label="订单金额" width="120">
+        <el-table-column prop="phone" label="手机" width="120" />
+        <el-table-column prop="productName" label="课程名称" />
+        <el-table-column prop="scheduleName" label="排期" />
+
+        <!-- <el-table-column prop="amount" label="订单金额" width="120">
           <template #default="scope">
             <span class="amount">¥{{ scope.row.amount }}</span>
           </template>
-        </el-table-column>
+        </el-table-column> -->
+
         <el-table-column label="订单状态" width="100">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)">
