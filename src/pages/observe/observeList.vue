@@ -1,354 +1,315 @@
 <template>
   <div class="app-container">
-    <div class="page-header">
-      <h1>课程分类管理</h1>
-    </div>
+    <!-- 搜索表单 -->
+    <el-card shadow="never" class="search-card">
+      <el-form :model="searchForm" label-width="80px" :inline="true" >
+        <el-form-item label="用户id" style="margin-right: 0px;margin-left: 0px;">
+          <el-input v-model="searchForm.user_id" placeholder="请输入用户id" clearable />
+        </el-form-item>
+        <el-form-item label="课程名称" style="margin-right: 0px;margin-left: 0px;">
+          <el-input v-model="searchForm.productName" placeholder="请输入课程名称" clearable />
+        </el-form-item>
+        <el-form-item label="标题" style="margin-right: 0px;margin-left: 0px;">
+          <el-input v-model="searchForm.title" placeholder="请输入标题" clearable />
+        </el-form-item>
+        <el-form-item label="审核状态" style="margin-right: 21px;margin-left: 0px;">
+          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 100px">
+            <el-option label="待审核" :value="0" />
+            <el-option label="已通过" :value="1" />
+            <el-option label="已驳回" :value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="创建时间" style="margin-right: 16px;">
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            @change="handleDateChange"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="resetSearchForm">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
 
-    <!-- 操作按钮 -->
-    <div class="button-group">
-      <el-button type="primary" @click="handleAdd">
-        <el-icon><Plus /></el-icon>
-        新增分类
-      </el-button>
-    </div>
-
-    <!-- 表格 -->
-    <div class="card-container">
-      <el-table
-        v-loading="loading"
-        :data="tableData"
-        style="width: 100%"
-        row-key="id"
-        :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
-      >
-        <el-table-column prop="name" label="分类名称" />
-        <el-table-column label="分类图标" width="100">
-          <template #default="scope">
-            <el-icon v-if="scope.row.icon" :size="24">
-              <component :is="scope.row.icon" />
-            </el-icon>
+    <!-- 数据表格 -->
+    <el-card shadow="never">
+      <el-table :data="tableData" v-loading="loading" style="width: 100%">
+        <el-table-column label="用户/课程信息" width="250">
+          <template #default="{ row }">
+            <div class="user-course-cell">
+              <div class="user-info">
+                <el-avatar :size="40" :src="row.userAvatar" />
+                <span class="nickname">{{ row.userNickname }}</span>
+              </div>
+              <div class="course-info">
+                <div class="course-name">{{ row.productName }}</div>
+                <div class="course-time">{{ row.startDate }} - {{ row.endDate }}</div>
+              </div>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="sort" label="排序" width="80" />
-        <el-table-column prop="courseCount" label="课程数量" width="100" />
-        <el-table-column label="状态" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
-              {{ scope.row.status === 1 ? '启用' : '禁用' }}
-            </el-tag>
+
+        <el-table-column label="内容" min-width="200">
+          <template #default="{ row }">
+            <div class="content-cell">
+              <p class="title">{{ row.title }}</p>
+              <p class="content-text">{{ row.content }}</p>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="scope">
-            <el-button type="primary" size="small" @click="handleEdit(scope.row)">
-              编辑
-            </el-button>
-            <el-button 
-              v-if="!scope.row.children || scope.row.children.length === 0"
-              type="success" 
-              size="small" 
-              @click="handleAddChild(scope.row)"
-            >
-              添加子分类
-            </el-button>
-            <el-button type="danger" size="small" @click="handleDelete(scope.row)">
-              删除
-            </el-button>
+
+        <el-table-column label="观察图片" width="150">
+          <template #default="{ row }">
+            <div class="gallery-cell" v-if="row.imageUrls && row.imageUrls.length">
+              <el-image
+                v-for="(url, index) in row.imageUrls"
+                :key="index"
+                :src="url"
+                :preview-src-list="row.imageUrls"
+                fit="cover"
+                class="table-gallery-item"
+              />
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="关联物种" width="200">
+          <template #default="{ row }">
+            <div class="gallery-cell species-gallery">
+              <div v-for="species in row.selectedSpecies" :key="species.id" class="species-item">
+                <el-image :src="species.imageUrl" fit="cover" class="table-gallery-item" />
+                <span class="species-name">{{ species.name }}</span>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="createdAt" label="提交时间" width="180" />
+        
+        <el-table-column label="状态" width="100" fixed="right">
+          <template #default="{ row }">
+            <el-tag :type="statusType(row.status)">{{ formatStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
       </el-table>
-    </div>
 
-    <!-- 添加/编辑对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogTitle"
-      width="500px"
-      @close="resetForm"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
-        <el-form-item label="上级分类" prop="parentId" v-if="form.parentId">
-          <el-input :value="parentCategoryName" disabled />
-        </el-form-item>
-        <el-form-item label="分类名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入分类名称" />
-        </el-form-item>
-        <el-form-item label="分类图标" prop="icon">
-          <el-select v-model="form.icon" placeholder="请选择图标">
-            <el-option label="海洋生物" value="Fish">
-              <el-icon><Fish /></el-icon>
-              海洋生物
-            </el-option>
-            <el-option label="环保" value="Sunny">
-              <el-icon><Sunny /></el-icon>
-              环保
-            </el-option>
-            <el-option label="探索" value="Search">
-              <el-icon><Search /></el-icon>
-              探索
-            </el-option>
-            <el-option label="科学" value="Experiment">
-              <el-icon><Operation /></el-icon>
-              科学
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="form.sort" :min="0" :max="999" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio :label="1">启用</el-radio>
-            <el-radio :label="0">禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input 
-            v-model="form.description" 
-            type="textarea" 
-            :rows="3"
-            placeholder="请输入分类描述" 
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">确定</el-button>
-        </span>
-      </template>
-    </el-dialog>
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
+          :current-page="pagination.page"
+          :page-size="pagination.limit"
+          :total="pagination.total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
+import { ref, reactive, onMounted } from 'vue';
+import { getObservationsList } from '@/api/observe';
+import type { Dayjs } from 'dayjs';
 
-// 响应式数据
-const loading = ref(false)
-const dialogVisible = ref(false)
-const dialogTitle = ref('新增分类')
-const formRef = ref<FormInstance>()
-const currentParent = ref<any>(null)
+// 搜索表单
+const searchForm = reactive({
+  user_id: '',
+  productName: '',
+  title: '',
+  status: null as number | null,
+  startTime: '',
+  endTime: '',
+});
+const dateRange = ref<[Dayjs, Dayjs] | []>([]);
 
-const tableData = ref([
-  {
-    id: 1,
-    name: '海洋生物',
-    icon: 'Fish',
-    sort: 1,
-    courseCount: 15,
-    status: 1,
-    createTime: '2024-01-15 10:30:00',
-    children: [
-      {
-        id: 11,
-        name: '鱼类',
-        icon: 'Fish',
-        sort: 1,
-        courseCount: 8,
-        status: 1,
-        createTime: '2024-01-15 10:35:00',
-        parentId: 1
-      },
-      {
-        id: 12,
-        name: '海洋哺乳动物',
-        icon: 'Fish',
-        sort: 2,
-        courseCount: 7,
-        status: 1,
-        createTime: '2024-01-15 10:40:00',
-        parentId: 1
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: '海洋环保',
-    icon: 'Sunny',
-    sort: 2,
-    courseCount: 12,
-    status: 1,
-    createTime: '2024-01-14 14:20:00'
-  },
-  {
-    id: 3,
-    name: '海洋探索',
-    icon: 'Search',
-    sort: 3,
-    courseCount: 8,
-    status: 1,
-    createTime: '2024-01-13 09:15:00'
-  },
-  {
-    id: 4,
-    name: '海洋科学',
-    icon: 'Operation',
-    sort: 4,
-    courseCount: 5,
-    status: 0,
-    createTime: '2024-01-12 16:45:00'
-  }
-])
+// 表格数据和分页
+const tableData = ref<any[]>([]);
+const loading = ref(false);
+const pagination = reactive({
+  page: 1,
+  limit: 10,
+  total: 0,
+});
 
-// 表单数据
-const form = reactive({
-  id: null,
-  parentId: null,
-  name: '',
-  icon: '',
-  sort: 0,
-  status: 1,
-  description: ''
-})
-
-// 表单验证规则
-const rules: FormRules = {
-  name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }],
-  icon: [{ required: true, message: '请选择分类图标', trigger: 'change' }],
-  sort: [{ required: true, message: '请输入排序值', trigger: 'blur' }]
-}
-
-// 计算属性
-const parentCategoryName = computed(() => {
-  if (!currentParent.value) return ''
-  return currentParent.value.name
-})
-
-// 获取列表数据
-const getList = async () => {
-  loading.value = true
+// 获取数据
+const fetchData = async () => {
+  loading.value = true;
   try {
-    // 模拟加载延迟
-    setTimeout(() => {
-      loading.value = false
-    }, 500)
+    const params = {
+      ...searchForm,
+      page: pagination.page,
+      limit: pagination.limit,
+    };
+    const params1 = {
+      ...searchForm,
+    };
+    const res = await getObservationsList(params);
+    console.log(res)
+    tableData.value = res.observationsDetailVo;
+    pagination.total = res.total;
+
   } catch (error) {
-    console.error('获取分类列表失败:', error)
-    loading.value = false
+    console.error("获取观察记录失败", error);
+    tableData.value = [];
+    pagination.total = 0;
+  } finally {
+    loading.value = false;
   }
-}
+};
 
-// 处理新增
-const handleAdd = () => {
-  dialogTitle.value = '新增分类'
-  currentParent.value = null
-  dialogVisible.value = true
-}
+// 搜索
+const handleSearch = () => {
+  pagination.page = 1;
+  fetchData();
+};
 
-// 处理添加子分类
-const handleAddChild = (row: any) => {
-  dialogTitle.value = '新增子分类'
-  currentParent.value = row
-  form.parentId = row.id
-  dialogVisible.value = true
-}
+// 重置搜索
+const resetSearchForm = () => {
+  Object.assign(searchForm, {
+    user_id: '',
+    productName: '',
+    title: '',
+    status: null,
+    startTime: '',
+    endTime: '',
+  });
+  dateRange.value = [];
+  handleSearch();
+};
 
-// 处理编辑
-const handleEdit = (row: any) => {
-  dialogTitle.value = '编辑分类'
-  Object.assign(form, row)
-  
-  // 如果有父级分类，找到父级分类信息
-  if (row.parentId) {
-    currentParent.value = findParentCategory(row.parentId)
+// 日期选择器变化
+const handleDateChange = (dates: [string, string] | null) => {
+  if (dates && dates.length === 2) {
+    searchForm.startTime = dates[0];
+    searchForm.endTime = dates[1];
   } else {
-    currentParent.value = null
+    searchForm.startTime = '';
+    searchForm.endTime = '';
   }
-  
-  dialogVisible.value = true
+};
+
+// 分页大小变化
+const handleSizeChange = (limit: number) => {
+  pagination.limit = limit;
+  fetchData();
+};
+
+// 当前页变化
+const handleCurrentChange = (page: number) => {
+  pagination.page = page;
+  fetchData();
+};
+
+// 格式化状态
+const formatStatus = (status: number) => {
+  const statusMap: { [key: number]: string } = {
+    0: '待审核',
+    1: '已通过',
+    2: '已驳回',
+  };
+  return statusMap[status] || '未知';
+};
+
+const statusType = (status: number) => {
+  const typeMap: { [key: number]: string } = {
+    0: 'warning',
+    1: 'success',
+    2: 'danger',
+  };
+  return typeMap[status] || 'info';
 }
 
-// 查找父级分类
-const findParentCategory = (parentId: number) => {
-  for (const category of tableData.value) {
-    if (category.id === parentId) {
-      return category
-    }
-  }
-  return null
-}
-
-// 处理删除
-const handleDelete = async (row: any) => {
-  try {
-    if (row.children && row.children.length > 0) {
-      ElMessage.warning('该分类下还有子分类，无法删除')
-      return
-    }
-    
-    if (row.courseCount > 0) {
-      ElMessage.warning('该分类下还有课程，无法删除')
-      return
-    }
-    
-    await ElMessageBox.confirm('确定要删除这个分类吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    ElMessage.success('删除成功')
-    getList()
-  } catch (error) {
-    console.error('删除失败:', error)
-  }
-}
-
-// 处理提交
-const handleSubmit = () => {
-  formRef.value?.validate(async (valid) => {
-    if (valid) {
-      try {
-        if (form.id) {
-          ElMessage.success('更新成功')
-        } else {
-          ElMessage.success('创建成功')
-        }
-        dialogVisible.value = false
-        getList()
-      } catch (error) {
-        console.error('提交失败:', error)
-      }
-    }
-  })
-}
-
-// 重置表单
-const resetForm = () => {
-  Object.assign(form, {
-    id: null,
-    parentId: null,
-    name: '',
-    icon: '',
-    sort: 0,
-    status: 1,
-    description: ''
-  })
-  currentParent.value = null
-  formRef.value?.resetFields()
-}
-
+// 初始加载
 onMounted(() => {
-  getList()
-})
+  fetchData();
+});
 </script>
 
 <style lang="scss" scoped>
-.el-table {
-  :deep(.el-table__row) {
-    .el-table__cell {
-      border-bottom: 1px solid #ebeef5;
-    }
+.app-container {
+  padding: 20px;
+}
+
+.search-card {
+  margin-bottom: 10px;
+}
+
+.user-course-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  .nickname {
+    font-weight: bold;
   }
+}
+
+.course-info {
+  font-size: 12px;
+  color: #606266;
+  .course-name {
+    font-weight: 500;
+  }
+}
+
+.content-cell {
+  .title {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  .content-text {
+    font-size: 13px;
+    color: #303133;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+}
+
+.gallery-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.table-gallery-item {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.species-gallery {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.species-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.species-name {
+  white-space: nowrap;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
 }
 </style>

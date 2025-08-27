@@ -254,9 +254,9 @@ const phoneChecking = ref(false)
 const phoneCheckMessage = ref<{text: string, type: 'error' | 'success'} | null>(null)
 const formTitle = ref('新增订单')
 const statusOptions = [
-  { value: '0', label: '待支付' },
-  { value: '1', label: '已支付' },
-  { value: '2', label: '已退款' },
+  { value: 0, label: '待支付' },
+  { value: 1, label: '已支付' },
+  { value: 2, label: '已退款' },
 ]
 // 手机号失焦事件处理
 const handlePhoneBlur = async () => {
@@ -284,6 +284,7 @@ const handlePhoneBlur = async () => {
       // addForm.userName = res.userName
     } else {
       // 用户不存在
+      form.userId = null
       phoneCheckMessage.value = { 
         text: '该手机号未注册，请确认后重试', 
         type: 'error' 
@@ -376,8 +377,9 @@ const handleSubmit = async () => {
         // 刷新列表数据 - 使用与页面加载时相同的参数
       // 假设你的API方法是 getProductOrders
       const res = await getAllOrder(searchForm,pagination.page,pagination.limit); // 替换为你的API调用
-      console.log(res)
-      tableData.value = res;
+      console.log('创建成功！')
+      tableData.value = res.productOrdersDetailVo
+      pagination.total = res.total
         // fetchData()
       } catch (error) {
         console.error('创建订单失败:', error)
@@ -521,8 +523,8 @@ const fetchData = async () => {
     // 假设你的API方法是 getProductOrders
     const res = await getAllOrder(params.searchForm,params.page,params.limit); // 替换为你的API调用
     console.log(res)
-    tableData.value = res;
-    
+    tableData.value = res.productOrdersDetailVo;
+    pagination.total = res.total
   } catch (error) {
     console.error("获取订单数据失败", error);
   } finally {
@@ -616,7 +618,8 @@ const handleDelete = async (row) => {
       
       const res = await getAllOrder(searchForm,pagination.page,pagination.limit); // 替换为你的API调用
       console.log(res)
-      tableData.value = res;
+      tableData.value = res.productOrdersDetailVo
+      pagination.total = res.total
       ElMessage.success('删除成功')
       // getList() // 重新加载列表
     } catch (error) {

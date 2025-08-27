@@ -95,8 +95,37 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '订单列表', icon: 'List' }
       }
     ]
+  },  
+  {
+    path: '/newIntegral',
+    component: Layout,
+    redirect: '/newIntegral/integralAdmin',
+    name: 'newIntegral',
+    meta: { title: '积分增减', icon: 'Coin' },
+    children: [
+      {
+        path: 'integralAdmin',
+        name: 'integralAdmin',
+        component: () => import('@/pages/newIntegral/integralAdmin.vue'),
+        meta: { title: '积分增减', icon: 'Coin' }
+      }
+    ]
   },
-
+  {
+    path: '/newCourse',
+    component: Layout,
+    redirect: '/newCourse/newCourseList',
+    name: 'newCourse',
+    meta: { title: '课程管理', icon: 'Coin' },
+    children: [
+      {
+        path: 'newCourseList',
+        name: 'newCourseList',
+        component: () => import('@/pages/newCourse/newCourseList.vue'),
+        meta: { title: '课程列表', icon: 'Coin' }
+      }
+    ]
+  },
   // {
   //   path: '/order',
   //   component: Layout,

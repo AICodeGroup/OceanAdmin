@@ -249,3 +249,12 @@ export const sendMessageToUsers = (userIds: number[], title: string, content: st
     data: { userIds, title, content }
   })
 }
+
+// 操作用户积分（增加或减少）
+export const operateUserIntegral = (data: { uid: number; operateType: 'add' | 'sub'; integral: number }) => {
+  return request({
+    url: '/admin/platform/user/operate/integer',
+    method: 'post',
+    data
+  })
+}

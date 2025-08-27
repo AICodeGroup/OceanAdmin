@@ -15,32 +15,56 @@ export const useAuthStore = defineStore('auth', () => {
       name: 'Dashboard',
       meta: { title: '仪表盘', icon: 'DataAnalysis', affix: true }
     },
+    // {
+    //   path: '/banner',
+    //   name: 'Banner',
+    //   meta: { title: '轮播图管理', icon: 'Picture' },
+    //   children: [
+    //     {
+    //       path: 'list',
+    //       name: 'BannerList',
+    //       meta: { title: '轮播图列表', icon: 'List' }
+    //     }
+    //   ]
+    // },
+    // {
+    //   path: '/course',
+    //   name: 'Course',
+    //   meta: { title: '课程管理', icon: 'Reading' },
+    //   children: [
+    //     {
+    //       path: 'list',
+    //       name: 'CourseList',
+    //       meta: { title: '课程列表', icon: 'List' }
+    //     },
+    //     {
+    //       path: 'category',
+    //       name: 'CourseCategory',
+    //       meta: { title: '课程分类', icon: 'Menu' }
+    //     }
+    //   ]
+    // },    
     {
-      path: '/banner',
-      name: 'Banner',
-      meta: { title: '轮播图管理', icon: 'Picture' },
+      path: '/newIntegral',
+      name: 'newIntegral',
+      meta: { title: '积分增减', icon: 'Coin' },
       children: [
         {
-          path: 'list',
-          name: 'BannerList',
-          meta: { title: '轮播图列表', icon: 'List' }
+          path: 'integralAdmin',
+          name: 'integralAdmin',
+          meta: { title: '积分增减', icon: 'Coin' }
         }
       ]
     },
     {
-      path: '/course',
-      name: 'Course',
+      path: '/newCourse',
+      name: 'newCourse',
       meta: { title: '课程管理', icon: 'Reading' },
       children: [
         {
-          path: 'list',
-          name: 'CourseList',
-          meta: { title: '课程列表', icon: 'List' }
-        },
-        {
-          path: 'category',
-          name: 'CourseCategory',
-          meta: { title: '课程分类', icon: 'Menu' }
+          path: 'newCourseList',
+          name: 'newCourseList',
+          meta: { title: '课程列表', icon: 'Coin' }
         }
       ]
     },
@@ -68,57 +92,57 @@ export const useAuthStore = defineStore('auth', () => {
     //     }
     //   ]
     // },
-    {
-      path: '/integral',
-      name: 'Integral',
-      meta: { title: '积分管理', icon: 'Coin' },
-      children: [
-        {
-          path: 'rules',
-          name: 'IntegralRules',
-          meta: { title: '积分规则', icon: 'Setting' }
-        },
-        {
-          path: 'tasks',
-          name: 'IntegralTasks',
-          meta: { title: '积分任务', icon: 'List' }
-        },
-        {
-          path: 'mall',
-          name: 'IntegralMall',
-          meta: { title: '积分商城', icon: 'ShoppingBag' }
-        },
-        {
-          path: 'records',
-          name: 'IntegralRecords',
-          meta: { title: '积分记录', icon: 'Document' }
-        }
-      ]
-    },
-    {
-      path: '/schedule',
-      name: 'Schedule',
-      meta: { title: '日程管理', icon: 'Calendar' },
-      children: [
-        {
-          path: 'list',
-          name: 'ScheduleList',
-          meta: { title: '日程列表', icon: 'List' }
-        }
-      ]
-    },
-    {
-      path: '/footprint',
-      name: 'Footprint',
-      meta: { title: '足迹管理', icon: 'Location' },
-      children: [
-        {
-          path: 'list',
-          name: 'FootprintList',
-          meta: { title: '足迹列表', icon: 'List' }
-        }
-      ]
-    },
+    // {
+    //   path: '/integral',
+    //   name: 'Integral',
+    //   meta: { title: '积分管理', icon: 'Coin' },
+    //   children: [
+    //     {
+    //       path: 'rules',
+    //       name: 'IntegralRules',
+    //       meta: { title: '积分规则', icon: 'Setting' }
+    //     },
+    //     {
+    //       path: 'tasks',
+    //       name: 'IntegralTasks',
+    //       meta: { title: '积分任务', icon: 'List' }
+    //     },
+    //     {
+    //       path: 'mall',
+    //       name: 'IntegralMall',
+    //       meta: { title: '积分商城', icon: 'ShoppingBag' }
+    //     },
+    //     {
+    //       path: 'records',
+    //       name: 'IntegralRecords',
+    //       meta: { title: '积分记录', icon: 'Document' }
+    //     }
+    //   ]
+    // },
+    // {
+    //   path: '/schedule',
+    //   name: 'Schedule',
+    //   meta: { title: '日程管理', icon: 'Calendar' },
+    //   children: [
+    //     {
+    //       path: 'list',
+    //       name: 'ScheduleList',
+    //       meta: { title: '日程列表', icon: 'List' }
+    //     }
+    //   ]
+    // },
+    // {
+    //   path: '/footprint',
+    //   name: 'Footprint',
+    //   meta: { title: '足迹管理', icon: 'Location' },
+    //   children: [
+    //     {
+    //       path: 'list',
+    //       name: 'FootprintList',
+    //       meta: { title: '足迹列表', icon: 'List' }
+    //     }
+    //   ]
+    // },
     // {
     //   path: '/content',
     //   name: 'Content',
@@ -155,30 +179,30 @@ export const useAuthStore = defineStore('auth', () => {
         }
       ]
     },
-    {
-      path: '/statistics',
-      name: 'Statistics',
-      meta: { title: '数据统计', icon: 'DataAnalysis' },
-      children: [
-        {
-          path: 'overview',
-          name: 'StatisticsOverview',
-          meta: { title: '数据概览', icon: 'DataBoard' }
-        }
-      ]
-    },
-    {
-      path: '/system',
-      name: 'System',
-      meta: { title: '系统配置', icon: 'Setting' },
-      children: [
-        {
-          path: 'config',
-          name: 'SystemConfig',
-          meta: { title: '系统配置', icon: 'Tools' }
-        }
-      ]
-    },
+    // {
+    //   path: '/statistics',
+    //   name: 'Statistics',
+    //   meta: { title: '数据统计', icon: 'DataAnalysis' },
+    //   children: [
+    //     {
+    //       path: 'overview',
+    //       name: 'StatisticsOverview',
+    //       meta: { title: '数据概览', icon: 'DataBoard' }
+    //     }
+    //   ]
+    // },
+    // {
+    //   path: '/system',
+    //   name: 'System',
+    //   meta: { title: '系统配置', icon: 'Setting' },
+    //   children: [
+    //     {
+    //       path: 'config',
+    //       name: 'SystemConfig',
+    //       meta: { title: '系统配置', icon: 'Tools' }
+    //     }
+    //   ]
+    // },
     {
       path: '/task',
       name: 'task',
