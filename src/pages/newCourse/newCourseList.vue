@@ -53,6 +53,13 @@
                 <span>{{ getCategoryName(scope.row.categoryId) }}</span>
             </template>
         </el-table-column>
+        <el-table-column label="技能课程" width="100" align="center">
+            <template #default="scope">
+                <el-tag :type="scope.row.isSkillProduct ? 'success' : 'info'">
+                    {{ scope.row.isSkillProduct ? '是' : '否' }}
+                </el-tag>
+            </template>
+        </el-table-column>
         <el-table-column label="轮播图" align="center" width="200">
           <template #default="scope">
             <div class="flex flex-wrap gap-2">
@@ -115,6 +122,20 @@
           <el-col :span="12">
             <el-form-item label="课程名称" prop="course.name">
               <el-input v-model="form.course.name" placeholder="请输入课程名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="技能课程" prop="course.isSkillProduct">
+              <el-switch v-model="form.course.isSkillProduct" @change="handleSkillProductChange" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12" v-if="form.course.isSkillProduct">
+            <el-form-item label="课程阶级" prop="course.productLevel">
+              <el-select v-model="form.course.productLevel" placeholder="请选择课程阶级" style="width: 100%;">
+                <el-option label="初阶" :value="0" />
+                <el-option label="中阶" :value="1" />
+                <el-option label="高阶" :value="2" />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -264,6 +285,7 @@ interface Course {
     name: string;
     intro: string;
     sliderImage: string;
+    image: string;
     price: number;
     isShow: boolean;
     duration: string;
@@ -274,6 +296,7 @@ interface Course {
     isAbroad: boolean;
     activityDays: number;
     isSkillProduct: boolean;
+    productLevel: number | null;
     skillIds: string | string[];
     isOcean: boolean;
     activityLight: string;
@@ -304,6 +327,7 @@ const getInitialForm = () => ({
         name: '',
         intro: '',
         sliderImage: '[]',
+        image: '',
         price: 0.00,
         isShow: true,
         duration: '',
@@ -314,6 +338,7 @@ const getInitialForm = () => ({
         isAbroad: false,
         activityDays: 0,
         isSkillProduct: false,
+        productLevel: null,
         categoryId: undefined,
         skillIds: [] as string[], // 明确指定类型为 string[]
         isOcean: false,
@@ -383,15 +408,27 @@ const handleUpdate = async (row: any) => {
     dialogTitle.value = '修改课程';
     
     // 深拷贝课程信息
-    form.course = JSON.parse(JSON.stringify(row));
+    Object.assign(form.course, row);
 
     // 将 skillIds 字符串转为数组以适应多选框
     if (form.course.skillIds && typeof form.course.skillIds === 'string') {
-        form.course.skillIds = (form.course.skillIds as string).split(',');
+        form.course.skillIds = form.course.skillIds.split(',');
+    } else if (!form.course.skillIds) {
+        form.course.skillIds = [];
     }
 
     // 解析轮播图并填充 fileList
-    fileList.value = parseSliderImage(form.course.sliderImage).map(url => ({ name: url, url: url }));
+    if (form.course.sliderImage) {
+        try {
+            const imageUrls = JSON.parse(form.course.sliderImage);
+            fileList.value = imageUrls.map((url: string) => ({ name: url, url: url, uid: Date.now() + Math.random() }));
+        } catch (e) {
+            fileList.value = [];
+            console.error("Failed to parse sliderImage JSON:", e);
+        }
+    } else {
+        fileList.value = [];
+    }
 
     // 获取并填充排期信息
     try {
@@ -451,10 +488,16 @@ const submitForm = () => {
             
             // 准备提交的数据
             const requestData = JSON.parse(JSON.stringify(form));
-            // 格式化sliderImage和skillIds
-            requestData.course.sliderImage = JSON.stringify(fileList.value.map(f => f.url));
-            requestData.course.skillIds = requestData.course.skillIds.join(',');
-            // console.log(11)
+
+            // 从 fileList 生成图片 URL 列表
+            const imageUrls = fileList.value.map(f => f.url);
+
+            // 格式化 sliderImage 和 image 字段
+            requestData.course.sliderImage = JSON.stringify(imageUrls);
+            requestData.course.image = imageUrls.length > 0 ? imageUrls[0] : '';
+
+            // 格式化 skillIds
+            requestData.course.skillIds = Array.isArray(requestData.course.skillIds) ? requestData.course.skillIds.join(',') : '';
             // 处理排期日期
             requestData.schedules = form.schedules.map(schedule => {
                 if (schedule.dateRange && schedule.dateRange.length === 2) {
@@ -466,14 +509,12 @@ const submitForm = () => {
                 }
                 return schedule;
             });
-            console.log(requestData)
             try {
                 const res = await request({
                     url: apiPath,
                     method: 'post',
                     data: requestData,
                 });
-                console.log(res)
                 ElMessage.success(isUpdate ? '修改成功' : '新增成功');
                 dialogVisible.value = false;
                 getList();
@@ -484,22 +525,30 @@ const submitForm = () => {
     });
 };
 
-const handleUploadSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
-    if (response.code === 200) {
-        // v-model 会自动更新 fileList，我们只需确保新文件的 URL 是正确的
-        uploadFile.url = response.data;
+const handleUploadSuccess: UploadProps['onSuccess'] = (response, uploadFile, uploadFiles) => {
+    // 根据你的 API 响应 { code: 200, data: '...' } 进行调整
+    if (response.code === 200 && typeof response.data === 'string' && response.data) {
+        // 关键：找到当前文件在 fileList 中的索引并更新其 url
+        const index = uploadFiles.findIndex(f => f.uid === uploadFile.uid);
+        if (index !== -1) {
+            uploadFiles[index].url = response.data;
+        }
+        // 立即更新 fileList 和 form.course.sliderImage
+        fileList.value = uploadFiles;
+        form.course.sliderImage = JSON.stringify(fileList.value.map(f => f.url));
     } else {
-        ElMessage.error('图片上传失败');
+        ElMessage.error('上传失败，响应数据不正确');
         // 从列表中移除上传失败的文件
-        const index = fileList.value.findIndex(file => file.uid === uploadFile.uid);
+        const index = fileList.value.findIndex(f => f.uid === uploadFile.uid);
         if (index > -1) {
             fileList.value.splice(index, 1);
         }
     }
 };
 
-const handleRemove: UploadProps['onRemove'] = (_uploadFile, uploadFiles) => {
+const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
     fileList.value = uploadFiles;
+    form.course.sliderImage = JSON.stringify(fileList.value.map(f => f.url));
 };
 
 const parseSliderImage = (sliderImage: string) => {
@@ -528,6 +577,12 @@ const addSchedule = () => {
         startDate: '',
         endDate: '',
     });
+};
+
+const handleSkillProductChange = (isSkill: boolean) => {
+    if (!isSkill) {
+        form.course.productLevel = null;
+    }
 };
 
 const removeSchedule = (index: number) => {

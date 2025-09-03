@@ -1,9 +1,9 @@
 import request from '@/utils/request'
 
 // 登录接口
-export function login(data: { username: string; password: string; captcha: string }) {
+export function login(data: { username: string; password: string }) {
   return request({
-    url: '/auth/login',
+    url: '/admin/platform/adminLogin',
     method: 'post',
     data
   })

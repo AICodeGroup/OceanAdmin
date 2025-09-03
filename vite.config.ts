@@ -6,6 +6,8 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 export default defineConfig({
+  // 添加 base 配置，部署时根据实际路径修改
+  base: '/admin/',
   plugins: [
     vue(),
     AutoImport({

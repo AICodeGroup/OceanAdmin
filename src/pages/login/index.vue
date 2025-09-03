@@ -54,25 +54,6 @@
         </el-form-item>
       </el-tooltip>
 
-      <el-form-item prop="captcha">
-        <span class="svg-container">
-          <el-icon><Key /></el-icon>
-        </span>
-        <el-input
-          v-model="loginForm.captcha"
-          placeholder="验证码"
-          name="captcha"
-          type="text"
-          tabindex="3"
-          autocomplete="off"
-          style="width: 63%; margin-right: 2%"
-          @keyup.enter="handleLogin"
-        />
-        <div class="captcha" @click="refreshCaptcha">
-          <img :src="captchaImg" alt="验证码" />
-        </div>
-      </el-form-item>
-
       <el-button
         :loading="loading"
         type="primary"
@@ -81,25 +62,16 @@
       >
         登录
       </el-button>
-
-      <div style="position: relative">
-        <div class="tips">
-          <span>用户名: admin</span>
-          <span>密码: 123456</span>
-          <span>验证码: 1234</span>
-        </div>
-      </div>
     </el-form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, nextTick, onMounted } from 'vue'
+import { reactive, ref, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
-import { getCaptcha } from '@/api/auth'
 
 const router = useRouter()
 const route = useRoute()
@@ -109,12 +81,10 @@ const loginFormRef = ref<FormInstance>()
 const passwordType = ref('password')
 const capsTooltip = ref(false)
 const loading = ref(false)
-const captchaImg = ref('')
 
 const loginForm = reactive({
-  username: 'admin',
-  password: '123456',
-  captcha: ''
+  username: '',
+  password: ''
 })
 
 const loginRules: FormRules = {
@@ -123,8 +93,6 @@ const loginRules: FormRules = {
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
   ]
-  // 临时禁用验证码验证
-  // captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 }
 
 const showPwd = () => {
@@ -148,41 +116,21 @@ const handleLogin = () => {
     if (valid) {
       loading.value = true
       try {
-        // 临时跳过验证码验证
         const loginData = {
           username: loginForm.username,
-          password: loginForm.password,
-          captcha: '1234' // 临时固定验证码
+          password: loginForm.password
         }
         await authStore.login(loginData)
         router.push({ path: (route.query.redirect as string) || '/', replace: true })
         ElMessage.success('登录成功')
-      } catch (error) {
-        console.error('登录失败:', error)
-        refreshCaptcha()
+      } catch (error: any) {
+        ElMessage.error(error.message || '登录失败，请检查您的用户名和密码')
       } finally {
         loading.value = false
       }
     }
   })
 }
-
-const refreshCaptcha = async () => {
-  try {
-    // 临时禁用验证码功能，避免后端连接错误
-    // const { data } = await getCaptcha()
-    // captchaImg.value = data.img
-    
-    // 创建一个简单的验证码图片，显示 "1234"
-    captchaImg.value = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjQwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSI2MCIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyMCIgZmlsbD0iIzMzMyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+MTIzNDwvdGV4dD48L3N2Zz4='
-  } catch (error) {
-    console.error('获取验证码失败:', error)
-  }
-}
-
-onMounted(() => {
-  refreshCaptcha()
-})
 </script>
 
 <style lang="scss" scoped>

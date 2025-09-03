@@ -112,3 +112,21 @@ export function getBadgeStatistics(params: any) {
     params
   })
 }
+
+// 获取所有可授予的徽章
+export function getGrantedBadge(params: { current: number; size: number }) {
+  return request({
+    url: '/admin/platform/getGrantedBadge',
+    method: 'get',
+    params
+  })
+}
+
+// 授予用户徽章
+export function grantUserBadge(userId: number, badgeId: number) {
+  return request({
+    url: '/admin/platform/grantUser',
+    method: 'post',
+    params: { userId, badgeId }
+  })
+}

@@ -31,15 +31,15 @@
         </div>
         <template #dropdown>
           <el-dropdown-menu>
-            <router-link to="/profile/index">
+            <!-- <router-link to="/profile/index">
               <el-dropdown-item>个人中心</el-dropdown-item>
-            </router-link>
+            </router-link> -->
             <router-link to="/">
               <el-dropdown-item>首页</el-dropdown-item>
             </router-link>
-            <a target="_blank" href="https://github.com/ocean-education/ocean-admin">
+            <!-- <a target="_blank" href="https://github.com/ocean-education/ocean-admin">
               <el-dropdown-item>项目地址</el-dropdown-item>
-            </a>
+            </a> -->
             <el-dropdown-item divided @click="logout">
               <span style="display: block">退出登录</span>
             </el-dropdown-item>
@@ -84,7 +84,7 @@ const logout = async () => {
       type: 'warning'
     })
     
-    await authStore.logoutAction()
+    await authStore.logout()
     router.push(`/login?redirect=${router.currentRoute.value.fullPath}`)
   } catch (error) {
     console.error('退出登录失败:', error)

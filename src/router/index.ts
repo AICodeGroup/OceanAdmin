@@ -20,13 +20,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: Layout,
-    redirect: '/dashboard',
+    redirect: '/newCourse',
     children: [
       {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: () => import('@/pages/dashboard/index.vue'),
-        meta: { title: '仪表盘', icon: 'DataAnalysis', affix: true }
+        path: 'newCourse',
+        name: 'newCourse',
+        component: () => import('@/pages/newCourse/newCourseList.vue'),
+        meta: { title: '课程列表', icon: 'Coin' }
       }
     ]
   },
@@ -42,6 +42,21 @@ const routes: RouteRecordRaw[] = [
         name: 'BannerList',
         component: () => import('@/pages/banner/list.vue'),
         meta: { title: '轮播图列表', icon: 'List' }
+      }
+    ]
+  },
+  {
+    path: '/newBadge',
+    component: Layout,
+    redirect: '/newBadge/list',
+    name: 'newBadge',
+    meta: { title: '徽章管理', icon: 'Medal' },
+    children: [
+      {
+        path: 'list',
+        name: 'newBadgeList',
+        component: () => import('@/pages/newBadge/newBadgeList.vue'),
+        meta: { title: '徽章列表', icon: 'List' }
       }
     ]
   },

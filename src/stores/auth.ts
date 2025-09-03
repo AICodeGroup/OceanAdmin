@@ -10,11 +10,11 @@ export const useAuthStore = defineStore('auth', () => {
   const avatar = ref('')
   const roles = ref<string[]>([])
   const routes = ref<any[]>([
-    {
-      path: '/dashboard',
-      name: 'Dashboard',
-      meta: { title: '仪表盘', icon: 'DataAnalysis', affix: true }
-    },
+    // {
+    //   path: '/dashboard',
+    //   name: 'Dashboard',
+    //   meta: { title: '仪表盘', icon: 'DataAnalysis', affix: true }
+    // },
     // {
     //   path: '/banner',
     //   name: 'Banner',
@@ -59,7 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
     {
       path: '/newCourse',
       name: 'newCourse',
-      meta: { title: '课程管理', icon: 'Reading' },
+      meta: { title: '课程管理', icon: 'Reading',affix: true},
       children: [
         {
           path: 'newCourseList',
@@ -155,30 +155,42 @@ export const useAuthStore = defineStore('auth', () => {
     //     }
     //   ]
     // },
+    // {
+    //   path: '/badge',
+    //   name: 'Badge',
+    //   meta: { title: '徽章管理', icon: 'Medal' },
+    //   children: [
+    //     {
+    //       path: 'list',
+    //       name: 'BadgeList',
+    //       meta: { title: '徽章列表', icon: 'List' }
+    //     }
+    //   ]
+    // },
     {
-      path: '/badge',
-      name: 'Badge',
+      path: '/newBadge',
+      name: 'newBadge',
       meta: { title: '徽章管理', icon: 'Medal' },
       children: [
         {
           path: 'list',
-          name: 'BadgeList',
+          name: 'newBadgeList',
           meta: { title: '徽章列表', icon: 'List' }
         }
       ]
     },
-    {
-      path: '/species',
-      name: 'Species',
-      meta: { title: '物种管理', icon: 'Cherry' },
-      children: [
-        {
-          path: 'list',
-          name: 'SpeciesList',
-          meta: { title: '物种列表', icon: 'List' }
-        }
-      ]
-    },
+    // {
+    //   path: '/species',
+    //   name: 'Species',
+    //   meta: { title: '物种管理', icon: 'Cherry' },
+    //   children: [
+    //     {
+    //       path: 'list',
+    //       name: 'SpeciesList',
+    //       meta: { title: '物种列表', icon: 'List' }
+    //     }
+    //   ]
+    // },
     // {
     //   path: '/statistics',
     //   name: 'Statistics',
@@ -254,16 +266,15 @@ export const useAuthStore = defineStore('auth', () => {
   // 登录
   const loginAction = async (loginForm: any) => {
     try {
-      // 临时模拟登录成功，避免后端连接错误
-      // const { data } = await login(loginForm)
-      // token.value = data.token
-      // setToken(data.token)
-      
-      // 模拟登录成功
-      const mockToken = 'mock-token-' + Date.now()
-      token.value = mockToken
-      setToken(mockToken)
-      return Promise.resolve()
+      const res  = await login(loginForm)
+      console.log(res)
+      if (res) {
+        token.value = token
+        setToken(res)
+        return Promise.resolve()
+      } else {
+        return Promise.reject(new Error(data.message || '登录失败'))
+      }
     } catch (error) {
       return Promise.reject(error)
     }
@@ -301,6 +312,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // 临时跳过后端登出请求，避免后端连接错误
       // await logout()
+      console.log(logout)
       token.value = ''
       name.value = ''
       avatar.value = ''
