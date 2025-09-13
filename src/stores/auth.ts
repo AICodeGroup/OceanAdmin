@@ -175,7 +175,11 @@ export const useAuthStore = defineStore('auth', () => {
         {
           path: 'list',
           name: 'newBadgeList',
-          meta: { title: '徽章列表', icon: 'List' }
+          meta: { title: '徽章授予', icon: 'List' }
+        },{
+          path: 'badgeAdmin',
+          name: 'badgeAdmin',
+          meta: { title: '徽章管理', icon: 'List' }
         }
       ]
     },
@@ -236,6 +240,18 @@ export const useAuthStore = defineStore('auth', () => {
           path: 'orderList',
           name: 'orderList',
           meta: { title: '订单列表', icon: 'List' }
+        }
+      ]
+    },
+    {
+      path: '/newBanner',
+      name: 'newBanner',
+      meta: { title: '轮播图管理', icon: 'List' },
+      children: [
+        {
+          path: 'newBannerList',
+          name: 'newBannerList',
+          meta: { title: '轮播图列表', icon: 'List' }
         }
       ]
     },

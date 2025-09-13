@@ -31,21 +31,6 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: '/banner',
-    component: Layout,
-    redirect: '/banner/list',
-    name: 'Banner',
-    meta: { title: '轮播图管理', icon: 'Picture' },
-    children: [
-      {
-        path: 'list',
-        name: 'BannerList',
-        component: () => import('@/pages/banner/list.vue'),
-        meta: { title: '轮播图列表', icon: 'List' }
-      }
-    ]
-  },
-  {
     path: '/newBadge',
     component: Layout,
     redirect: '/newBadge/list',
@@ -56,8 +41,29 @@ const routes: RouteRecordRaw[] = [
         path: 'list',
         name: 'newBadgeList',
         component: () => import('@/pages/newBadge/newBadgeList.vue'),
-        meta: { title: '徽章列表', icon: 'List' }
-      }
+        meta: { title: '徽章授予', icon: 'List' }
+      },
+      {
+        path: 'badgeAdmin',
+        name: 'badgeAdmin',
+        component: () => import('@/pages/newBadge/badgeAdmin.vue'),
+        meta: { title: '徽章管理', icon: 'List' }
+      },
+    ]
+  },
+  {
+    path: '/newBanner',
+    component: Layout,
+    redirect: '/newBanner/newBannerList',
+    name: 'newBanner',
+    meta: { title: '轮播图管理', icon: 'Medal' },
+    children: [
+      {
+        path: 'newBannerList',
+        name: 'newBannerList',
+        component: () => import('@/pages/newBanner/newBannerList.vue'),
+        meta: { title: '轮播图管理', icon: 'List' }
+      },
     ]
   },
   {

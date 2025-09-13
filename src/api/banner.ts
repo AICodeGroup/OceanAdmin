@@ -1,63 +1,72 @@
 import request from '@/utils/request'
 
-// 获取轮播图列表
-export function getBannerList(params: { page: number; size: number }) {
-  return request({
-    url: '/banner/list',
-    method: 'get',
-    params
-  })
+// 定义 Banner 对象的接口类型
+export interface Banner {
+  id?: number
+  title: string
+  imageUrl: string
+  linkUrl: string
+  sort: number
+  status: boolean
+  bannerType: number
+  isDel?: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
-// 创建轮播图
-export function createBanner(data: any) {
+// 定义轮播图列表响应的数据结构
+interface BannerListResponse {
+  page: number;
+  limit: number;
+  totalPage: number;
+  total: number;
+  list: Banner[];
+}
+
+// 分页获取轮播图列表 (包含筛选条件)
+export async function getBannersList(params: any): Promise<BannerListResponse> {
+  const response = await request({
+    url: '/admin/platform/banners/list',
+    method: 'get',
+    params
+  }) as BannerListResponse;
+
+  // 修复 imageUrl 中可能存在的重复前缀
+  if (response && response.list) {
+    const prefix = 'https://beniocean.com/';
+    response.list.forEach((banner: Banner) => {
+      // 使用 while 循环，确保移除所有重复的前缀
+      while (banner.imageUrl && banner.imageUrl.startsWith(prefix + prefix)) {
+        banner.imageUrl = banner.imageUrl.substring(prefix.length);
+      }
+    });
+  }
+
+  return response;
+}
+
+// 新增轮播图
+export function createBanner(data: Omit<Banner, 'id'>) {
   return request({
-    url: '/banner/create',
+    url: '/admin/platform/banners/create',
     method: 'post',
     data
   })
 }
 
-// 更新轮播图
-export function updateBanner(id: number, data: any) {
+// 修改轮播图
+export function updateBanner(data: Banner) {
   return request({
-    url: `/banner/update/${id}`,
-    method: 'put',
+    url: '/admin/platform/banners/update',
+    method: 'post',
     data
   })
 }
 
 // 删除轮播图
-export function deleteBanner(id: number | number[]) {
+export function deleteBanner(id: number) {
   return request({
-    url: '/banner/delete',
-    method: 'delete',
-    data: { id }
-  })
-}
-
-// 获取轮播图详情
-export function getBannerDetail(id: number) {
-  return request({
-    url: `/banner/detail/${id}`,
-    method: 'get'
-  })
-}
-
-// 更新轮播图状态
-export function updateBannerStatus(id: number, status: number) {
-  return request({
-    url: `/banner/status/${id}`,
-    method: 'put',
-    data: { status }
-  })
-}
-
-// 更新轮播图排序
-export function updateBannerSort(data: { id: number; sort: number }[]) {
-  return request({
-    url: '/banner/sort',
-    method: 'put',
-    data
+    url: `/admin/platform/banners/delete/${id}`,
+    method: 'delete'
   })
 }

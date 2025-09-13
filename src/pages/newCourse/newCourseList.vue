@@ -156,7 +156,7 @@
         <el-form-item label="轮播图" prop="course.sliderImage">
             <el-upload
                 v-model:file-list="fileList"
-                action="/api/admin/platform/uploadOss"
+                action="http://47.112.106.127:8080/api/admin/platform/uploadOss"
                 list-type="picture-card"
                 multiple
                 :on-success="handleUploadSuccess"

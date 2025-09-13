@@ -159,8 +159,9 @@
     try {
       const res = await getGrantedBadge({ 
         current: pagination.current, 
-        size: pagination.size 
+        size: pagination.size,
       })
+      console.log(res)
       tableData.value = res.records
       pagination.total = res.total
     } catch (error) {

@@ -1,11 +1,47 @@
 import request from '@/utils/request'
 
-// 获取徽章列表
+// 查看所有徽章接口
 export function getBadgeList(params: any) {
   return request({
-    url: '/badge/list',
+    url: '/admin/platform/badge/list',
     method: 'get',
     params
+  })
+}
+
+// 新增徽章接口
+export function addBadge(data: any) {
+  return request({
+    url: '/admin/platform/badge/addBadge',
+    method: 'post',
+    data
+  })
+}
+
+// 修改徽章接口
+export function updateBadge(data: any) {
+  return request({
+    url: '/admin/platform/badge/update',
+    method: 'put',
+    data
+  })
+}
+
+// 删除徽章接口
+export function deleteBadge(id: number) {
+  return request({
+    url: `/admin/platform/badge/delete/${id}`,
+    method: 'delete'
+  })
+}
+
+// 批量删除徽章接口
+export function batchDeleteBadges(ids: number[]) {
+  return request({
+    url: '/admin/platform/badge/batchDelete',
+    method: 'delete',
+    data: ids, // 直接发送数组作为请求体
+ 
   })
 }
 
@@ -14,32 +50,6 @@ export function getBadgeTypeList() {
   return request({
     url: '/badge/types',
     method: 'get'
-  })
-}
-
-// 创建徽章
-export function createBadge(data: any) {
-  return request({
-    url: '/badge/create',
-    method: 'post',
-    data
-  })
-}
-
-// 更新徽章
-export function updateBadge(id: number, data: any) {
-  return request({
-    url: `/badge/update/${id}`,
-    method: 'put',
-    data
-  })
-}
-
-// 删除徽章
-export function deleteBadge(id: number) {
-  return request({
-    url: `/badge/delete/${id}`,
-    method: 'delete'
   })
 }
 
@@ -88,6 +98,18 @@ export function createBadgeRule(data: any) {
 }
 
 // 更新徽章发放规则
+export interface BadgeItem {
+  id: number
+  name: string
+  description: string
+  iconUrl: string
+  typeId: number
+  level: number
+  isGranted: number // 0 表示不可以，1 表示可以
+  createdAt: string
+  updatedAt: string
+}
+
 export function updateBadgeRule(id: number, data: any) {
   return request({
     url: `/badge/rules/${id}`,
@@ -114,7 +136,11 @@ export function getBadgeStatistics(params: any) {
 }
 
 // 获取所有可授予的徽章
-export function getGrantedBadge(params: { current: number; size: number }) {
+export function getGrantedBadge(params: { 
+  current: number; 
+  size: number;
+  is_del?: number; // 0-未删除，1-已删除 
+}) {
   return request({
     url: '/admin/platform/getGrantedBadge',
     method: 'get',

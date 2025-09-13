@@ -12,7 +12,7 @@ export interface CommonResult<T = any> {
 const service = axios.create({
   // 重要：请将 baseURL 修改为您的后端 API 地址，或在 vite.config.js 中配置代理（推荐）
   // 例如: server: { proxy: { '/api': 'http://localhost:8080' } }
-  baseURL: '/api', // API 基础路径
+  baseURL: 'http://47.112.106.127:8080/api', // 直接使用远程服务器地址
   timeout: 10000, // 请求超时
 })
 
