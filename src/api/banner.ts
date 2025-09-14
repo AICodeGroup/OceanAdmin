@@ -23,8 +23,15 @@ interface BannerListResponse {
   list: Banner[];
 }
 
+// 定义获取轮播图列表的请求参数接口
+interface GetBannersListParams {
+  page: number;
+  limit: number;
+  bannerType?: number;
+}
+
 // 分页获取轮播图列表 (包含筛选条件)
-export async function getBannersList(params: any): Promise<BannerListResponse> {
+export async function getBannersList(params: GetBannersListParams): Promise<BannerListResponse> {
   const response = await request({
     url: '/admin/platform/banners/list',
     method: 'get',

@@ -1,6 +1,20 @@
 <template>
   <div class="app-container">
     <el-card>
+      <!-- 筛选条件 -->
+      <el-form :model="queryParams" ref="queryForm" :inline="true" class="mb-4">
+        <el-form-item label="轮播图类型" prop="bannerType" style="width: 222px;">
+          <el-select v-model="queryParams.bannerType" placeholder="请选择类型" clearable @change="handleQuery">
+            <el-option label="首页轮播图" :value="0" />
+            <el-option label="物种轮播图" :value="1" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+          <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+
       <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb-4">
         <el-col :span="1.5">
@@ -27,6 +41,11 @@
         <el-table-column label="状态" align="center" width="100">
           <template #default="scope">
             <el-tag :type="scope.row.status ? 'success' : 'info'">{{ scope.row.status ? '显示' : '隐藏' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="轮播图类型" prop="bannerType" width="270" align="center">
+          <template #default="scope">
+            <span>{{ scope.row.bannerType === 0 ? '首页轮播图' : '物种轮播图' }}</span>
           </template>
         </el-table-column>
         <el-table-column label="创建时间" prop="createdAt" width="180" />
@@ -78,6 +97,12 @@
         <el-form-item label="状态" prop="status">
           <el-switch v-model="form.status" />
         </el-form-item>
+        <el-form-item label="轮播图类型" prop="bannerType">
+          <el-radio-group v-model="form.bannerType">
+            <el-radio :label="0">首页轮播图</el-radio>
+            <el-radio :label="1">物种轮播图</el-radio>
+          </el-radio-group>
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -102,6 +127,7 @@ const total = ref(0);
 const queryParams = reactive({
   page: 1,
   limit: 10,
+  bannerType: undefined,
 });
 
 const dialogVisible = ref(false);
@@ -123,7 +149,21 @@ let form = reactive(getInitialForm());
 const rules = reactive<FormRules>({
   title: [{ required: true, message: '请输入轮播图标题', trigger: 'blur' }],
   imageUrl: [{ required: true, message: '请上传轮播图', trigger: 'change' }],
+  bannerType: [{ required: true, message: '请选择轮播图类型', trigger: 'change' }],
 });
+
+// 查询按钮操作
+const handleQuery = () => {
+  queryParams.page = 1;
+  getList();
+};
+
+// 重置查询
+const resetQuery = () => {
+  queryParams.page = 1;
+  queryParams.bannerType = undefined;
+  getList();
+};
 
 // 获取轮播图列表
 const getList = async () => {
