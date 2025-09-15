@@ -71,7 +71,7 @@
     </el-card>
 
     <!-- 新增/修改轮播图弹窗 -->
-    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="600px" @close="handleCancel">
+    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="600px" destroy-on-close @close="handleCancel">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入轮播图标题" />
@@ -181,9 +181,12 @@ const getList = async () => {
 
 // 重置表单
 const resetForm = () => {
+  // 彻底清空响应式对象，防止属性（尤其是 id）残留
+  Object.keys(form).forEach(key => {
+    delete (form as any)[key];
+  });
   Object.assign(form, getInitialForm());
   fileList.value = [];
-  formRef.value?.resetFields();
 };
 
 // 新增按钮操作
@@ -241,6 +244,7 @@ const handleRemove: UploadProps['onRemove'] = () => {
 const handleCancel = () => {
   dialogVisible.value = false;
   resetForm();
+  formRef.value?.clearValidate(); // 只清除校验状态
 };
 
 // 弹窗提交按钮
@@ -258,6 +262,7 @@ const handleSubmit = () => {
         ElMessage.success(isUpdate ? '修改成功' : '新增成功');
         dialogVisible.value = false;
         getList();
+        formRef.value?.clearValidate(); // 清除校验状态
       } catch (error) {
         ElMessage.error(isUpdate ? '修改失败' : '新增失败');
       }
