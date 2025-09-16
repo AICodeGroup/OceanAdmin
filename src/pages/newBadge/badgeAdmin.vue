@@ -95,7 +95,7 @@
         <el-form-item label="图标" prop="iconUrl">
           <el-upload
             v-model:file-list="fileList"
-            action="http://47.112.106.127:8080/api/admin/platform/uploadOss"
+            action="https://beniocean.com/api/admin/platform/uploadOss"
             list-type="picture-card"
             :limit="1"
             :on-success="handleUploadSuccess"
