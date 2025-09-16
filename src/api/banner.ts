@@ -4,6 +4,7 @@ import request from '@/utils/request'
 export interface Banner {
   id?: number
   title: string
+  latinName: string
   imageUrl: string
   linkUrl: string
   sort: number

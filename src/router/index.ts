@@ -282,6 +282,18 @@ const routes: RouteRecordRaw[] = [
         name: 'SpeciesList',
         component: () => import('@/pages/species/list.vue'),
         meta: { title: '物种列表', icon: 'List' }
+      },
+      {
+        path: 'category',
+        name: 'SpeciesCategory',
+        component: () => import('@/pages/species/category.vue'),
+        meta: { title: '物种分类', icon: 'Menu' }
+      },
+      {
+        path: 'course-relation',
+        name: 'SpeciesCourseRelation',
+        component: () => import('@/pages/species/course-relation.vue'),
+        meta: { title: '课程关联', icon: 'Link' }
       }
     ]
   },

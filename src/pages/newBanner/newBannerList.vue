@@ -76,10 +76,13 @@
         <el-form-item label="标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入轮播图标题" />
         </el-form-item>
+        <el-form-item label="英文标题" prop="latinName">
+          <el-input v-model="form.latinName" placeholder="请输入英文标题" />
+        </el-form-item>
         <el-form-item label="轮播图" prop="imageUrl">
             <el-upload
                 v-model:file-list="fileList"
-                action="http://47.112.106.127:8080/api/admin/platform/uploadOss"
+                action="https://beniocean.com/api/admin/platform/uploadOss"
                 list-type="picture-card"
                 :limit="1"
                 :on-success="handleUploadSuccess"
@@ -137,6 +140,7 @@ const fileList = ref<UploadUserFile[]>([]);
 
 const getInitialForm = (): Omit<Banner, 'id' | 'createdAt' | 'updatedAt' | 'isDel'> => ({
   title: '',
+  latinName: '',
   imageUrl: '',
   linkUrl: '',
   sort: 0,
@@ -148,6 +152,7 @@ let form = reactive(getInitialForm());
 
 const rules = reactive<FormRules>({
   title: [{ required: true, message: '请输入轮播图标题', trigger: 'blur' }],
+  latinName: [{ required: true, message: '请输入英文标题', trigger: 'blur' }],
   imageUrl: [{ required: true, message: '请上传轮播图', trigger: 'change' }],
   bannerType: [{ required: true, message: '请选择轮播图类型', trigger: 'change' }],
 });

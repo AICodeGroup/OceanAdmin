@@ -156,7 +156,7 @@
         <el-form-item label="轮播图" prop="course.sliderImage">
             <el-upload
                 v-model:file-list="fileList"
-                action="http://47.112.106.127:8080/api/admin/platform/uploadOss"
+                action="https://beniocean.com/api/admin/platform/uploadOss"
                 list-type="picture-card"
                 multiple
                 :on-success="handleUploadSuccess"
@@ -165,6 +165,50 @@
                 <el-icon><Plus /></el-icon>
             </el-upload>
         </el-form-item>
+        <el-row>
+            <el-col :span="8">
+                <el-form-item prop="course.iconUrl">
+                    <template #label>
+                        <span style="display: inline-flex; align-items: center; gap: 4px;">
+                            icon图标
+                            <el-tooltip content="用于足迹地图显示" placement="top">
+                                <el-icon style="font-size: 14px; color: #909399; cursor: help;" @mouseenter="$event.target.style.color='#409eff'" @mouseleave="$event.target.style.color='#909399'">
+                                    <InfoFilled />
+                                </el-icon>
+                            </el-tooltip>
+                        </span>
+                    </template>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <el-image 
+                            v-if="form.course.iconUrl" 
+                            :src="form.course.iconUrl" 
+                            style="width: 40px; height: 40px; border-radius: 4px; border: 1px solid #dcdfe6;" 
+                            fit="cover"
+                        />
+                        <el-upload
+                            :show-file-list="false"
+                            action="https://beniocean.com/api/admin/platform/uploadOss"
+                            :on-success="handleIconUploadSuccess"
+                            :headers="{ Authorization: 'Bearer ' + getToken() }"
+                            accept="image/*"
+                        >
+                            <el-button size="small" type="primary" plain>
+                                {{ form.course.iconUrl ? '更换' : '上传' }}
+                            </el-button>
+                        </el-upload>
+                        <el-button 
+                            v-if="form.course.iconUrl" 
+                            size="small" 
+                            type="danger" 
+                            plain 
+                            @click="handleIconRemove"
+                        >
+                            删除
+                        </el-button>
+                    </div>
+                </el-form-item>
+            </el-col>
+        </el-row>
         <el-row>
             <el-col :span="8">
                 <el-form-item label="时长" prop="course.duration">
@@ -271,6 +315,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, UploadProps, UploadUserFile } from 'element-plus';
+import { InfoFilled } from '@element-plus/icons-vue';
 import request from '@/utils/request';
 import { getToken } from '@/utils/auth';
 
@@ -286,6 +331,7 @@ interface Course {
     intro: string;
     sliderImage: string;
     image: string;
+    iconUrl: string;
     price: number;
     isShow: boolean;
     duration: string;
@@ -328,6 +374,7 @@ const getInitialForm = () => ({
         intro: '',
         sliderImage: '[]',
         image: '',
+        iconUrl: '',
         price: 0.00,
         isShow: true,
         duration: '',
@@ -380,11 +427,19 @@ const getList = async () => {
       method: 'get',
       params: queryParams,
     });
-    if (response) {
-        courseList.value = response.list;
-        total.value = response.total;
+    
+    // 根据实际API响应结构，数据直接在response下
+    if (response && (response as any).list) {
+        courseList.value = (response as any).list;
+        total.value = (response as any).total || 0;
+        console.log('成功加载课程数据:', courseList.value.length, '条课程');
+    } else {
+        console.warn('API响应格式异常:', response);
+        courseList.value = [];
+        total.value = 0;
     }
   } catch (error) {
+    console.error('获取课程列表失败:', error);
     ElMessage.error('获取课程列表失败');
   } finally {
     loading.value = false;
@@ -412,7 +467,7 @@ const handleUpdate = async (row: any) => {
 
     // 将 skillIds 字符串转为数组以适应多选框
     if (form.course.skillIds && typeof form.course.skillIds === 'string') {
-        form.course.skillIds = form.course.skillIds.split(',');
+        form.course.skillIds = (form.course.skillIds as string).split(',');
     } else if (!form.course.skillIds) {
         form.course.skillIds = [];
     }
@@ -430,13 +485,15 @@ const handleUpdate = async (row: any) => {
         fileList.value = [];
     }
 
+    // icon图标已经在form.course.iconUrl中，无需额外处理
+
     // 获取并填充排期信息
     try {
         const response = await request({
             url: `/admin/platform/product/getProductSchedulesByProductId/${row.id}`,
             method: 'get',
         });
-        const schedules = response || [];
+        const schedules = (response as any) || [];
         if (schedules && schedules.length > 0) {
             form.schedules = schedules.map((s: any) => ({
                 name: s.name,
@@ -510,7 +567,7 @@ const submitForm = () => {
                 return schedule;
             });
             try {
-                const res = await request({
+                await request({
                     url: apiPath,
                     method: 'post',
                     data: requestData,
@@ -546,9 +603,23 @@ const handleUploadSuccess: UploadProps['onSuccess'] = (response, uploadFile, upl
     }
 };
 
-const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
+const handleRemove: UploadProps['onRemove'] = (_, uploadFiles) => {
     fileList.value = uploadFiles;
     form.course.sliderImage = JSON.stringify(fileList.value.map(f => f.url));
+};
+
+const handleIconUploadSuccess: UploadProps['onSuccess'] = (response) => {
+    if (response.code === 200 && typeof response.data === 'string' && response.data) {
+        form.course.iconUrl = response.data;
+        ElMessage.success('图标上传成功');
+    } else {
+        ElMessage.error('图标上传失败，响应数据不正确');
+    }
+};
+
+const handleIconRemove = () => {
+    form.course.iconUrl = '';
+    ElMessage.success('图标已删除');
 };
 
 const parseSliderImage = (sliderImage: string) => {
@@ -598,7 +669,7 @@ const getCategoryList = async () => {
             method: 'get',
         });
         if (response) {
-            categoryList.value = response;
+            categoryList.value = response as any;
         }
     } catch (error) {
         ElMessage.error('获取课程分类失败');

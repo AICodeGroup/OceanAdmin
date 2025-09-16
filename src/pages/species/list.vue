@@ -108,11 +108,15 @@
         <el-icon><Menu /></el-icon>
         分类管理
       </el-button>
+      <el-button type="warning" @click="handleCourseRelation">
+        <el-icon><Link /></el-icon>
+        课程关联
+      </el-button>
       <el-button type="info" @click="handleImport">
         <el-icon><Upload /></el-icon>
         批量导入
       </el-button>
-      <el-button type="warning" @click="handleExport">
+      <el-button type="info" @click="handleExport">
         <el-icon><Download /></el-icon>
         导出数据
       </el-button>
@@ -421,6 +425,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import { useRouter } from 'vue-router'
+
+// 路由
+const router = useRouter()
 
 // 响应式数据
 const loading = ref(false)
@@ -703,6 +711,12 @@ const resetForm = () => {
 // 处理分类管理
 const handleCategories = () => {
   categoryVisible.value = true
+}
+
+// 处理课程关联
+const handleCourseRelation = () => {
+  // 跳转到课程关联管理页面
+  router.push('/species/course-relation')
 }
 
 // 处理添加分类

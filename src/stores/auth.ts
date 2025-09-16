@@ -272,6 +272,28 @@ export const useAuthStore = defineStore('auth', () => {
         }
       ]
     },
+    {
+      path: '/species',
+      name: 'Species',
+      meta: { title: '物种管理', icon: 'Cherry' },
+      children: [
+        {
+          path: 'list',
+          name: 'SpeciesList',
+          meta: { title: '物种列表', icon: 'List' }
+        },
+        {
+          path: 'category',
+          name: 'SpeciesCategory',
+          meta: { title: '物种分类', icon: 'Menu' }
+        },
+        {
+          path: 'course-relation',
+          name: 'SpeciesCourseRelation',
+          meta: { title: '课程关联', icon: 'Link' }
+        }
+      ]
+    },
   ])
   const userInfo = ref({
     name: '',

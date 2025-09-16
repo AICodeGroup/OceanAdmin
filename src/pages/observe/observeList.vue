@@ -92,9 +92,15 @@
 
         <el-table-column prop="createdAt" label="提交时间" width="180" />
         
-        <el-table-column label="状态" width="100" fixed="right">
+        <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="statusType(row.status)">{{ formatStatus(row.status) }}</el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="操作" width="100" fixed="right">
+          <template #default="{ row }">
+            <el-button type="danger" icon="Delete" size="small" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -116,7 +122,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { getObservationsList } from '@/api/observe';
+import request from '@/utils/request';
 import type { Dayjs } from 'dayjs';
 
 // 搜索表单
@@ -226,6 +234,33 @@ const statusType = (status: number) => {
   };
   return typeMap[status] || 'info';
 }
+
+// 删除观察记录
+const handleDelete = (row: any) => {
+  ElMessageBox.confirm(
+    `确定要删除用户"${row.userNickname}"的观察记录"${row.title}"吗？`,
+    '删除确认',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(async () => {
+    try {
+      await request({
+        url: `/admin/platform/observations/delete/${row.id}`,
+        method: 'delete',
+      });
+      ElMessage.success('删除成功');
+      fetchData(); // 重新加载数据
+    } catch (error) {
+      console.error('删除失败:', error);
+      ElMessage.error('删除失败');
+    }
+  }).catch(() => {
+    // 用户取消删除
+  });
+};
 
 // 初始加载
 onMounted(() => {

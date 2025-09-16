@@ -112,3 +112,91 @@ export function exportSpecies(params: any) {
     responseType: 'blob'
   })
 }
+
+// ==================== 课程物种关联管理 ====================
+
+// 获取课程物种关联列表
+export function getCourseSpeciesRelationList(params: any) {
+  return request({
+    url: '/course-species-relation/list',
+    method: 'get',
+    params
+  })
+}
+
+// 创建课程物种关联
+export function createCourseSpeciesRelation(data: any) {
+  return request({
+    url: '/course-species-relation/create',
+    method: 'post',
+    data
+  })
+}
+
+// 更新课程物种关联
+export function updateCourseSpeciesRelation(id: number, data: any) {
+  return request({
+    url: `/course-species-relation/update/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+// 删除课程物种关联
+export function deleteCourseSpeciesRelation(id: number) {
+  return request({
+    url: `/course-species-relation/delete/${id}`,
+    method: 'delete'
+  })
+}
+
+// 批量创建课程物种关联
+export function batchCreateCourseSpeciesRelation(data: any) {
+  return request({
+    url: '/course-species-relation/batch-create',
+    method: 'post',
+    data
+  })
+}
+
+// 根据课程ID获取关联的物种
+export function getSpeciesByCourseId(courseId: number) {
+  return request({
+    url: `/course-species-relation/species-by-course/${courseId}`,
+    method: 'get'
+  })
+}
+
+// 根据物种ID获取关联的课程
+export function getCoursesBySpeciesId(speciesId: number) {
+  return request({
+    url: `/course-species-relation/courses-by-species/${speciesId}`,
+    method: 'get'
+  })
+}
+
+// 获取课程物种关联统计
+export function getCourseSpeciesRelationStats() {
+  return request({
+    url: '/course-species-relation/statistics',
+    method: 'get'
+  })
+}
+
+// 同步课程物种关联数据
+export function syncCourseSpeciesRelation() {
+  return request({
+    url: '/course-species-relation/sync',
+    method: 'post'
+  })
+}
+
+// 导出课程物种关联数据
+export function exportCourseSpeciesRelation(params: any) {
+  return request({
+    url: '/course-species-relation/export',
+    method: 'get',
+    params,
+    responseType: 'blob'
+  })
+}
