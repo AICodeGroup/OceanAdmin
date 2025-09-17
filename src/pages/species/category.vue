@@ -5,7 +5,7 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="stats-container">
+    <!-- <div class="stats-container">
       <el-row :gutter="20">
         <el-col :span="6">
           <div class="stat-card">
@@ -52,7 +52,7 @@
           </div>
         </el-col>
       </el-row>
-    </div>
+    </div> -->
 
     <!-- 搜索区域 -->
     <div class="card-container">
@@ -60,12 +60,12 @@
         <el-form-item label="分类名称">
           <el-input v-model="searchForm.name" placeholder="请输入分类名称" clearable />
         </el-form-item>
-        <el-form-item label="状态">
+        <!-- <el-form-item label="状态">
           <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
             <el-option label="启用" :value="1" />
             <el-option label="禁用" :value="0" />
           </el-select>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
             <el-icon><Search /></el-icon>
@@ -85,14 +85,14 @@
         <el-icon><Plus /></el-icon>
         新增分类
       </el-button>
-      <el-button type="success" @click="handleSort">
+      <!-- <el-button type="success" @click="handleSort">
         <el-icon><Sort /></el-icon>
         排序管理
       </el-button>
       <el-button type="warning" @click="handleBatchOperation">
         <el-icon><Operation /></el-icon>
         批量操作
-      </el-button>
+      </el-button> -->
     </div>
 
     <!-- 表格 -->
@@ -105,7 +105,7 @@
         default-expand-all
         :tree-props="{ children: 'children' }"
       >
-        <el-table-column prop="id" label="ID" width="80" />
+        <!-- <el-table-column prop="id" label="ID" width="80" /> -->
         <el-table-column prop="name" label="分类名称" min-width="200">
           <template #default="scope">
             <div class="category-name">
@@ -120,13 +120,13 @@
           </template>
         </el-table-column>
         <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="sortOrder" label="排序" width="100" />
+        <!-- <el-table-column prop="sortOrder" label="排序" width="100" /> -->
         <el-table-column prop="speciesCount" label="物种数量" width="120">
           <template #default="scope">
             <el-tag type="info">{{ scope.row.speciesCount || 0 }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <!-- <el-table-column label="状态" width="100">
           <template #default="scope">
             <el-switch
               v-model="scope.row.status"
@@ -135,7 +135,7 @@
               @change="handleStatusChange(scope.row)"
             />
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column label="操作" width="300" fixed="right">
           <template #default="scope">
@@ -145,9 +145,9 @@
             <el-button type="success" size="small" @click="handleAddChild(scope.row)">
               添加子分类
             </el-button>
-            <el-button type="info" size="small" @click="handleViewSpecies(scope.row)">
+            <!-- <el-button type="info" size="small" @click="handleViewSpecies(scope.row)">
               查看物种
-            </el-button>
+            </el-button> -->
             <el-button 
               type="danger" 
               size="small" 
@@ -205,6 +205,12 @@
             type="textarea" 
             :rows="3" 
             placeholder="请输入分类描述" 
+          />
+        </el-form-item>
+        <el-form-item label="图标" prop="icon">
+          <el-input 
+            v-model="form.icon" 
+            placeholder="请输入图标（可选，支持类名或URL）" 
           />
         </el-form-item>
         <el-form-item label="排序" prop="sortOrder">
@@ -278,10 +284,10 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import {
-  getSpeciesCategoryList,
-  createSpeciesCategory,
-  updateSpeciesCategory,
-  deleteSpeciesCategory
+  getSpeciesTree,
+  updateSpeciesTree,
+  deleteSpeciesTree,
+  saveSpeciesTree
 } from '@/api/species'
 
 // 响应式数据
@@ -300,93 +306,36 @@ const stats = reactive({
   recent: 3
 })
 
-// 表格数据
-const tableData = ref([
-  {
-    id: 1,
-    name: '鱼类',
-    description: '包括各种海洋和淡水鱼类',
-    parentId: null,
-    sortOrder: 1,
-    speciesCount: 45,
+// 表格数据（由后端树结构填充）
+const tableData = ref<any[]>([])
+// 原始树数据（用于搜索过滤恢复）
+const originalTreeData = ref<any[]>([])
+
+// 将后端节点结构标准化为表格需要的字段
+type BackendNode = {
+  id: number
+  pid?: number | null
+  name: string
+  level?: number
+  description?: string
+  speciesList?: any[]
+  children?: BackendNode[]
+}
+
+const normalizeTree = (nodes: BackendNode[] | undefined): any[] => {
+  if (!nodes || nodes.length === 0) return []
+  return nodes.map((n: BackendNode) => ({
+    id: n.id,
+    name: n.name,
+    description: n.description || '',
+    parentId: n.pid ?? null,
+    sortOrder: 0,
+    speciesCount: Array.isArray(n.speciesList) ? n.speciesList.length : 0,
     status: 1,
     createTime: '2024-01-01 00:00:00',
-    children: [
-      {
-        id: 11,
-        name: '热带鱼',
-        description: '生活在热带海域的鱼类',
-        parentId: 1,
-        sortOrder: 1,
-        speciesCount: 20,
-        status: 1,
-        createTime: '2024-01-01 00:00:00'
-      },
-      {
-        id: 12,
-        name: '冷水鱼',
-        description: '生活在冷水海域的鱼类',
-        parentId: 1,
-        sortOrder: 2,
-        speciesCount: 25,
-        status: 1,
-        createTime: '2024-01-01 00:00:00'
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: '棘皮动物',
-    description: '包括海星、海胆等棘皮动物',
-    parentId: null,
-    sortOrder: 2,
-    speciesCount: 23,
-    status: 1,
-    createTime: '2024-01-01 00:00:00',
-    children: [
-      {
-        id: 21,
-        name: '海星类',
-        description: '各种海星',
-        parentId: 2,
-        sortOrder: 1,
-        speciesCount: 15,
-        status: 1,
-        createTime: '2024-01-01 00:00:00'
-      },
-      {
-        id: 22,
-        name: '海胆类',
-        description: '各种海胆',
-        parentId: 2,
-        sortOrder: 2,
-        speciesCount: 8,
-        status: 1,
-        createTime: '2024-01-01 00:00:00'
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: '爬行动物',
-    description: '海洋中的爬行动物',
-    parentId: null,
-    sortOrder: 3,
-    speciesCount: 12,
-    status: 1,
-    createTime: '2024-01-01 00:00:00'
-  },
-  {
-    id: 4,
-    name: '哺乳动物',
-    description: '海洋哺乳动物',
-    parentId: null,
-    sortOrder: 4,
-    speciesCount: 8,
-    status: 0,
-    createTime: '2024-01-01 00:00:00'
-  }
-])
+    children: normalizeTree(n.children)
+  }))
+}
 
 // 搜索表单
 const searchForm = reactive({
@@ -400,6 +349,7 @@ const form = reactive({
   name: '',
   description: '',
   parentId: null,
+  icon: '',
   sortOrder: 0,
   status: 1
 })
@@ -418,40 +368,49 @@ const pagination = reactive({
 })
 
 // 分类选项（用于上级分类选择）
-const categoryOptions = ref([])
-const sortData = ref([])
+const categoryOptions = ref<any[]>([])
+const sortData = ref<any[]>([])
 
 // 获取列表数据
 const getList = async () => {
   loading.value = true
   try {
-    // 模拟API调用
-    setTimeout(() => {
-      loading.value = false
-    }, 500)
+    const res: any = await getSpeciesTree()
+    // 兼容不同返回包裹层
+    const raw = Array.isArray(res) ? res : (res?.data ?? [])
+    originalTreeData.value = normalizeTree(raw)
+    applyFilters()
+    // 简单设置分页总数（根节点数量）
+    pagination.total = tableData.value.length
   } catch (error) {
     console.error('获取分类列表失败:', error)
+  } finally {
     loading.value = false
   }
 }
-
+onMounted(() => {
+  getCategoryOptions()
+})
 // 获取分类选项
-const getCategoryOptions = () => {
-  // 转换树形数据为选项格式
-  const convertToOptions = (data: any[], level = 0) => {
-    return data.map(item => ({
-      id: item.id,
-      name: item.name,
-      children: item.children ? convertToOptions(item.children, level + 1) : undefined
-    }))
+const getCategoryOptions = async () => {
+  try {
+    // 若已有表格树数据，直接复用；否则请求一次
+    if (tableData.value.length === 0) {
+      const res: any = await getSpeciesTree()
+      const raw = Array.isArray(res) ? res : (res?.data ?? [])
+      categoryOptions.value = normalizeTree(raw)
+    } else {
+      categoryOptions.value = JSON.parse(JSON.stringify(tableData.value))
+    }
+  } catch (e) {
+    console.error('获取分类选项失败:', e)
   }
-  categoryOptions.value = convertToOptions(tableData.value)
 }
 
 // 处理搜索
 const handleSearch = () => {
   pagination.page = 1
-  getList()
+  applyFilters()
 }
 
 // 处理重置
@@ -461,12 +420,39 @@ const handleReset = () => {
     status: ''
   })
   pagination.page = 1
-  getList()
+  applyFilters()
+}
+
+// 应用搜索过滤（在原始树上过滤到表格）
+const applyFilters = () => {
+  const keyword = (searchForm.name || '').trim().toLowerCase()
+  if (!keyword) {
+    tableData.value = JSON.parse(JSON.stringify(originalTreeData.value))
+    return
+  }
+  const filtered = filterTree(originalTreeData.value, (node: any) => {
+    return String(node.name || '').toLowerCase().includes(keyword)
+  })
+  tableData.value = filtered
+}
+
+// 递归过滤树，命中自身或子孙则保留
+function filterTree(nodes: any[], predicate: (n: any) => boolean): any[] {
+  const result: any[] = []
+  for (const node of nodes) {
+    const children = Array.isArray(node.children) ? node.children : []
+    const matchedChildren = filterTree(children, predicate)
+    if (predicate(node) || matchedChildren.length > 0) {
+      result.push({ ...node, children: matchedChildren })
+    }
+  }
+  return result
 }
 
 // 处理新增
 const handleAdd = () => {
   formTitle.value = '新增分类'
+  resetForm()
   getCategoryOptions()
   formVisible.value = true
 }
@@ -479,6 +465,7 @@ const handleEdit = (row: any) => {
     name: row.name,
     description: row.description,
     parentId: row.parentId,
+    icon: row.icon || '',
     sortOrder: row.sortOrder,
     status: row.status
   })
@@ -494,6 +481,7 @@ const handleAddChild = (row: any) => {
     name: '',
     description: '',
     parentId: row.id,
+    icon: '',
     sortOrder: 0,
     status: 1
   })
@@ -532,8 +520,9 @@ const handleDelete = async (row: any) => {
       type: 'warning'
     })
     
+    await deleteSpeciesTree(row.id)
     ElMessage.success('删除成功')
-    getList()
+    await getList()
   } catch (error) {
     console.error('删除失败:', error)
   }
@@ -545,14 +534,27 @@ const handleSubmit = () => {
     if (valid) {
       try {
         if (form.id) {
-          await updateSpeciesCategory(form.id, form)
+          await updateSpeciesTree({
+            id: form.id,
+            name: form.name,
+            pid: form.parentId,
+            description: form.description,
+            icon: form.icon,
+            sort: form.sortOrder
+          })
           ElMessage.success('更新成功')
         } else {
-          await createSpeciesCategory(form)
+          await saveSpeciesTree({
+            name: form.name,
+            pid: form.parentId,
+            description: form.description,
+            icon: form.icon,
+            sort: form.sortOrder
+          })
           ElMessage.success('创建成功')
         }
         formVisible.value = false
-        getList()
+        await getList()
       } catch (error) {
         console.error('提交失败:', error)
       }
@@ -567,6 +569,7 @@ const resetForm = () => {
     name: '',
     description: '',
     parentId: null,
+    icon: '',
     sortOrder: 0,
     status: 1
   })

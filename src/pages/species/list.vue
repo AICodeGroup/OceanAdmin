@@ -5,7 +5,7 @@
     </div>
 
     <!-- 物种统计卡片 -->
-    <div class="stats-container">
+    <!-- <div class="stats-container">
       <el-row :gutter="20">
         <el-col :span="6">
           <div class="stat-card">
@@ -52,7 +52,7 @@
           </div>
         </el-col>
       </el-row>
-    </div>
+    </div> -->
 
     <!-- 搜索区域 -->
     <div class="card-container">
@@ -60,7 +60,7 @@
         <el-form-item label="物种名称">
           <el-input v-model="searchForm.name" placeholder="请输入物种名称" clearable />
         </el-form-item>
-        <el-form-item label="分类">
+        <!-- <el-form-item label="分类">
           <el-select v-model="searchForm.categoryId" placeholder="请选择分类" clearable>
             <el-option
               v-for="category in categoryList"
@@ -69,8 +69,8 @@
               :value="category.id"
             />
           </el-select>
-        </el-form-item>
-        <el-form-item label="栖息地">
+        </el-form-item> -->
+        <!-- <el-form-item label="栖息地">
           <el-select v-model="searchForm.habitat" placeholder="请选择栖息地" clearable>
             <el-option label="浅海" value="shallow" />
             <el-option label="深海" value="deep" />
@@ -78,13 +78,13 @@
             <el-option label="海滩" value="beach" />
             <el-option label="潮间带" value="intertidal" />
           </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
+        </el-form-item> -->
+        <!-- <el-form-item label="状态">
           <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
             <el-option label="已发布" :value="1" />
             <el-option label="草稿" :value="0" />
           </el-select>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
             <el-icon><Search /></el-icon>
@@ -104,7 +104,7 @@
         <el-icon><Plus /></el-icon>
         新增物种
       </el-button>
-      <el-button type="success" @click="handleCategories">
+      <!-- <el-button type="success" @click="handleCategories">
         <el-icon><Menu /></el-icon>
         分类管理
       </el-button>
@@ -119,7 +119,7 @@
       <el-button type="info" @click="handleExport">
         <el-icon><Download /></el-icon>
         导出数据
-      </el-button>
+      </el-button> -->
     </div>
 
     <!-- 表格 -->
@@ -133,8 +133,8 @@
         <el-table-column label="物种图片" width="100">
           <template #default="scope">
             <el-image
-              v-if="scope.row.images && scope.row.images.length > 0"
-              :src="scope.row.images[0]"
+              v-if="scope.row.imageUrl && scope.row.imageUrl.length > 0"
+              :src="scope.row.imageUrl"
               :preview-src-list="scope.row.images"
               fit="cover"
               style="width: 60px; height: 60px; border-radius: 8px"
@@ -144,23 +144,23 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="chineseName" label="中文名" width="150" />
-        <el-table-column prop="scientificName" label="学名" width="200" />
-        <el-table-column prop="categoryName" label="分类" width="120" />
-        <el-table-column label="栖息地" width="100">
+        <el-table-column prop="name" label="中文名" width="150" />
+        <el-table-column prop="latinName" label="学名" width="200" />
+        <!-- <el-table-column prop="categoryName" label="分类" width="120" /> -->
+        <!-- <el-table-column label="栖息地" width="100">
           <template #default="scope">
             <el-tag :type="getHabitatColor(scope.row.habitat)">
               {{ getHabitatText(scope.row.habitat) }}
             </el-tag>
           </template>
-        </el-table-column>
-        <el-table-column prop="size" label="体长" width="100">
+        </el-table-column> -->
+        <!-- <el-table-column prop="size" label="体长" width="100">
           <template #default="scope">
             {{ scope.row.size || '-' }}
           </template>
-        </el-table-column>
-        <el-table-column prop="viewCount" label="浏览量" width="100" />
-        <el-table-column label="状态" width="100">
+        </el-table-column> -->
+        <!-- <el-table-column prop="viewCount" label="浏览量" width="100" /> -->
+        <!-- <el-table-column label="状态" width="100">
           <template #default="scope">
             <el-switch
               v-model="scope.row.status"
@@ -169,19 +169,20 @@
               @change="handleStatusChange(scope.row)"
             />
           </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="250" fixed="right">
+        </el-table-column> -->
+        <el-table-column prop="createdAt" label="创建时间" width="180" />
+        <el-table-column prop="updatedAt" label="更新时间" width="180" />
+        <el-table-column label="操作" width="350" fixed="right">
           <template #default="scope">
             <el-button type="primary" size="small" @click="handleEdit(scope.row)">
               编辑
             </el-button>
-            <el-button type="info" size="small" @click="handleView(scope.row)">
+            <!-- <el-button type="info" size="small" @click="handleView(scope.row)">
               详情
             </el-button>
             <el-button type="success" size="small" @click="handlePreview(scope.row)">
               预览
-            </el-button>
+            </el-button> -->
             <el-button type="danger" size="small" @click="handleDelete(scope.row)">
               删除
             </el-button>
@@ -289,12 +290,12 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="中文名" prop="chineseName">
-              <el-input v-model="form.chineseName" placeholder="请输入中文名" />
+              <el-input v-model="form.name" placeholder="请输入中文名" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="学名" prop="scientificName">
-              <el-input v-model="form.scientificName" placeholder="请输入学名" />
+              <el-input v-model="form.latinName" placeholder="请输入学名" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -312,7 +313,7 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <!-- <el-col :span="12">
             <el-form-item label="栖息地" prop="habitat">
               <el-select v-model="form.habitat" placeholder="请选择栖息地" style="width: 100%">
                 <el-option label="浅海" value="shallow" />
@@ -322,10 +323,10 @@
                 <el-option label="潮间带" value="intertidal" />
               </el-select>
             </el-form-item>
-          </el-col>
+          </el-col> -->
         </el-row>
         
-        <el-row :gutter="20">
+        <!-- <el-row :gutter="20">
           <el-col :span="8">
             <el-form-item label="体长" prop="size">
               <el-input v-model="form.size" placeholder="如：10-20cm" />
@@ -341,7 +342,7 @@
               <el-input v-model="form.lifespan" placeholder="如：5-10年" />
             </el-form-item>
           </el-col>
-        </el-row>
+        </el-row> -->
         
         <el-form-item label="保护等级" prop="protectionLevel">
           <el-select v-model="form.protectionLevel" placeholder="请选择保护等级" style="width: 100%">
@@ -369,12 +370,12 @@
           <el-input v-model="form.conservation" type="textarea" :rows="2" placeholder="请输入保护现状" />
         </el-form-item>
         
-        <el-form-item label="状态" prop="status">
+        <!-- <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio :label="1">发布</el-radio>
             <el-radio :label="0">草稿</el-radio>
           </el-radio-group>
-        </el-form-item>
+        </el-form-item> -->
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -426,7 +427,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useRouter } from 'vue-router'
-
+import {getSpeciesList,createSpeciesCategory,updateSpeciesCategory,deleteSpeciesCategory}from '@/api/species'
 // 路由
 const router = useRouter()
 
@@ -447,72 +448,30 @@ const stats = reactive({
   published: 142,
   views: 8956
 })
+onMounted(() => {
+  getSList()
+})
+const getSList = async ()=>{
+  const params = {
+      name: searchForm.name || null,
+      categoryId: searchForm.name || null,
+      englishName: searchForm.name || null,
+      latinName: searchForm.name || null,
+      endangeredLevel: searchForm.name || null,
+      page: searchForm.name || null,
+      limit: searchForm.name || null,
+      // current: pagination.current, // 接口文档没有分页参数，暂时注释
+      // size: pagination.size
+    }
+  const res=await getSpeciesList(params)
+  console.log('6666',res);
+  
+  tableData.value = res.list
+  console.log('tableData.value:',tableData.value);
+  
+}
 
-const tableData = ref([
-  {
-    id: 1,
-    chineseName: '小丑鱼',
-    scientificName: 'Amphiprioninae',
-    categoryId: 1,
-    categoryName: '鱼类',
-    habitat: 'coral',
-    size: '8-11cm',
-    weight: '20-30g',
-    lifespan: '6-10年',
-    protectionLevel: 'LC',
-    images: ['https://via.placeholder.com/300x200'],
-    morphology: '体色鲜艳，通常为橙色、红色或黄色，身上有白色条纹。',
-    habits: '生活在海葵中，与海葵形成共生关系。',
-    distribution: '印度洋和太平洋的热带珊瑚礁区域',
-    conservation: '目前种群稳定，但面临栖息地破坏威胁。',
-    viewCount: 1256,
-    status: 1,
-    createTime: '2024-01-31 10:30:00',
-    updateTime: null
-  },
-  {
-    id: 2,
-    chineseName: '海星',
-    scientificName: 'Asteroidea',
-    categoryId: 2,
-    categoryName: '棘皮动物',
-    habitat: 'intertidal',
-    size: '5-30cm',
-    weight: '50-200g',
-    lifespan: '5-35年',
-    protectionLevel: 'LC',
-    images: ['https://via.placeholder.com/300x200', 'https://via.placeholder.com/300x200'],
-    morphology: '身体呈星形，通常有5条腕，表面有棘刺。',
-    habits: '底栖生活，以贝类、蠕虫等为食。',
-    distribution: '全球各大洋的浅海区域',
-    conservation: '大部分种类种群稳定。',
-    viewCount: 892,
-    status: 1,
-    createTime: '2024-01-30 09:15:00',
-    updateTime: '2024-01-31 14:20:00'
-  },
-  {
-    id: 3,
-    chineseName: '海龟',
-    scientificName: 'Cheloniidae',
-    categoryId: 3,
-    categoryName: '爬行动物',
-    habitat: 'shallow',
-    size: '60-120cm',
-    weight: '40-200kg',
-    lifespan: '50-100年',
-    protectionLevel: 'EN',
-    images: ['https://via.placeholder.com/300x200'],
-    morphology: '身体扁平，四肢呈鳍状，头部不能缩入壳内。',
-    habits: '在海洋中生活，回到海滩产卵。',
-    distribution: '全球热带和亚热带海域',
-    conservation: '受到海洋污染和栖息地破坏威胁，需要保护。',
-    viewCount: 2134,
-    status: 1,
-    createTime: '2024-01-29 14:00:00',
-    updateTime: null
-  }
-])
+const tableData = ref([])
 
 // 分类列表
 const categoryList = ref([
@@ -529,31 +488,23 @@ const searchForm = reactive({
   habitat: '',
   status: ''
 })
-
-// 表单数据
-const form = reactive({
+// 1. 定义默认的表单数据结构
+const defaultForm = {
   id: null,
-  chineseName: '',
-  scientificName: '',
-  categoryId: '',
-  habitat: '',
-  size: '',
-  weight: '',
-  lifespan: '',
-  protectionLevel: '',
-  morphology: '',
-  habits: '',
-  distribution: '',
-  conservation: '',
-  status: 1
-})
+  name: '',
+  imageUrl:'',
+  latinName:'',
+  createdAt:'',
+};
+// 表单数据
+const form = reactive({ ...defaultForm }); 
 
 // 表单验证规则
 const rules: FormRules = {
-  chineseName: [{ required: true, message: '请输入中文名', trigger: 'blur' }],
-  scientificName: [{ required: true, message: '请输入学名', trigger: 'blur' }],
-  categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
-  habitat: [{ required: true, message: '请选择栖息地', trigger: 'change' }]
+  name: [{ required: true, message: '请输入中文名', trigger: 'blur' }],
+  latinName: [{ required: true, message: '请输入学名', trigger: 'blur' }],
+  // categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
+  // habitat: [{ required: true, message: '请选择栖息地', trigger: 'change' }]
 }
 
 // 分页数据
@@ -618,8 +569,12 @@ const handleReset = () => {
   getList()
 }
 
+
 // 处理新增
 const handleAdd = () => {
+  // 步骤1: 使用初始对象重置表单
+  Object.assign(form, defaultForm);
+
   formTitle.value = '新增物种'
   formVisible.value = true
 }
@@ -627,7 +582,9 @@ const handleAdd = () => {
 // 处理编辑
 const handleEdit = (row: any) => {
   formTitle.value = '编辑物种'
-  Object.assign(form, row)
+  // Object.assign(form, row)
+  Object.keys(form).forEach(key => form[key] = null); // 可选的重置步骤
+  Object.assign(form, row);
   formVisible.value = true
 }
 
@@ -656,12 +613,13 @@ const handleDelete = async (row: any) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    
-    const index = tableData.value.findIndex(item => item.id === row.id)
-    if (index > -1) {
-      tableData.value.splice(index, 1)
-      pagination.total--
-    }
+    // const index = tableData.value.findIndex(item => item.id === row.id)
+    // if (index > -1) {
+    //   tableData.value.splice(index, 1)
+    //   pagination.total--
+    // }
+    deleteSpeciesCategory(row.id)
+    getSList()
     ElMessage.success('删除成功')
   } catch (error) {
     console.error('删除失败:', error)
@@ -674,12 +632,14 @@ const handleSubmit = () => {
     if (valid) {
       try {
         if (form.id) {
+          await updateSpeciesCategory(form); // 调用更新接口
           ElMessage.success('更新成功')
         } else {
+          await createSpeciesCategory(form); // 调用新增接口
           ElMessage.success('创建成功')
         }
         formVisible.value = false
-        getList()
+        getSList()
       } catch (error) {
         console.error('提交失败:', error)
       }
