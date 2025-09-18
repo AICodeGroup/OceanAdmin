@@ -464,7 +464,7 @@ const getSList = async ()=>{
       // size: pagination.size
     }
   const res=await getSpeciesList(params)
-  console.log('6666',res);
+  // console.log('6666',res);
   
   tableData.value = res.list
   console.log('tableData.value:',tableData.value);
