@@ -63,8 +63,6 @@
         row-key="_key"
         :tree-props="{ children: 'children' }"
       >
-        <!-- ID列 -->
-        <el-table-column prop="id" label="ID" width="80" />
         <!-- 课程/物种信息列 - 根据节点类型显示不同内容 -->
         <el-table-column label="课程信息" min-width="250">
           <template #default="scope">
@@ -82,7 +80,7 @@
                 <div class="course-title">{{ scope.row.courseTitle }}</div>
                 <div class="course-meta">
                   <!-- 课程分类标签 -->
-                  <el-tag size="small" type="info">{{ scope.row.courseCategory }}</el-tag>
+                  <!-- <el-tag size="small" type="info">{{ scope.row.courseCategory }}</el-tag> -->
                   <!-- 课程级别 -->
                   <span class="course-level">{{ scope.row.courseLevel }}</span>
                 </div>
@@ -123,14 +121,23 @@
             </div>
           </template>
         </el-table-column>
-        <!-- 物种分类列 -->
-        <el-table-column prop="speciesCategory" label="物种分类" width="120">
+        <!-- 所属信息 -->
+        <el-table-column label="所属信息" width="200">
           <template #default="scope">
-            <el-tag type="success">{{ scope.row.speciesCategory }}</el-tag>
+            <el-tag  size="small" type="success" v-if="!scope.row.isSpecies">课程</el-tag>
+             <el-tag  size="small" type="info" v-else>物种</el-tag>
           </template>
         </el-table-column>
+        <!-- 是否已删除列 -->
+        <!-- <el-table-column prop="isDel" label="是否已删除" width="200">
+          <template #default="scope">
+            <span v-if="!scope.row.isSpecies">{{ scope.row.isDel ? '是' : '否' }}</span>
+          </template>
+        </el-table-column> -->
+        <!-- ID列 -->
+        <el-table-column prop="id" label="ID" width="80" />
         <!-- 操作列 -->
-        <el-table-column label="操作" width="450" fixed="right">
+        <el-table-column label="操作" width="350" fixed="right">
           <template #default="scope">
             <!-- 编辑关联按钮 -->
             <el-button type="primary" size="small" @click="handleEdit(scope.row)">
@@ -253,24 +260,10 @@ import request from '@/utils/request'
 const loading = ref(false)
 // 表单对话框显示状态
 const formVisible = ref(false)
-// 批量操作对话框显示状态
-const batchVisible = ref(false)
-// 详情对话框显示状态
-const detailVisible = ref(false)
 // 表单对话框标题
 const formTitle = ref('新增关联')
 // 表单引用
 const formRef = ref<FormInstance>()
-// 当前关联关系数据
-const currentRelation = ref<any>(null)
-
-// 统计数据（当前未使用，保留用于后续扩展）
-const stats = reactive({
-  total: 89,
-  courses: 23,
-  species: 45,
-  active: 76
-})
 
 // 查询参数
 const queryParams = reactive({
@@ -316,16 +309,6 @@ const form = reactive({
   status: 1
 })
 
-// 批量操作表单数据
-const batchForm = reactive({
-  mode: 'course-to-species',
-  courseId: '',
-  speciesId: '',
-  selectedSpecies: [],
-  selectedCourses: [],
-  relationType: 'related'
-})
-
 // 表单验证规则
 const rules: FormRules = {
   courseId: [{ required: true, message: '请选择课程', trigger: 'change' }],
@@ -340,39 +323,6 @@ const pagination = reactive({
   size: 10,
   total: 3
 })
-
-// 穿梭框数据
-const transferSpeciesData = ref<any[]>([])
-const transferCourseData = ref<any[]>([])
-
-// ========== 工具函数 ==========
-/**
- * 获取关联类型对应的颜色
- * @param type 关联类型
- * @returns 颜色类型
- */
-const getRelationTypeColor = (type: string) => {
-  const colorMap: Record<string, string> = {
-    primary: 'danger',
-    related: 'warning',
-    comparison: 'info'
-  }
-  return colorMap[type] || 'info'
-}
-
-/**
- * 获取关联类型对应的文本
- * @param type 关联类型
- * @returns 显示文本
- */
-const getRelationTypeText = (type: string) => {
-  const textMap: Record<string, string> = {
-    primary: '主要物种',
-    related: '相关物种',
-    comparison: '对比物种'
-  }
-  return textMap[type] || type
-}
 
 // ========== API 调用函数 ==========
 /**
@@ -432,10 +382,9 @@ const getList = async () => {
         isSpecies: false,
         courseId: c.id,
         courseTitle: c.title ?? c.name ?? '',
-        courseCategory: c.category ?? '',
         courseLevel: c.level ?? '',
         courseCover: c.cover ?? '',
-        speciesCategory: '',
+        isDel: '-',
         weight: '',
         description: c.description ?? '',
         status: 1,
@@ -451,7 +400,7 @@ const getList = async () => {
         speciesId: s.speciesId ?? s.species?.id ?? s.id,
         speciesChineseName: s.species?.name ?? '-',
         speciesScientificName: s.species?.latinName ?? s.species?.englishName ?? '-',
-        speciesCategory: s.species?.categoryName ?? s.species?.categoryId ?? '-',
+        isDel: s.species?.isDel ? '是' : '否',
         speciesImage: s.species?.imageUrl ?? s.species?.iconUrl ?? '',
         relationType: 'related',
         weight: 0,
@@ -470,21 +419,6 @@ const getList = async () => {
 }
 
 /**
- * 初始化穿梭框数据
- */
-const initTransferData = () => {
-  transferSpeciesData.value = speciesList.value.map(species => ({
-    key: species.id,
-    label: `${species.chineseName} (${species.scientificName})`
-  }))
-  
-  transferCourseData.value = courseList.value.map(course => ({
-    key: course.id,
-    label: `${course.title} - ${course.category}`
-  }))
-}
-
-/**
  * 加载物种下拉选项（全部物种，用于新增关联选择）
  */
 const loadAllSpeciesOptions = async () => {
@@ -499,7 +433,7 @@ const loadAllSpeciesOptions = async () => {
       id: s.id,
       chineseName: s.chineseName ?? s.name ?? '-',
       scientificName: s.scientificName ?? s.latinName ?? '-',
-      category: s.categoryName ?? s.category ?? '-'
+      category: s.name ?? s.category ?? '-'
     }))
   } catch (e) {
     console.error('加载物种下拉失败:', e)
@@ -549,7 +483,7 @@ const loadSpeciesByCourse = async (courseId: number | string) => {
       id: s.id ?? s.speciesId ?? s.sid,
       chineseName: s.chineseName ?? s.name ?? s.commonName ?? '-',
       scientificName: s.scientificName ?? s.latinName ?? s.sciName ?? '-',
-      category: s.category ?? s.categoryName ?? s.typeName ?? '-'
+      category: s.category ?? s.name ?? s.typeName ?? '-'
     }))
   } catch (e) {
     console.error('加载课程物种失败:', e)
@@ -592,32 +526,6 @@ const handleEdit = (row: any) => {
   // 确保物种下拉有数据
   loadAllSpeciesOptions()
   formVisible.value = true
-}
-
-/**
- * 处理查看详情（当前为占位功能）
- * @param row 行数据
- */
-const handleView = (row: any) => {
-  currentRelation.value = row
-  detailVisible.value = true
-}
-
-/**
- * 处理预览（当前为占位功能）
- * @param row 行数据
- */
-const handlePreview = (row: any) => {
-  ElMessage.info('预览课程中的物种展示效果')
-}
-
-/**
- * 处理状态变更（当前为占位功能）
- * @param row 行数据
- */
-const handleStatusChange = (row: any) => {
-  const statusText = row.status === 1 ? '有效' : '无效'
-  ElMessage.success(`关联状态已更新为${statusText}`)
 }
 
 /**
@@ -693,21 +601,6 @@ const resetForm = () => {
     status: 1
   })
   formRef.value?.resetFields()
-}
-
-// ========== 其他功能 ==========
-/**
- * 处理同步数据（当前为占位功能）
- */
-const handleSync = () => {
-  ElMessage.info('同步数据功能开发中...')
-}
-
-/**
- * 处理导出（当前为占位功能）
- */
-const handleExport = () => {
-  ElMessage.info('导出关联数据功能开发中...')
 }
 
 // ========== 分页处理 ==========
@@ -799,6 +692,9 @@ onMounted(() => {
   .el-form-item {
     margin-bottom: 0;
   }
+}
+.species-info {
+  margin-left: 30px;
 }
 
 .course-info, .species-info {

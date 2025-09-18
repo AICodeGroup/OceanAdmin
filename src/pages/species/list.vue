@@ -84,7 +84,7 @@
         <!-- 更新时间列 -->
         <el-table-column prop="updatedAt" label="更新时间" width="180" />
         <!-- 操作列 -->
-        <el-table-column label="操作" width="350" fixed="right">
+        <el-table-column label="操作" width="150" fixed="right">
           <template #default="scope">
             <!-- 编辑按钮 -->
             <el-button type="primary" size="small" @click="handleEdit(scope.row)">
