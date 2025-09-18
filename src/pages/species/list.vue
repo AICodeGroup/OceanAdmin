@@ -1,67 +1,21 @@
 <template>
+  <!-- 物种图鉴管理页面主容器 -->
   <div class="app-container">
+    <!-- 页面标题 -->
     <div class="page-header">
       <h1>物种图鉴管理</h1>
     </div>
-
-    <!-- 物种统计卡片 -->
-    <!-- <div class="stats-container">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon total">
-              <el-icon><Grid /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ stats.total }}</div>
-              <div class="stat-label">物种总数</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon categories">
-              <el-icon><Menu /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ stats.categories }}</div>
-              <div class="stat-label">分类数量</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon published">
-              <el-icon><Check /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ stats.published }}</div>
-              <div class="stat-label">已发布</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon views">
-              <el-icon><View /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ stats.views }}</div>
-              <div class="stat-label">总浏览量</div>
-            </div>
-          </div>
-        </el-col>
-      </el-row>
-    </div> -->
-
+    
     <!-- 搜索区域 -->
     <div class="card-container">
       <el-form :model="searchForm" :inline="true" class="search-form">
+        <!-- 物种名称搜索 -->
         <el-form-item label="物种名称">
           <el-input v-model="searchForm.name" placeholder="请输入物种名称" clearable />
         </el-form-item>
-        <!-- <el-form-item label="分类">
-          <el-select v-model="searchForm.categoryId" placeholder="请选择分类" clearable>
+        <!-- 分类筛选 -->
+        <el-form-item label="分类">
+          <el-select v-model="searchForm.categoryId" placeholder="请选择分类" clearable style="width: 200px">
             <el-option
               v-for="category in categoryList"
               :key="category.id"
@@ -69,22 +23,8 @@
               :value="category.id"
             />
           </el-select>
-        </el-form-item> -->
-        <!-- <el-form-item label="栖息地">
-          <el-select v-model="searchForm.habitat" placeholder="请选择栖息地" clearable>
-            <el-option label="浅海" value="shallow" />
-            <el-option label="深海" value="deep" />
-            <el-option label="珊瑚礁" value="coral" />
-            <el-option label="海滩" value="beach" />
-            <el-option label="潮间带" value="intertidal" />
-          </el-select>
-        </el-form-item> -->
-        <!-- <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="已发布" :value="1" />
-            <el-option label="草稿" :value="0" />
-          </el-select>
-        </el-form-item> -->
+        </el-form-item>
+        <!-- 搜索和重置按钮 -->
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
             <el-icon><Search /></el-icon>
@@ -98,40 +38,29 @@
       </el-form>
     </div>
 
-    <!-- 操作按钮 -->
+    <!-- 操作按钮区域 -->
     <div class="button-group">
+      <!-- 新增物种按钮 -->
       <el-button type="primary" @click="handleAdd">
         <el-icon><Plus /></el-icon>
         新增物种
       </el-button>
-      <!-- <el-button type="success" @click="handleCategories">
-        <el-icon><Menu /></el-icon>
-        分类管理
-      </el-button>
-      <el-button type="warning" @click="handleCourseRelation">
-        <el-icon><Link /></el-icon>
-        课程关联
-      </el-button>
-      <el-button type="info" @click="handleImport">
-        <el-icon><Upload /></el-icon>
-        批量导入
-      </el-button>
-      <el-button type="info" @click="handleExport">
-        <el-icon><Download /></el-icon>
-        导出数据
-      </el-button> -->
+    
     </div>
 
-    <!-- 表格 -->
+    <!-- 物种数据表格 -->
     <div class="card-container">
       <el-table
         v-loading="loading"
         :data="tableData"
         style="width: 100%"
       >
+        <!-- ID列 -->
         <el-table-column prop="id" label="ID" width="80" />
+        <!-- 物种图片列 -->
         <el-table-column label="物种图片" width="100">
           <template #default="scope">
+            <!-- 如果有图片URL则显示图片，支持预览 -->
             <el-image
               v-if="scope.row.imageUrl && scope.row.imageUrl.length > 0"
               :src="scope.row.imageUrl"
@@ -139,50 +68,29 @@
               fit="cover"
               style="width: 60px; height: 60px; border-radius: 8px"
             />
+            <!-- 无图片时显示占位图标 -->
             <div v-else class="no-image">
               <el-icon><Picture /></el-icon>
             </div>
           </template>
         </el-table-column>
+        <!-- 中文名称列 -->
         <el-table-column prop="name" label="中文名" width="150" />
+        <!-- 拉丁学名列 -->
         <el-table-column prop="latinName" label="学名" width="200" />
-        <!-- <el-table-column prop="categoryName" label="分类" width="120" /> -->
-        <!-- <el-table-column label="栖息地" width="100">
-          <template #default="scope">
-            <el-tag :type="getHabitatColor(scope.row.habitat)">
-              {{ getHabitatText(scope.row.habitat) }}
-            </el-tag>
-          </template>
-        </el-table-column> -->
-        <!-- <el-table-column prop="size" label="体长" width="100">
-          <template #default="scope">
-            {{ scope.row.size || '-' }}
-          </template>
-        </el-table-column> -->
-        <!-- <el-table-column prop="viewCount" label="浏览量" width="100" /> -->
-        <!-- <el-table-column label="状态" width="100">
-          <template #default="scope">
-            <el-switch
-              v-model="scope.row.status"
-              :active-value="1"
-              :inactive-value="0"
-              @change="handleStatusChange(scope.row)"
-            />
-          </template>
-        </el-table-column> -->
+        
+        <!-- 创建时间列 -->
         <el-table-column prop="createdAt" label="创建时间" width="180" />
+        <!-- 更新时间列 -->
         <el-table-column prop="updatedAt" label="更新时间" width="180" />
+        <!-- 操作列 -->
         <el-table-column label="操作" width="350" fixed="right">
           <template #default="scope">
+            <!-- 编辑按钮 -->
             <el-button type="primary" size="small" @click="handleEdit(scope.row)">
               编辑
             </el-button>
-            <!-- <el-button type="info" size="small" @click="handleView(scope.row)">
-              详情
-            </el-button>
-            <el-button type="success" size="small" @click="handlePreview(scope.row)">
-              预览
-            </el-button> -->
+            <!-- 删除按钮 -->
             <el-button type="danger" size="small" @click="handleDelete(scope.row)">
               删除
             </el-button>
@@ -190,7 +98,7 @@
         </el-table-column>
       </el-table>
 
-      <!-- 分页 -->
+      <!-- 分页组件 -->
       <el-pagination
         v-model:current-page="pagination.page"
         v-model:page-size="pagination.size"
@@ -201,78 +109,6 @@
         @current-change="handleCurrentChange"
       />
     </div>
-
-    <!-- 物种详情对话框 -->
-    <el-dialog
-      v-model="detailVisible"
-      title="物种详情"
-      width="900px"
-    >
-      <div v-if="currentSpecies" class="species-detail">
-        <div class="species-header">
-          <div class="species-images">
-            <el-image
-              v-if="currentSpecies.images && currentSpecies.images.length > 0"
-              :src="currentSpecies.images[0]"
-              :preview-src-list="currentSpecies.images"
-              fit="cover"
-              style="width: 200px; height: 150px; border-radius: 8px"
-            />
-            <div v-else class="no-image-large">
-              <el-icon><Picture /></el-icon>
-            </div>
-          </div>
-          <div class="species-info">
-            <h2>{{ currentSpecies.chineseName }}</h2>
-            <p class="scientific-name">{{ currentSpecies.scientificName }}</p>
-            <div class="tags">
-              <el-tag>{{ currentSpecies.categoryName }}</el-tag>
-              <el-tag :type="getHabitatColor(currentSpecies.habitat)">
-                {{ getHabitatText(currentSpecies.habitat) }}
-              </el-tag>
-            </div>
-          </div>
-        </div>
-        
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="物种ID">{{ currentSpecies.id }}</el-descriptions-item>
-          <el-descriptions-item label="体长">{{ currentSpecies.size || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="体重">{{ currentSpecies.weight || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="寿命">{{ currentSpecies.lifespan || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="保护等级">{{ currentSpecies.protectionLevel || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="浏览量">{{ currentSpecies.viewCount }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ currentSpecies.createTime }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ currentSpecies.updateTime || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="形态特征" :span="2">
-            <div class="description-text">{{ currentSpecies.morphology || '-' }}</div>
-          </el-descriptions-item>
-          <el-descriptions-item label="生活习性" :span="2">
-            <div class="description-text">{{ currentSpecies.habits || '-' }}</div>
-          </el-descriptions-item>
-          <el-descriptions-item label="分布范围" :span="2">
-            <div class="description-text">{{ currentSpecies.distribution || '-' }}</div>
-          </el-descriptions-item>
-          <el-descriptions-item label="保护现状" :span="2">
-            <div class="description-text">{{ currentSpecies.conservation || '-' }}</div>
-          </el-descriptions-item>
-        </el-descriptions>
-        
-        <!-- 更多图片 -->
-        <div v-if="currentSpecies.images && currentSpecies.images.length > 1" class="more-images">
-          <h4>更多图片</h4>
-          <div class="image-gallery">
-            <el-image
-              v-for="(image, index) in currentSpecies.images.slice(1)"
-              :key="index"
-              :src="image"
-              :preview-src-list="currentSpecies.images"
-              fit="cover"
-              class="gallery-image"
-            />
-          </div>
-        </div>
-      </div>
-    </el-dialog>
 
     <!-- 添加/编辑物种对话框 -->
     <el-dialog
@@ -287,21 +123,32 @@
         :rules="rules"
         label-width="120px"
       >
+        <!-- 第一行：物种名称和英文名称 -->
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="中文名" prop="chineseName">
-              <el-input v-model="form.name" placeholder="请输入中文名" />
+            <!-- 物种名称（必填） -->
+            <el-form-item label="物种名称" prop="name">
+              <el-input v-model="form.name" placeholder="请输入物种名称" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="学名" prop="scientificName">
-              <el-input v-model="form.latinName" placeholder="请输入学名" />
+            <!-- 英文名称（可选） -->
+            <el-form-item label="英文名称">
+              <el-input v-model="form.englishName" placeholder="请输入英文名称" />
             </el-form-item>
           </el-col>
         </el-row>
         
+        <!-- 第二行：拉丁学名和分类 -->
         <el-row :gutter="20">
           <el-col :span="12">
+            <!-- 拉丁学名（可选） -->
+            <el-form-item label="拉丁学名">
+              <el-input v-model="form.latinName" placeholder="请输入拉丁学名" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <!-- 分类选择（必填） -->
             <el-form-item label="分类" prop="categoryId">
               <el-select v-model="form.categoryId" placeholder="请选择分类" style="width: 100%">
                 <el-option
@@ -313,70 +160,62 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <!-- <el-col :span="12">
-            <el-form-item label="栖息地" prop="habitat">
-              <el-select v-model="form.habitat" placeholder="请选择栖息地" style="width: 100%">
-                <el-option label="浅海" value="shallow" />
-                <el-option label="深海" value="deep" />
-                <el-option label="珊瑚礁" value="coral" />
-                <el-option label="海滩" value="beach" />
-                <el-option label="潮间带" value="intertidal" />
-              </el-select>
-            </el-form-item>
-          </el-col> -->
         </el-row>
         
-        <!-- <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="体长" prop="size">
-              <el-input v-model="form.size" placeholder="如：10-20cm" />
+        <!-- 第三行：濒危等级和排序 -->
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <!-- 濒危等级选择 -->
+            <el-form-item label="濒危等级">
+              <el-select v-model="form.endangeredLevel" placeholder="请选择濒危等级" style="width: 100%">
+                <el-option label="无危" value="LC" />
+                <el-option label="近危" value="NT" />
+                <el-option label="易危" value="VU" />
+                <el-option label="濒危" value="EN" />
+                <el-option label="极危" value="CR" />
+              </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
-            <el-form-item label="体重" prop="weight">
-              <el-input v-model="form.weight" placeholder="如：100-200g" />
+          <el-col :span="12">
+            <!-- 排序值输入 -->
+            <el-form-item label="排序">
+              <el-input-number v-model="form.sort" :min="0" :max="9999" placeholder="排序值" style="width: 100%" />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
-            <el-form-item label="寿命" prop="lifespan">
-              <el-input v-model="form.lifespan" placeholder="如：5-10年" />
+        </el-row>
+        
+        <!-- 第四行：图片URL和图标URL -->
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <!-- 物种图片URL -->
+            <el-form-item label="物种图片URL">
+              <el-input v-model="form.imageUrl" placeholder="请输入物种图片URL" />
             </el-form-item>
           </el-col>
-        </el-row> -->
+          <el-col :span="12">
+            <!-- 物种图标URL -->
+            <el-form-item label="物种图标URL">
+              <el-input v-model="form.iconUrl" placeholder="请输入物种图标URL" />
+            </el-form-item>
+          </el-col>
+        </el-row>
         
-        <el-form-item label="保护等级" prop="protectionLevel">
-          <el-select v-model="form.protectionLevel" placeholder="请选择保护等级" style="width: 100%">
-            <el-option label="无危" value="LC" />
-            <el-option label="近危" value="NT" />
-            <el-option label="易危" value="VU" />
-            <el-option label="濒危" value="EN" />
-            <el-option label="极危" value="CR" />
-          </el-select>
+        <!-- 物种描述 -->
+        <el-form-item label="物种描述">
+          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入物种描述" />
         </el-form-item>
         
-        <el-form-item label="形态特征" prop="morphology">
-          <el-input v-model="form.morphology" type="textarea" :rows="3" placeholder="请输入形态特征描述" />
+        <!-- 相关知识 -->
+        <el-form-item label="相关知识">
+          <el-input v-model="form.knowledge" type="textarea" :rows="3" placeholder="请输入相关知识" />
         </el-form-item>
         
-        <el-form-item label="生活习性" prop="habits">
-          <el-input v-model="form.habits" type="textarea" :rows="3" placeholder="请输入生活习性描述" />
+        <!-- 面临威胁 -->
+        <el-form-item label="面临威胁">
+          <el-input v-model="form.facingThreats" type="textarea" :rows="3" placeholder="请输入面临威胁" />
         </el-form-item>
-        
-        <el-form-item label="分布范围" prop="distribution">
-          <el-input v-model="form.distribution" type="textarea" :rows="2" placeholder="请输入分布范围" />
-        </el-form-item>
-        
-        <el-form-item label="保护现状" prop="conservation">
-          <el-input v-model="form.conservation" type="textarea" :rows="2" placeholder="请输入保护现状" />
-        </el-form-item>
-        
-        <!-- <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio :label="1">发布</el-radio>
-            <el-radio :label="0">草稿</el-radio>
-          </el-radio-group>
-        </el-form-item> -->
       </el-form>
+      <!-- 对话框底部按钮 -->
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="formVisible = false">取消</el-button>
@@ -385,136 +224,181 @@
       </template>
     </el-dialog>
 
-    <!-- 分类管理对话框 -->
-    <el-dialog
-      v-model="categoryVisible"
-      title="分类管理"
-      width="600px"
-    >
-      <div class="category-management">
-        <div class="add-category">
-          <el-input
-            v-model="newCategoryName"
-            placeholder="请输入分类名称"
-            style="width: 200px; margin-right: 10px"
-          />
-          <el-button type="primary" @click="handleAddCategory">添加分类</el-button>
-        </div>
-        
-        <el-table :data="categoryList" style="width: 100%; margin-top: 20px">
-          <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="name" label="分类名称" />
-          <el-table-column prop="speciesCount" label="物种数量" width="100" />
-          <el-table-column prop="createTime" label="创建时间" width="180" />
-          <el-table-column label="操作" width="150">
-            <template #default="scope">
-              <el-button type="primary" size="small" @click="handleEditCategory(scope.row)">
-                编辑
-              </el-button>
-              <el-button type="danger" size="small" @click="handleDeleteCategory(scope.row)">
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+// Vue 3 Composition API 导入
 import { ref, reactive, onMounted } from 'vue'
+// Element Plus 组件导入
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+// Vue Router 导入
 import { useRouter } from 'vue-router'
-import {getSpeciesList,createSpeciesCategory,updateSpeciesCategory,deleteSpeciesCategory}from '@/api/species'
-// 路由
+// API 接口导入
+import {getSpeciesList,createSpeciesCategory,updateSpeciesCategory,deleteSpeciesCategory,getSpeciesTree,saveSpecies}from '@/api/species'
+
+// 路由实例
 const router = useRouter()
 
-// 响应式数据
+// ==================== 响应式数据定义 ====================
+// 页面加载状态
 const loading = ref(false)
+// 详情对话框显示状态
 const detailVisible = ref(false)
+// 表单对话框显示状态
 const formVisible = ref(false)
+// 分类管理对话框显示状态
 const categoryVisible = ref(false)
+// 表单标题（新增/编辑）
 const formTitle = ref('新增物种')
+// 当前查看的物种详情
 const currentSpecies = ref<any>(null)
+// 表单引用
 const formRef = ref<FormInstance>()
+// 新增分类名称
 const newCategoryName = ref('')
 
-// 统计数据
+// 统计数据（暂未使用）
 const stats = reactive({
   total: 156,
   categories: 12,
   published: 142,
   views: 8956
 })
+// ==================== 数据获取方法 ====================
+/**
+ * 获取分类列表
+ * 从后端获取物种分类树形数据，并扁平化为下拉选项
+ */
+const getCategoryList = async () => {
+  try {
+    const res: any = await getSpeciesTree()
+    // 兼容不同返回包裹层
+    const raw = Array.isArray(res) ? res : (res?.data ?? [])
+    // 将树形结构扁平化为分类选项
+    categoryList.value = flattenTree(raw)
+  } catch (error) {
+    console.error('获取分类列表失败:', error)
+  }
+}
+
+/**
+ * 将树形结构扁平化
+ * 递归遍历树形数据，将所有节点（包括子节点）提取到一维数组中
+ * @param nodes 树形节点数组
+ * @returns 扁平化后的节点数组
+ */
+const flattenTree = (nodes: any[]): any[] => {
+  const result: any[] = []
+  
+  const flatten = (nodeList: any[]) => {
+    nodeList.forEach(node => {
+      result.push({
+        id: node.id,
+        name: node.name,
+        speciesCount: Array.isArray(node.speciesList) ? node.speciesList.length : 0,
+        createTime: '2024-01-01 00:00:00' // 后端可能没有这个字段，使用默认值
+      })
+      
+      // 递归处理子节点
+      if (node.children && node.children.length > 0) {
+        flatten(node.children)
+      }
+    })
+  }
+  
+  flatten(nodes)
+  return result
+}
+
+// ==================== 生命周期钩子 ====================
+// 组件挂载时初始化数据
 onMounted(() => {
   getSList()
+  getCategoryList()
 })
+
+/**
+ * 获取物种列表数据
+ * 根据搜索条件和分页参数从后端获取物种数据
+ */
 const getSList = async ()=>{
   const params = {
       name: searchForm.name || null,
-      categoryId: searchForm.name || null,
-      englishName: searchForm.name || null,
-      latinName: searchForm.name || null,
-      endangeredLevel: searchForm.name || null,
-      page: searchForm.name || null,
-      limit: searchForm.name || null,
-      // current: pagination.current, // 接口文档没有分页参数，暂时注释
-      // size: pagination.size
+      categoryId: searchForm.categoryId || null,
+      englishName: searchForm.englishName || null,
+      latinName: searchForm.latinName || null,
+      endangeredLevel: searchForm.endangeredLevel || null,
+      page: pagination.page || 1,
+      limit: pagination.size || 10
     }
-  const res=await getSpeciesList(params)
-  // console.log('6666',res);
+  const res: any = await getSpeciesList(params)
+  console.log('API响应:', res);
   
-  tableData.value = res.list
-  console.log('tableData.value:',tableData.value);
-  
+  // 处理响应数据，兼容不同的数据结构
+  tableData.value = res.data?.list || res.list || []
+  pagination.total = res.data?.total || res.total || 0
+  console.log('表格数据:', tableData.value);
+  console.log('分页总数:', pagination.total);
 }
 
+// ==================== 数据状态定义 ====================
+// 表格数据
 const tableData = ref([])
 
-// 分类列表
-const categoryList = ref([
-  { id: 1, name: '鱼类', speciesCount: 45, createTime: '2024-01-01 00:00:00' },
-  { id: 2, name: '棘皮动物', speciesCount: 23, createTime: '2024-01-01 00:00:00' },
-  { id: 3, name: '爬行动物', speciesCount: 12, createTime: '2024-01-01 00:00:00' },
-  { id: 4, name: '哺乳动物', speciesCount: 8, createTime: '2024-01-01 00:00:00' }
-])
+// 分类列表（用于下拉选择）
+const categoryList = ref<any[]>([])
 
-// 搜索表单
+// 搜索表单数据
 const searchForm = reactive({
-  name: '',
-  categoryId: '',
-  habitat: '',
-  status: ''
+  name: '',           // 物种名称
+  categoryId: '',     // 分类ID
+  englishName: '',    // 英文名称
+  latinName: '',      // 拉丁学名
+  endangeredLevel: '', // 濒危等级
+  habitat: '',        // 栖息地
+  status: ''          // 状态
 })
-// 1. 定义默认的表单数据结构
+
+// 表单默认数据结构
 const defaultForm = {
   id: null,
-  name: '',
-  imageUrl:'',
-  latinName:'',
-  createdAt:'',
+  name: '',              // 物种名称
+  description: '',       // 物种描述
+  imageUrl: '',          // 物种图片URL
+  iconUrl: '',           // 物种图标URL
+  categoryId: '',        // 分类ID
+  englishName: '',       // 英文名称
+  latinName: '',         // 拉丁学名
+  endangeredLevel: '',   // 濒危等级
+  knowledge: '',         // 相关知识
+  facingThreats: '',     // 面临威胁
+  sort: 0                // 排序值
 };
+
 // 表单数据
 const form = reactive({ ...defaultForm }); 
 
 // 表单验证规则
 const rules: FormRules = {
-  name: [{ required: true, message: '请输入中文名', trigger: 'blur' }],
-  latinName: [{ required: true, message: '请输入学名', trigger: 'blur' }],
-  // categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
-  // habitat: [{ required: true, message: '请选择栖息地', trigger: 'change' }]
+  name: [{ required: true, message: '请输入物种名称', trigger: 'blur' }],
+  categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }]
 }
 
 // 分页数据
 const pagination = reactive({
-  page: 1,
-  size: 10,
-  total: 3
+  page: 1,    // 当前页码
+  size: 10,   // 每页条数
+  total: 0    // 总条数
 })
 
-// 获取栖息地颜色
+// ==================== 工具方法 ====================
+/**
+ * 获取栖息地对应的颜色类型
+ * @param habitat 栖息地类型
+ * @returns Element Plus 颜色类型
+ */
 const getHabitatColor = (habitat: string) => {
   const colorMap: Record<string, string> = {
     shallow: 'primary',
@@ -526,7 +410,11 @@ const getHabitatColor = (habitat: string) => {
   return colorMap[habitat] || 'info'
 }
 
-// 获取栖息地文本
+/**
+ * 获取栖息地对应的中文文本
+ * @param habitat 栖息地类型
+ * @returns 中文描述
+ */
 const getHabitatText = (habitat: string) => {
   const textMap: Record<string, string> = {
     shallow: '浅海',
@@ -538,87 +426,100 @@ const getHabitatText = (habitat: string) => {
   return textMap[habitat] || habitat
 }
 
-// 获取列表数据
-const getList = async () => {
-  loading.value = true
-  try {
-    setTimeout(() => {
-      loading.value = false
-    }, 500)
-  } catch (error) {
-    console.error('获取物种列表失败:', error)
-    loading.value = false
-  }
-}
-
-// 处理搜索
+// ==================== 事件处理方法 ====================
+/**
+ * 处理搜索操作
+ * 重置页码为第一页，然后重新获取数据
+ */
 const handleSearch = () => {
   pagination.page = 1
-  getList()
+  getSList()
 }
 
-// 处理重置
+/**
+ * 处理重置操作
+ * 清空所有搜索条件，重置页码，重新获取数据
+ */
 const handleReset = () => {
   Object.assign(searchForm, {
     name: '',
     categoryId: '',
+    englishName: '',
+    latinName: '',
+    endangeredLevel: '',
     habitat: '',
     status: ''
   })
   pagination.page = 1
-  getList()
+  getSList()
 }
 
 
-// 处理新增
+/**
+ * 处理新增物种
+ * 重置表单数据，设置标题为新增，显示表单对话框
+ */
 const handleAdd = () => {
-  // 步骤1: 使用初始对象重置表单
+  // 使用默认数据重置表单
   Object.assign(form, defaultForm);
-
   formTitle.value = '新增物种'
   formVisible.value = true
 }
 
-// 处理编辑
+/**
+ * 处理编辑物种
+ * @param row 要编辑的物种数据
+ */
 const handleEdit = (row: any) => {
   formTitle.value = '编辑物种'
-  // Object.assign(form, row)
-  Object.keys(form).forEach(key => form[key] = null); // 可选的重置步骤
+  // 先清空表单，再填充数据
+  Object.keys(form).forEach(key => (form as any)[key] = null);
   Object.assign(form, row);
   formVisible.value = true
 }
 
-// 处理查看详情
+/**
+ * 处理查看物种详情
+ * @param row 要查看的物种数据
+ */
 const handleView = (row: any) => {
   currentSpecies.value = row
   detailVisible.value = true
 }
 
-// 处理预览
+/**
+ * 处理预览功能（暂未实现）
+ * @param row 要预览的物种数据
+ */
 const handlePreview = (row: any) => {
   ElMessage.info('预览功能开发中...')
 }
 
-// 处理状态变更
+/**
+ * 处理状态变更
+ * @param row 要变更状态的物种数据
+ */
 const handleStatusChange = (row: any) => {
   const statusText = row.status === 1 ? '发布' : '草稿'
   ElMessage.success(`物种状态已更新为${statusText}`)
 }
 
-// 处理删除
+/**
+ * 处理删除物种
+ * @param row 要删除的物种数据
+ */
 const handleDelete = async (row: any) => {
   try {
+    // 确认删除对话框
     await ElMessageBox.confirm('确定要删除此物种吗？删除后无法恢复！', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
-    // const index = tableData.value.findIndex(item => item.id === row.id)
-    // if (index > -1) {
-    //   tableData.value.splice(index, 1)
-    //   pagination.total--
-    // }
+    
+    // 调用删除接口
     deleteSpeciesCategory(row.id)
+    // 重新获取列表数据
     getSList()
     ElMessage.success('删除成功')
   } catch (error) {
@@ -626,60 +527,79 @@ const handleDelete = async (row: any) => {
   }
 }
 
-// 处理提交
+/**
+ * 处理表单提交
+ * 验证表单后，根据是否有ID判断是新增还是编辑操作
+ */
 const handleSubmit = () => {
   formRef.value?.validate(async (valid) => {
     if (valid) {
       try {
+        // 准备提交的数据
+        const submitData: any = {
+          name: form.name,
+          description: form.description,
+          imageUrl: form.imageUrl,
+          iconUrl: form.iconUrl,
+          categoryId: form.categoryId,
+          englishName: form.englishName,
+          latinName: form.latinName,
+          endangeredLevel: form.endangeredLevel,
+          knowledge: form.knowledge,
+          facingThreats: form.facingThreats,
+          sort: form.sort
+        }
+        
         if (form.id) {
-          await updateSpeciesCategory(form); // 调用更新接口
+          // 编辑模式，添加ID
+          submitData.id = form.id
+          await updateSpeciesCategory(submitData)
           ElMessage.success('更新成功')
         } else {
-          await createSpeciesCategory(form); // 调用新增接口
+          // 新增模式
+          await saveSpecies(submitData)
           ElMessage.success('创建成功')
         }
         formVisible.value = false
         getSList()
       } catch (error) {
         console.error('提交失败:', error)
+        ElMessage.error('操作失败，请重试')
       }
     }
   })
 }
 
-// 重置表单
+/**
+ * 重置表单
+ * 将表单数据重置为默认值，并清除验证状态
+ */
 const resetForm = () => {
-  Object.assign(form, {
-    id: null,
-    chineseName: '',
-    scientificName: '',
-    categoryId: '',
-    habitat: '',
-    size: '',
-    weight: '',
-    lifespan: '',
-    protectionLevel: '',
-    morphology: '',
-    habits: '',
-    distribution: '',
-    conservation: '',
-    status: 1
-  })
+  Object.assign(form, defaultForm)
   formRef.value?.resetFields()
 }
 
-// 处理分类管理
+// ==================== 其他功能方法 ====================
+/**
+ * 处理分类管理
+ * 显示分类管理对话框
+ */
 const handleCategories = () => {
   categoryVisible.value = true
 }
 
-// 处理课程关联
+/**
+ * 处理课程关联
+ * 跳转到课程关联管理页面
+ */
 const handleCourseRelation = () => {
-  // 跳转到课程关联管理页面
   router.push('/species/course-relation')
 }
 
-// 处理添加分类
+/**
+ * 处理添加分类
+ * 在分类管理对话框中添加新分类
+ */
 const handleAddCategory = () => {
   if (!newCategoryName.value.trim()) {
     ElMessage.warning('请输入分类名称')
@@ -698,12 +618,18 @@ const handleAddCategory = () => {
   ElMessage.success('添加成功')
 }
 
-// 处理编辑分类
+/**
+ * 处理编辑分类（暂未实现）
+ * @param row 要编辑的分类数据
+ */
 const handleEditCategory = (row: any) => {
   ElMessage.info('编辑分类功能开发中...')
 }
 
-// 处理删除分类
+/**
+ * 处理删除分类
+ * @param row 要删除的分类数据
+ */
 const handleDeleteCategory = async (row: any) => {
   if (row.speciesCount > 0) {
     ElMessage.warning('该分类下还有物种，无法删除')
@@ -727,30 +653,39 @@ const handleDeleteCategory = async (row: any) => {
   }
 }
 
-// 处理导入
+/**
+ * 处理导入功能（暂未实现）
+ */
 const handleImport = () => {
   ElMessage.info('批量导入功能开发中...')
 }
 
-// 处理导出
+/**
+ * 处理导出功能（暂未实现）
+ */
 const handleExport = () => {
   ElMessage.info('导出数据功能开发中...')
 }
 
-// 分页处理
+// ==================== 分页处理方法 ====================
+/**
+ * 处理每页条数变化
+ * @param size 新的每页条数
+ */
 const handleSizeChange = (size: number) => {
   pagination.size = size
-  getList()
+  getSList()
 }
 
+/**
+ * 处理页码变化
+ * @param page 新的页码
+ */
 const handleCurrentChange = (page: number) => {
   pagination.page = page
-  getList()
+  getSList()
 }
 
-onMounted(() => {
-  getList()
-})
 </script>
 
 <style lang="scss" scoped>

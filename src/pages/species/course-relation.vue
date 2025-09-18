@@ -1,62 +1,15 @@
 <template>
+  <!-- 课程物种关联管理页面主容器 -->
   <div class="app-container">
+    <!-- 页面标题区域 -->
     <div class="page-header">
       <h1>课程物种关联管理</h1>
     </div>
 
-    <!-- 统计卡片 -->
-    <!-- <div class="stats-container">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon total">
-              <el-icon><Link /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ stats.total }}</div>
-              <div class="stat-label">关联总数</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon courses">
-              <el-icon><Reading /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ stats.courses }}</div>
-              <div class="stat-label">关联课程</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon species">
-              <el-icon><Cherry /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ stats.species }}</div>
-              <div class="stat-label">关联物种</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon active">
-              <el-icon><Check /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ stats.active }}</div>
-              <div class="stat-label">有效关联</div>
-            </div>
-          </div>
-        </el-col>
-      </el-row>
-    </div> -->
-
     <!-- 搜索区域 -->
     <div class="card-container">
       <el-form :model="searchForm" :inline="true" class="search-form">
+        <!-- 课程选择下拉框 -->
         <el-form-item label="课程">
           <el-select v-model="searchForm.courseId" placeholder="请选择课程" clearable filterable @change="loadSpeciesByCourse">
             <el-option
@@ -67,6 +20,7 @@
             />
           </el-select>
         </el-form-item>
+        <!-- 物种选择下拉框 -->
         <el-form-item label="物种">
           <el-select v-model="searchForm.speciesId" placeholder="请选择物种" clearable filterable>
             <el-option
@@ -77,29 +31,7 @@
             />
           </el-select>
         </el-form-item>
-        <!-- <el-form-item label="物种分类">
-          <el-select v-model="searchForm.categoryId" placeholder="请选择分类" clearable>
-            <el-option
-              v-for="category in categoryList"
-              :key="category.id"
-              :label="category.name"
-              :value="category.id"
-            />
-          </el-select>
-        </el-form-item> -->
-        <el-form-item label="关联类型">
-          <el-select v-model="searchForm.relationType" placeholder="请选择关联类型" clearable>
-            <el-option label="主要物种" value="primary" />
-            <el-option label="相关物种" value="related" />
-            <el-option label="对比物种" value="comparison" />
-          </el-select>
-        </el-form-item>
-        <!-- <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="有效" :value="1" />
-            <el-option label="无效" :value="0" />
-          </el-select>
-        </el-form-item> -->
+        <!-- 搜索和重置按钮 -->
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
             <el-icon><Search /></el-icon>
@@ -113,27 +45,16 @@
       </el-form>
     </div>
 
-    <!-- 操作按钮 -->
+    <!-- 操作按钮区域 -->
     <div class="button-group">
+      <!-- 新增关联按钮 -->
       <el-button type="primary" @click="handleAdd">
         <el-icon><Plus /></el-icon>
         新增关联
       </el-button>
-      <!-- <el-button type="success" @click="handleBatchAdd">
-        <el-icon><DocumentAdd /></el-icon>
-        批量关联
-      </el-button>
-      <el-button type="warning" @click="handleSync">
-        <el-icon><Refresh /></el-icon>
-        同步数据
-      </el-button>
-      <el-button type="info" @click="handleExport">
-        <el-icon><Download /></el-icon>
-        导出关联
-      </el-button> -->
     </div>
 
-    <!-- 表格 -->
+    <!-- 关联关系树形表格 -->
     <div class="card-container">
       <el-table
         v-loading="loading"
@@ -142,10 +63,14 @@
         row-key="_key"
         :tree-props="{ children: 'children' }"
       >
+        <!-- ID列 -->
         <el-table-column prop="id" label="ID" width="80" />
+        <!-- 课程/物种信息列 - 根据节点类型显示不同内容 -->
         <el-table-column label="课程信息" min-width="250">
           <template #default="scope">
+            <!-- 课程节点显示 -->
             <div class="course-info" v-if="!scope.row.isSpecies">
+              <!-- 课程封面图片 -->
               <el-image
                 v-if="scope.row.courseCover"
                 :src="scope.row.courseCover"
@@ -153,14 +78,19 @@
                 fit="cover"
               />
               <div class="course-detail">
+                <!-- 课程标题 -->
                 <div class="course-title">{{ scope.row.courseTitle }}</div>
                 <div class="course-meta">
+                  <!-- 课程分类标签 -->
                   <el-tag size="small" type="info">{{ scope.row.courseCategory }}</el-tag>
+                  <!-- 课程级别 -->
                   <span class="course-level">{{ scope.row.courseLevel }}</span>
                 </div>
               </div>
             </div>
+            <!-- 物种子节点显示 -->
             <div class="species-info" v-else>
+              <!-- 物种图片 -->
               <el-image
                 v-if="scope.row.speciesImage"
                 :src="scope.row.speciesImage"
@@ -168,12 +98,15 @@
                 fit="cover"
               />
               <div class="species-detail">
+                <!-- 物种中文名 -->
                 <div class="species-name">{{ scope.row.speciesChineseName }}</div>
+                <!-- 物种学名 -->
                 <div class="species-scientific">{{ scope.row.speciesScientificName }}</div>
               </div>
             </div>
           </template>
         </el-table-column>
+        <!-- 隐藏的物种信息列（当前未使用） -->
         <el-table-column v-if="false" label="物种信息" min-width="200">
           <template #default="scope">
             <div class="species-info">
@@ -190,46 +123,20 @@
             </div>
           </template>
         </el-table-column>
+        <!-- 物种分类列 -->
         <el-table-column prop="speciesCategory" label="物种分类" width="120">
           <template #default="scope">
             <el-tag type="success">{{ scope.row.speciesCategory }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="关联类型" width="120">
+        <!-- 操作列 -->
+        <el-table-column label="操作" width="450" fixed="right">
           <template #default="scope">
-            <el-tag :type="getRelationTypeColor(scope.row.relationType)">
-              {{ getRelationTypeText(scope.row.relationType) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="weight" label="权重" width="100">
-          <template #default="scope">
-            <el-tag type="warning">{{ scope.row.weight }}</el-tag>
-          </template>
-        </el-table-column>
-        <!-- <el-table-column prop="description" label="关联说明" min-width="200" show-overflow-tooltip /> -->
-        <!-- <el-table-column label="状态" width="100">
-          <template #default="scope">
-            <el-switch
-              v-model="scope.row.status"
-              :active-value="1"
-              :inactive-value="0"
-              @change="handleStatusChange(scope.row)"
-            />
-          </template>
-        </el-table-column> -->
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="250" fixed="right">
-          <template #default="scope">
+            <!-- 编辑关联按钮 -->
             <el-button type="primary" size="small" @click="handleEdit(scope.row)">
               编辑
             </el-button>
-            <!-- <el-button type="info" size="small" @click="handleView(scope.row)">
-              详情
-            </el-button>
-            <el-button type="success" size="small" @click="handlePreview(scope.row)">
-              预览
-            </el-button> -->
+            <!-- 删除关联按钮 -->
             <el-button type="danger" size="small" @click="handleDelete(scope.row)">
               删除
             </el-button>
@@ -237,7 +144,7 @@
         </el-table-column>
       </el-table>
 
-      <!-- 分页 -->
+      <!-- 分页组件 -->
       <el-pagination
         v-model:current-page="pagination.page"
         v-model:page-size="pagination.size"
@@ -262,6 +169,7 @@
         :rules="rules"
         label-width="120px"
       >
+        <!-- 课程选择行 -->
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="选择课程" prop="courseId">
@@ -272,6 +180,7 @@
                   :label="course.name || course.title"
                   :value="course.id"
                 >
+                  <!-- 课程选项显示内容 -->
                   <div class="course-option">
                     <span>{{ course.name || course.title }}</span>
                     <el-tag size="small" type="info">{{ course.category }}</el-tag>
@@ -280,8 +189,14 @@
               </el-select>
             </el-form-item>
           </el-col>
+          
+        </el-row>
+        
+        <!-- 物种选择行 -->
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="选择物种" prop="speciesIds">
+              <!-- 多选物种下拉框 -->
               <el-select 
                 v-model="form.speciesIds" 
                 placeholder="请选择物种（可多选）" 
@@ -297,6 +212,7 @@
                   :label="species.chineseName"
                   :value="species.id"
                 >
+                  <!-- 物种选项显示内容 -->
                   <div class="species-option">
                     <span>{{ species.chineseName }}</span>
                     <small>{{ species.scientificName }}</small>
@@ -307,45 +223,8 @@
           </el-col>
         </el-row>
         
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="关联类型" prop="relationType">
-              <el-select v-model="form.relationType" placeholder="请选择关联类型" style="width: 100%">
-                <el-option label="主要物种" value="primary" />
-                <el-option label="相关物种" value="related" />
-                <el-option label="对比物种" value="comparison" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="权重" prop="weight">
-              <el-input-number 
-                v-model="form.weight" 
-                :min="1" 
-                :max="100" 
-                placeholder="1-100"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        
-        <el-form-item label="关联说明" prop="description">
-          <el-input 
-            v-model="form.description" 
-            type="textarea" 
-            :rows="3" 
-            placeholder="请输入关联说明，例如：该物种在课程中的作用、学习重点等" 
-          />
-        </el-form-item>
-        
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio :label="1">有效</el-radio>
-            <el-radio :label="0">无效</el-radio>
-          </el-radio-group>
-        </el-form-item>
       </el-form>
+      <!-- 对话框底部按钮 -->
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="formVisible = false">取消</el-button>
@@ -354,139 +233,46 @@
       </template>
     </el-dialog>
 
-    <!-- 批量关联对话框 -->
-    <el-dialog
-      v-model="batchVisible"
-      title="批量关联管理"
-      width="900px"
-    >
-      <div class="batch-relation">
-        <el-alert
-          title="批量为课程关联多个物种，或为物种关联多个课程"
-          type="info"
-          show-icon
-          :closable="false"
-          style="margin-bottom: 20px"
-        />
-        
-        <el-form :model="batchForm" label-width="100px">
-          <el-form-item label="关联模式">
-            <el-radio-group v-model="batchForm.mode">
-              <el-radio value="course-to-species">一个课程关联多个物种</el-radio>
-              <el-radio value="species-to-course">一个物种关联多个课程</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          
-          <el-form-item v-if="batchForm.mode === 'course-to-species'" label="选择课程">
-            <el-select v-model="batchForm.courseId" placeholder="请选择课程" style="width: 100%">
-              <el-option
-                v-for="course in courseList"
-                :key="course.id"
-                :label="course.name || course.title"
-                :value="course.id"
-              />
-            </el-select>
-          </el-form-item>
-          
-          <el-form-item v-if="batchForm.mode === 'species-to-course'" label="选择物种">
-            <el-select v-model="batchForm.speciesId" placeholder="请选择物种" style="width: 100%">
-              <el-option
-                v-for="species in speciesList"
-                :key="species.id"
-                :label="species.chineseName"
-                :value="species.id"
-              />
-            </el-select>
-          </el-form-item>
-          
-          <el-form-item v-if="batchForm.mode === 'course-to-species'" label="选择物种">
-            <el-transfer
-              v-model="batchForm.selectedSpecies"
-              :data="transferSpeciesData"
-              :titles="['可选物种', '已选物种']"
-              filterable
-            />
-          </el-form-item>
-          
-          <el-form-item v-if="batchForm.mode === 'species-to-course'" label="选择课程">
-            <el-transfer
-              v-model="batchForm.selectedCourses"
-              :data="transferCourseData"
-              :titles="['可选课程', '已选课程']"
-              filterable
-            />
-          </el-form-item>
-          
-          <el-form-item label="默认关联类型">
-            <el-select v-model="batchForm.relationType" style="width: 200px">
-              <el-option label="主要物种" value="primary" />
-              <el-option label="相关物种" value="related" />
-              <el-option label="对比物种" value="comparison" />
-            </el-select>
-          </el-form-item>
-        </el-form>
-      </div>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="batchVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">批量关联</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
-    <!-- 关联详情对话框 -->
-    <el-dialog
-      v-model="detailVisible"
-      title="关联详情"
-      width="800px"
-    >
-      <div v-if="currentRelation" class="relation-detail">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="关联ID">{{ currentRelation.id }}</el-descriptions-item>
-          <el-descriptions-item label="关联类型">
-            <el-tag :type="getRelationTypeColor(currentRelation.relationType)">
-              {{ getRelationTypeText(currentRelation.relationType) }}
-            </el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="课程标题">{{ currentRelation.courseTitle }}</el-descriptions-item>
-          <el-descriptions-item label="课程分类">{{ currentRelation.courseCategory }}</el-descriptions-item>
-          <el-descriptions-item label="物种中文名">{{ currentRelation.speciesChineseName }}</el-descriptions-item>
-          <el-descriptions-item label="物种学名">{{ currentRelation.speciesScientificName }}</el-descriptions-item>
-          <el-descriptions-item label="物种分类">{{ currentRelation.speciesCategory }}</el-descriptions-item>
-          <el-descriptions-item label="关联权重">{{ currentRelation.weight }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ currentRelation.createTime }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ currentRelation.updateTime || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="关联说明" :span="2">
-            <div class="description-text">{{ currentRelation.description || '-' }}</div>
-          </el-descriptions-item>
-        </el-descriptions>
-      </div>
-    </el-dialog>
+  
+    
   </div>
 </template>
 
 <script setup lang="ts">
+// Vue 3 Composition API 相关导入
 import { ref, reactive, onMounted } from 'vue'
+// Element Plus 消息提示和确认框
 import { ElMessage, ElMessageBox } from 'element-plus'
+// Element Plus 表单类型定义
 import type { FormInstance, FormRules } from 'element-plus'
+// HTTP 请求工具
 import request from '@/utils/request'
 
-// 响应式数据
+// ========== 响应式数据定义 ==========
+// 页面加载状态
 const loading = ref(false)
+// 表单对话框显示状态
 const formVisible = ref(false)
+// 批量操作对话框显示状态
 const batchVisible = ref(false)
+// 详情对话框显示状态
 const detailVisible = ref(false)
+// 表单对话框标题
 const formTitle = ref('新增关联')
+// 表单引用
 const formRef = ref<FormInstance>()
+// 当前关联关系数据
 const currentRelation = ref<any>(null)
 
-// 统计数据
+// 统计数据（当前未使用，保留用于后续扩展）
 const stats = reactive({
   total: 89,
   courses: 23,
   species: 45,
   active: 76
 })
+
+// 查询参数
 const queryParams = reactive({
   page: 1,
   limit: 10,
@@ -495,31 +281,8 @@ const queryParams = reactive({
   isOcean: null,
   isShow: null,
 });
-// 获取课程信息
-const getCList = async () => {
-  loading.value = true;
-  try {
-    const response = await request({
-      url: '/admin/platform/product/course/list',
-      method: 'get',
-      params: queryParams,
-    });
-    
-    // 根据实际API响应结构，数据直接在response下
-    if (response && (response as any).list) {
-        courseList.value = (response as any).list;
-        console.log('成功加载课程数据:', courseList.value.length, '条课程');
-    } else {
-        console.warn('API响应格式异常:', response);
-        courseList.value = [];
-    }
-  } catch (error) {
-    console.error('获取课程列表失败:', error);
-    ElMessage.error('获取课程列表失败');
-  } finally {
-    loading.value = false;
-  }
-};
+
+// ========== 数据列表定义 ==========
 // 表格数据（课程为父节点，物种为子节点）
 const tableData = ref<any[]>([])
 
@@ -532,7 +295,8 @@ const speciesList = ref<any[]>([])
 // 分类列表（如需后端获取，可后续接入）
 const categoryList = ref<any[]>([])
 
-// 搜索表单
+// ========== 表单数据定义 ==========
+// 搜索表单数据
 const searchForm = reactive({
   courseId: '',
   speciesId: '',
@@ -541,7 +305,7 @@ const searchForm = reactive({
   status: ''
 })
 
-// 表单数据
+// 关联表单数据
 const form = reactive({
   id: null,
   courseId: '',
@@ -552,7 +316,7 @@ const form = reactive({
   status: 1
 })
 
-// 批量表单
+// 批量操作表单数据
 const batchForm = reactive({
   mode: 'course-to-species',
   courseId: '',
@@ -581,7 +345,12 @@ const pagination = reactive({
 const transferSpeciesData = ref<any[]>([])
 const transferCourseData = ref<any[]>([])
 
-// 获取关联类型颜色
+// ========== 工具函数 ==========
+/**
+ * 获取关联类型对应的颜色
+ * @param type 关联类型
+ * @returns 颜色类型
+ */
 const getRelationTypeColor = (type: string) => {
   const colorMap: Record<string, string> = {
     primary: 'danger',
@@ -591,7 +360,11 @@ const getRelationTypeColor = (type: string) => {
   return colorMap[type] || 'info'
 }
 
-// 获取关联类型文本
+/**
+ * 获取关联类型对应的文本
+ * @param type 关联类型
+ * @returns 显示文本
+ */
 const getRelationTypeText = (type: string) => {
   const textMap: Record<string, string> = {
     primary: '主要物种',
@@ -601,11 +374,42 @@ const getRelationTypeText = (type: string) => {
   return textMap[type] || type
 }
 
-// 获取列表数据
+// ========== API 调用函数 ==========
+/**
+ * 获取课程信息列表
+ */
+const getCList = async () => {
+  loading.value = true;
+  try {
+    const response = await request({
+      url: '/admin/platform/product/course/list',
+      method: 'get',
+      params: queryParams,
+    });
+    
+    // 根据实际API响应结构，数据直接在response下
+    if (response && (response as any).list) {
+        courseList.value = (response as any).list;
+        console.log('成功加载课程数据:', courseList.value.length, '条课程');
+    } else {
+        console.warn('API响应格式异常:', response);
+        courseList.value = [];
+    }
+  } catch (error) {
+    console.error('获取课程列表失败:', error);
+    ElMessage.error('获取课程列表失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+/**
+ * 获取关联列表数据（课程-物种树形结构）
+ */
 const getList = async () => {
   loading.value = true
   try {
-    // 拉取课程分页
+    // 拉取课程分页数据
     const courseRes: any = await request({
       url: '/admin/platform/product/course/list',
       method: 'get',
@@ -620,16 +424,16 @@ const getList = async () => {
     }).catch(() => ({ list: [] })))
     const speciesResults: any[] = await Promise.all(speciesPromises)
 
-    // 组装成树
+    // 组装成树形结构：课程为父节点，物种为子节点
     tableData.value = courseRows.map((c: any, index: number) => {
       const row = {
         id: c.id,
         _key: `c-${c.id}`,
         isSpecies: false,
         courseId: c.id,
-        courseTitle: c.title ?? c.name ?? '-',
-        courseCategory: c.category ?? '-',
-        courseLevel: c.level ?? '-',
+        courseTitle: c.title ?? c.name ?? '',
+        courseCategory: c.category ?? '',
+        courseLevel: c.level ?? '',
         courseCover: c.cover ?? '',
         speciesCategory: '',
         weight: '',
@@ -665,7 +469,9 @@ const getList = async () => {
   }
 }
 
-// 初始化穿梭框数据
+/**
+ * 初始化穿梭框数据
+ */
 const initTransferData = () => {
   transferSpeciesData.value = speciesList.value.map(species => ({
     key: species.id,
@@ -678,7 +484,9 @@ const initTransferData = () => {
   }))
 }
 
-// 加载物种下拉（全部物种，用于新增关联选择）
+/**
+ * 加载物种下拉选项（全部物种，用于新增关联选择）
+ */
 const loadAllSpeciesOptions = async () => {
   try {
     const res: any = await request({
@@ -698,13 +506,18 @@ const loadAllSpeciesOptions = async () => {
   }
 }
 
-// 处理搜索
+// ========== 搜索和过滤功能 ==========
+/**
+ * 处理搜索操作
+ */
 const handleSearch = () => {
   pagination.page = 1
   getList()
 }
 
-// 处理重置
+/**
+ * 处理重置搜索条件
+ */
 const handleReset = () => {
   Object.assign(searchForm, {
     courseId: '',
@@ -717,7 +530,10 @@ const handleReset = () => {
   getList()
 }
 
-// 监听课程选择，自动加载该课程的物种下拉与表格
+/**
+ * 监听课程选择，自动加载该课程的物种下拉与表格
+ * @param courseId 课程ID
+ */
 const loadSpeciesByCourse = async (courseId: number | string) => {
   if (!courseId) {
     speciesList.value = []
@@ -740,7 +556,10 @@ const loadSpeciesByCourse = async (courseId: number | string) => {
   }
 }
 
-// 处理新增
+// ========== 表单操作功能 ==========
+/**
+ * 处理新增关联
+ */
 const handleAdd = () => {
   formTitle.value = '新增关联'
   // 确保下拉有数据
@@ -749,7 +568,10 @@ const handleAdd = () => {
   formVisible.value = true
 }
 
-// 处理编辑
+/**
+ * 处理编辑关联
+ * @param row 要编辑的行数据
+ */
 const handleEdit = (row: any) => {
   formTitle.value = '编辑关联'
   // 如果是物种子节点，则将该课程下已关联的所有物种预选，便于增删
@@ -772,24 +594,36 @@ const handleEdit = (row: any) => {
   formVisible.value = true
 }
 
-// 处理查看详情
+/**
+ * 处理查看详情（当前为占位功能）
+ * @param row 行数据
+ */
 const handleView = (row: any) => {
   currentRelation.value = row
   detailVisible.value = true
 }
 
-// 处理预览
+/**
+ * 处理预览（当前为占位功能）
+ * @param row 行数据
+ */
 const handlePreview = (row: any) => {
   ElMessage.info('预览课程中的物种展示效果')
 }
 
-// 处理状态变更
+/**
+ * 处理状态变更（当前为占位功能）
+ * @param row 行数据
+ */
 const handleStatusChange = (row: any) => {
   const statusText = row.status === 1 ? '有效' : '无效'
   ElMessage.success(`关联状态已更新为${statusText}`)
 }
 
-// 处理删除
+/**
+ * 处理删除关联
+ * @param row 要删除的行数据
+ */
 const handleDelete = async (row: any) => {
   try {
     await ElMessageBox.confirm('确定要删除此关联吗？删除后无法恢复！', '提示', {
@@ -815,7 +649,9 @@ const handleDelete = async (row: any) => {
   }
 }
 
-// 处理提交
+/**
+ * 处理表单提交
+ */
 const handleSubmit = () => {
   formRef.value?.validate(async (valid) => {
     if (valid) {
@@ -843,7 +679,9 @@ const handleSubmit = () => {
   })
 }
 
-// 重置表单
+/**
+ * 重置表单数据
+ */
 const resetForm = () => {
   Object.assign(form, {
     id: null,
@@ -857,60 +695,41 @@ const resetForm = () => {
   formRef.value?.resetFields()
 }
 
-// 处理批量关联
-// const handleBatchAdd = () => {
-//   initTransferData()
-//   batchVisible.value = true
-// }
-
-// 处理批量提交
-// const handleBatchSubmit = () => {
-//   if (batchForm.mode === 'course-to-species') {
-//     if (!batchForm.courseId || batchForm.selectedSpecies.length === 0) {
-//       ElMessage.warning('请选择课程和物种')
-//       return
-//     }
-//     request({
-//       url: '/admin/platform/product-species/associate',
-//       method: 'post',
-//       data: {
-//         productId: batchForm.courseId,
-//         speciesIds: batchForm.selectedSpecies
-//       }
-//     }).then(() => {
-//       ElMessage.success('批量关联成功')
-//       batchVisible.value = false
-//       getList()
-//     }).catch((e) => {
-//       console.error('批量关联失败:', e)
-//     })
-//   } else {
-//     // 当前接口仅支持“课程 → 多个物种”，此分支保留占位
-//     ElMessage.info('当前仅支持按课程批量关联物种')
-//   }
-// }
-
-// 处理同步数据
+// ========== 其他功能 ==========
+/**
+ * 处理同步数据（当前为占位功能）
+ */
 const handleSync = () => {
   ElMessage.info('同步数据功能开发中...')
 }
 
-// 处理导出
+/**
+ * 处理导出（当前为占位功能）
+ */
 const handleExport = () => {
   ElMessage.info('导出关联数据功能开发中...')
 }
 
-// 分页处理
+// ========== 分页处理 ==========
+/**
+ * 处理每页条数变化
+ * @param size 每页条数
+ */
 const handleSizeChange = (size: number) => {
   pagination.size = size
   getList()
 }
 
+/**
+ * 处理当前页变化
+ * @param page 当前页码
+ */
 const handleCurrentChange = (page: number) => {
   pagination.page = page
   getList()
 }
 
+// ========== 生命周期钩子 ==========
 onMounted(() => {
   getList()
   // 首次进入即加载可选项
