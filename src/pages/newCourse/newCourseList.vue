@@ -70,6 +70,7 @@
                 :src="img"
                 :preview-src-list="parseSliderImage(scope.row.sliderImage)"
                 :initial-index="index"
+                :preview-teleported="true"
                 fit="cover"
               />
             </div>

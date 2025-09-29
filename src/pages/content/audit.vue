@@ -142,6 +142,7 @@
               v-if="scope.row.images && scope.row.images.length > 0"
               :src="scope.row.images[0]"
               :preview-src-list="scope.row.images"
+              :preview-teleported="true"
               fit="cover"
               style="width: 60px; height: 40px; border-radius: 4px"
             />
@@ -249,6 +250,7 @@
               :key="index"
               :src="image"
               :preview-src-list="currentContent.images"
+              :preview-teleported="true"
               fit="cover"
               class="gallery-image"
             />

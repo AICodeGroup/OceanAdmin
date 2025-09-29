@@ -148,6 +148,13 @@ html, body {
   }
 }
 
+// 图片预览组件优化
+// 使用 preview-teleported 属性将预览组件渲染到 body 下，避免被父级元素遮挡
+// 这里保留一些基本的样式优化
+.el-image-viewer__mask {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
 // 响应式
 @media (max-width: 768px) {
   .app-container {

@@ -62,6 +62,7 @@
             <el-image
               :src="scope.row.cover"
               :preview-src-list="[scope.row.cover]"
+              :preview-teleported="true"
               fit="cover"
               style="width: 80px; height: 60px; border-radius: 4px"
             />

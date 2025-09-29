@@ -65,6 +65,7 @@
               v-if="scope.row.imageUrl && scope.row.imageUrl.length > 0"
               :src="scope.row.imageUrl"
               :preview-src-list="scope.row.images"
+              :preview-teleported="true"
               fit="cover"
               style="width: 60px; height: 60px; border-radius: 8px"
             />

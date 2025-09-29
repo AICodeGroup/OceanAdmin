@@ -29,6 +29,7 @@
               :key="index"
               :src="url"
               :preview-src-list="scope.row.imageUrls"
+              :preview-teleported="true"
               fit="cover"
               class="table-gallery-item"
             />
@@ -40,7 +41,7 @@
         <template #default="scope">
           <div class="gallery-cell">
             <div v-for="species in scope.row.selectedSpecies" :key="species.id" class="species-item">
-              <el-image :src="species.imageUrl" fit="cover" class="table-gallery-item" />
+              <el-image :src="species.imageUrl" :preview-teleported="true" fit="cover" class="table-gallery-item" />
               <span class="species-name">{{ species.name }}</span>
             </div>
           </div>
