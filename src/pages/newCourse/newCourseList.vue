@@ -148,10 +148,12 @@
           <el-input type="textarea" v-model="form.course.intro" placeholder="请输入简介" />
         </el-form-item>
         <el-form-item label="活动亮点" prop="course.activityLight">
-            <el-input type="textarea" v-model="form.course.activityLight" placeholder='请输入活动亮点，使用 JSON 格式，例如：{"亮点1": "描述1", "亮点2": "描述2"}' />
+            <RichTextEditor v-model="form.course.activityLight" />
+            <!-- <el-input type="textarea" v-model="form.course.activityLight" placeholder='请输入活动亮点，使用 JSON 格式，例如：{"亮点1": "描述1", "亮点2": "描述2"}' /> -->
         </el-form-item>
         <el-form-item label="活动日程" prop="course.activitySchedule">
-            <el-input type="textarea" v-model="form.course.activitySchedule" placeholder='请输入活动日程，使用 JSON 格式，例如：{"第一天": "活动安排", "第二天": "活动安排"}' />
+            <RichTextEditor v-model="form.course.activitySchedule" />
+            <!-- <el-input type="textarea" v-model="form.course.activitySchedule" placeholder='请输入活动日程，使用 JSON 格式，例如：{"第一天": "活动安排", "第二天": "活动安排"}' /> -->
         </el-form-item>
         <el-form-item label="轮播图" prop="course.sliderImage">
             <el-upload
@@ -318,6 +320,8 @@ import type { FormInstance, UploadProps, UploadUserFile } from 'element-plus';
 import { InfoFilled } from '@element-plus/icons-vue';
 import request from '@/utils/request';
 import { getToken } from '@/utils/auth';
+import  RichTextEditor from '@/components/Editor/index.vue';
+
 
 interface Category {
     id: number;
