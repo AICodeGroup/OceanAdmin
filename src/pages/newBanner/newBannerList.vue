@@ -36,6 +36,7 @@
           </template>
         </el-table-column>
         <el-table-column label="标题" prop="title" :show-overflow-tooltip="true" />
+        <el-table-column label="描述" prop="description" :show-overflow-tooltip="true" width="200" />
         <el-table-column label="跳转链接" prop="linkUrl" :show-overflow-tooltip="true" />
         <el-table-column label="排序" prop="sort" width="100" align="center" />
         <el-table-column label="状态" align="center" width="100">
@@ -78,6 +79,16 @@
         </el-form-item>
         <el-form-item label="英文标题" prop="latinName">
           <el-input v-model="form.latinName" placeholder="请输入英文标题" />
+        </el-form-item>
+        <el-form-item label="描述信息" prop="description">
+          <el-input 
+            v-model="form.description" 
+            type="textarea" 
+            :rows="3"
+            placeholder="请输入轮播图描述信息（选填）" 
+            maxlength="500"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="轮播图" prop="imageUrl">
             <el-upload
@@ -143,6 +154,7 @@ const getInitialForm = (): Omit<Banner, 'id' | 'createdAt' | 'updatedAt' | 'isDe
   latinName: '',
   imageUrl: '',
   linkUrl: '',
+  description: '',
   sort: 0,
   status: true,
   bannerType: 0,
@@ -258,6 +270,7 @@ const handleSubmit = () => {
     if (valid) {
       // @ts-ignore
       const isUpdate = !!form.id;
+
       try {
         if (isUpdate) {
           await updateBanner(form as Banner);
@@ -267,8 +280,9 @@ const handleSubmit = () => {
         ElMessage.success(isUpdate ? '修改成功' : '新增成功');
         dialogVisible.value = false;
         getList();
-        formRef.value?.clearValidate(); // 清除校验状态
+        formRef.value?.clearValidate();
       } catch (error) {
+        console.error('提交失败:', error);
         ElMessage.error(isUpdate ? '修改失败' : '新增失败');
       }
     }
