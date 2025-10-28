@@ -7,6 +7,7 @@ export interface Banner {
   latinName: string
   imageUrl: string
   linkUrl: string
+  description?: string
   sort: number
   status: boolean
   bannerType: number
