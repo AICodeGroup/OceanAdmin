@@ -167,6 +167,30 @@ const activeMenu = computed(() => {
     }
   }
   
+  // 三级子菜单样式（嵌套的nest-menu）
+  :deep(.nest-menu .nest-menu .el-menu-item) {
+    padding-left: 70px !important;
+    background-color: darken($subMenuBg, 2%) !important;
+    
+    &:hover {
+      background-color: $menuHover !important;
+    }
+    
+    &.is-active {
+      background-color: $subMenuHover !important;
+      color: $menuActiveText !important;
+    }
+  }
+  
+  // 三级子菜单的父级标题样式
+  :deep(.nest-menu .el-sub-menu__title) {
+    padding-left: 50px !important;
+    
+    &:hover {
+      background-color: $menuHover !important;
+    }
+  }
+  
   // 子菜单箭头
   :deep(.el-sub-menu__icon-arrow) {
     color: $menuText;

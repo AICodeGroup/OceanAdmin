@@ -45,6 +45,72 @@ export const useAuthStore = defineStore("auth", () => {
         //   ]
         // },
         {
+            path: "/dataAnalysis",
+            name: "DataAnalysis",
+            meta: { title: "数据分析", icon: "TrendCharts" },
+            children: [
+                {
+                    path: "index",
+                    name: "DataAnalysisIndex",
+                    meta: { title: "数据分析", icon: "TrendCharts" },
+                },
+            ],
+        },
+        {
+            path: "/growthSystem",
+            name: "GrowthSystem",
+            meta: { title: "成长体系", icon: "TrophyBase" },
+            children: [
+                {
+                    path: "integralConfig",
+                    name: "IntegralConfig",
+                    meta: { title: "积分配置", icon: "Coin" },
+                },
+                {
+                    path: "integralRecord",
+                    name: "IntegralRecord",
+                    meta: { title: "积分记录", icon: "List" },
+                },
+                {
+                    path: "userLevel",
+                    name: "UserLevel",
+                    meta: { title: "用户等级", icon: "TrendCharts" },
+                },
+                {
+                    path: "signConfig",
+                    name: "SignConfig",
+                    meta: { title: "签到配置", icon: "Calendar" },
+                },
+                {
+                    path: "signRecord",
+                    name: "SignRecord",
+                    meta: { title: "签到记录", icon: "Document" },
+                },
+                {
+                    path: "badge",
+                    name: "Badge",
+                    meta: { title: "徽章管理", icon: "Medal" },
+                    children: [
+                        {
+                            path: "grant",
+                            name: "BadgeGrant",
+                            meta: { title: "徽章授予", icon: "Gift" },
+                        },
+                        {
+                            path: "admin",
+                            name: "BadgeAdmin",
+                            meta: { title: "徽章配置", icon: "Setting" },
+                        },
+                    ],
+                },
+                {
+                    path: "ranking",
+                    name: "Ranking",
+                    meta: { title: "排行榜", icon: "TrophyBase" },
+                },
+            ],
+        },
+        {
             path: "/newIntegral",
             name: "newIntegral",
             meta: { title: "积分增减", icon: "Coin" },
@@ -185,23 +251,23 @@ export const useAuthStore = defineStore("auth", () => {
         //     }
         //   ]
         // },
-        {
-            path: "/newBadge",
-            name: "newBadge",
-            meta: { title: "徽章管理", icon: "Medal" },
-            children: [
-                {
-                    path: "list",
-                    name: "newBadgeList",
-                    meta: { title: "徽章授予", icon: "List" },
-                },
-                {
-                    path: "badgeAdmin",
-                    name: "badgeAdmin",
-                    meta: { title: "徽章管理", icon: "List" },
-                },
-            ],
-        },
+        // {
+        //     path: "/newBadge",
+        //     name: "newBadge",
+        //     meta: { title: "徽章管理", icon: "Medal" },
+        //     children: [
+        //         {
+        //             path: "list",
+        //             name: "newBadgeList",
+        //             meta: { title: "徽章授予", icon: "List" },
+        //         },
+        //         {
+        //             path: "badgeAdmin",
+        //             name: "badgeAdmin",
+        //             meta: { title: "徽章管理", icon: "List" },
+        //         },
+        //     ],
+        // },
         // {
         //   path: '/species',
         //   name: 'Species',
