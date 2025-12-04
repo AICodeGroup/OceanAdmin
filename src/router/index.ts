@@ -119,22 +119,6 @@ const routes: RouteRecordRaw[] = [
         ],
     },
     {
-        path: "/newIntegral",
-        component: Layout,
-        redirect: "/newIntegral/integralAdmin",
-        name: "newIntegral",
-        meta: { title: "积分增减", icon: "Coin" },
-        children: [
-            {
-                path: "integralAdmin",
-                name: "integralAdmin",
-                component: () =>
-                    import("@/pages/newIntegral/integralAdmin.vue"),
-                meta: { title: "积分增减", icon: "Coin" },
-            },
-        ],
-    },
-    {
         path: "/newCourse",
         component: Layout,
         redirect: "/newCourse/newCourseList",
@@ -347,6 +331,12 @@ const routes: RouteRecordRaw[] = [
                 name: "IntegralRecord",
                 component: () => import("@/pages/growthSystem/integralRecord.vue"),
                 meta: { title: "积分记录", icon: "List" },
+            },
+            {
+                path: "integralAdmin",
+                name: "IntegralAdmin",
+                component: () => import("@/pages/newIntegral/integralAdmin.vue"),
+                meta: { title: "积分增减", icon: "Coin" },
             },
             {
                 path: "userLevel",

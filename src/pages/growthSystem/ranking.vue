@@ -58,12 +58,12 @@
     <el-card>
       <el-table :data="tableData" v-loading="loading" border>
         <el-table-column label="排名" width="80">
-          <template #default="{ $index }">
+          <template #default="{ row, $index }">
             <div class="rank-cell">
-              <el-icon v-if="$index === 0" class="rank-icon gold"><Trophy /></el-icon>
-              <el-icon v-else-if="$index === 1" class="rank-icon silver"><Trophy /></el-icon>
-              <el-icon v-else-if="$index === 2" class="rank-icon bronze"><Trophy /></el-icon>
-              <span v-else>{{ (pagination.page - 1) * pagination.limit + $index + 1 }}</span>
+              <el-icon v-if="row.rank === 1 || $index === 0" class="rank-icon gold"><Trophy /></el-icon>
+              <el-icon v-else-if="row.rank === 2 || $index === 1" class="rank-icon silver"><Trophy /></el-icon>
+              <el-icon v-else-if="row.rank === 3 || $index === 2" class="rank-icon bronze"><Trophy /></el-icon>
+              <span v-else>{{ row.rank || (pagination.page - 1) * pagination.limit + $index + 1 }}</span>
             </div>
           </template>
         </el-table-column>
@@ -105,7 +105,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="趋势" width="100">
+        <el-table-column label="排名趋势" width="120">
           <template #default="{ row }">
             <el-tag v-if="row.trend === 'up'" type="success">
               <el-icon><Top /></el-icon>
@@ -115,7 +115,15 @@
               <el-icon><Bottom /></el-icon>
               下降
             </el-tag>
-            <el-tag v-else type="info">持平</el-tag>
+            <el-tag v-else-if="row.trend === 'same'" type="info">
+              <el-icon><Minus /></el-icon>
+              不变
+            </el-tag>
+            <el-tag v-else-if="row.trend === 'new'" type="warning">
+              <el-icon><StarFilled /></el-icon>
+              新上榜
+            </el-tag>
+            <span v-else>-</span>
           </template>
         </el-table-column>
         <el-table-column prop="updateTime" label="更新时间" width="180" />
@@ -141,7 +149,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  Search, RefreshRight, Delete, Trophy, Coin, TrendCharts, Medal, Top, Bottom 
+  Search, RefreshRight, Delete, Trophy, Coin, TrendCharts, Medal, Top, Bottom, Minus, StarFilled
 } from '@element-plus/icons-vue'
 import {
   getIntegralRanking,

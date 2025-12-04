@@ -13,20 +13,13 @@
 
         <el-form-item label="签到日期">
           <el-date-picker
-            v-model="queryForm.signDate"
+            v-model="queryForm.date"
             type="date"
             placeholder="选择日期"
             value-format="YYYY-MM-DD"
             style="width: 200px"
             clearable
           />
-        </el-form-item>
-
-        <el-form-item label="是否补签">
-          <el-select v-model="queryForm.isReSign" placeholder="请选择" clearable style="width: 120px">
-            <el-option label="是" :value="1" />
-            <el-option label="否" :value="0" />
-          </el-select>
         </el-form-item>
 
         <el-form-item>
@@ -45,7 +38,6 @@
     <!-- 数据表格 -->
     <el-card>
       <el-table :data="tableData" v-loading="loading" border>
-        <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="uid" label="用户ID" width="100" />
         <el-table-column prop="nickname" label="用户昵称" width="150" />
         <el-table-column label="头像" width="80">
@@ -53,27 +45,36 @@
             <el-avatar :src="row.avatar" :size="40" />
           </template>
         </el-table-column>
-        <el-table-column prop="signDate" label="签到日期" width="120" />
-        <el-table-column prop="continueDays" label="连续签到天数" width="120" />
-        <el-table-column prop="integral" label="获得积分" width="100">
+        <el-table-column prop="phone" label="手机号" width="120" />
+        <el-table-column prop="date" label="签到日期" width="120" />
+        <el-table-column prop="day" label="连续签到天数" width="120">
           <template #default="{ row }">
-            <span style="color: #67C23A">+{{ row.integral }}</span>
+            <el-tag type="primary">{{ row.day }}天</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="experience" label="获得经验" width="100">
+        <el-table-column label="基础奖励" width="120">
           <template #default="{ row }">
-            <span style="color: #409EFF">+{{ row.experience }}</span>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="color: #67C23A; font-size: 12px;">积分: +{{ row.integral }}</span>
+              <span style="color: #409EFF; font-size: 12px;">经验: +{{ row.experience }}</span>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column label="是否补签" width="100">
+        <el-table-column label="连续签到奖励" width="140">
           <template #default="{ row }">
-            <el-tag :type="row.isReSign ? 'warning' : 'success'">
-              {{ row.isReSign ? '补签' : '正常签到' }}
-            </el-tag>
+            <div v-if="row.awardIntegral || row.awardExperience" style="display: flex; flex-direction: column; gap: 4px;">
+              <span v-if="row.awardIntegral" style="color: #F56C6C; font-size: 12px; font-weight: bold;">
+                积分: +{{ row.awardIntegral }}
+              </span>
+              <span v-if="row.awardExperience" style="color: #E6A23C; font-size: 12px; font-weight: bold;">
+                经验: +{{ row.awardExperience }}
+              </span>
+            </div>
+            <span v-else style="color: #909399; font-size: 12px;">-</span>
           </template>
         </el-table-column>
         <el-table-column prop="mark" label="备注" min-width="150" />
-        <el-table-column prop="createTime" label="签到时间" width="180" />
+        <el-table-column prop="createTime" label="添加时间" width="180" />
       </el-table>
 
       <!-- 分页 -->
@@ -102,8 +103,7 @@ const tableData = ref<any[]>([])
 
 const queryForm = reactive({
   uid: '',
-  signDate: '',
-  isReSign: undefined
+  date: ''
 })
 
 const pagination = reactive({
@@ -135,8 +135,7 @@ const handleQuery = async () => {
 // 重置
 const handleReset = () => {
   queryForm.uid = ''
-  queryForm.signDate = ''
-  queryForm.isReSign = undefined
+  queryForm.date = ''
   pagination.page = 1
   handleQuery()
 }

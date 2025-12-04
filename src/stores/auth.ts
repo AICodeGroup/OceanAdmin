@@ -72,6 +72,11 @@ export const useAuthStore = defineStore("auth", () => {
                     meta: { title: "积分记录", icon: "List" },
                 },
                 {
+                    path: "integralAdmin",
+                    name: "IntegralAdmin",
+                    meta: { title: "积分增减", icon: "Coin" },
+                },
+                {
                     path: "userLevel",
                     name: "UserLevel",
                     meta: { title: "用户等级", icon: "TrendCharts" },
@@ -107,18 +112,6 @@ export const useAuthStore = defineStore("auth", () => {
                     path: "ranking",
                     name: "Ranking",
                     meta: { title: "排行榜", icon: "TrophyBase" },
-                },
-            ],
-        },
-        {
-            path: "/newIntegral",
-            name: "newIntegral",
-            meta: { title: "积分增减", icon: "Coin" },
-            children: [
-                {
-                    path: "integralAdmin",
-                    name: "integralAdmin",
-                    meta: { title: "积分增减", icon: "Coin" },
                 },
             ],
         },
