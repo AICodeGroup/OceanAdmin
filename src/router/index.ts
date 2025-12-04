@@ -323,19 +323,22 @@ const routes: RouteRecordRaw[] = [
             {
                 path: "integralConfig",
                 name: "IntegralConfig",
-                component: () => import("@/pages/growthSystem/integralConfig.vue"),
+                component: () =>
+                    import("@/pages/growthSystem/integralConfig.vue"),
                 meta: { title: "积分配置", icon: "Coin" },
             },
             {
                 path: "integralRecord",
                 name: "IntegralRecord",
-                component: () => import("@/pages/growthSystem/integralRecord.vue"),
+                component: () =>
+                    import("@/pages/growthSystem/integralRecord.vue"),
                 meta: { title: "积分记录", icon: "List" },
             },
             {
                 path: "integralAdmin",
                 name: "IntegralAdmin",
-                component: () => import("@/pages/newIntegral/integralAdmin.vue"),
+                component: () =>
+                    import("@/pages/newIntegral/integralAdmin.vue"),
                 meta: { title: "积分增减", icon: "Coin" },
             },
             {
@@ -365,13 +368,15 @@ const routes: RouteRecordRaw[] = [
                     {
                         path: "grant",
                         name: "BadgeGrant",
-                        component: () => import("@/pages/newBadge/newBadgeList.vue"),
+                        component: () =>
+                            import("@/pages/newBadge/newBadgeList.vue"),
                         meta: { title: "徽章授予", icon: "Gift" },
                     },
                     {
                         path: "admin",
                         name: "BadgeAdmin",
-                        component: () => import("@/pages/newBadge/badgeAdmin.vue"),
+                        component: () =>
+                            import("@/pages/newBadge/badgeAdmin.vue"),
                         meta: { title: "徽章配置", icon: "Setting" },
                     },
                 ],
@@ -420,6 +425,22 @@ const routes: RouteRecordRaw[] = [
             },
         ],
     },
+    {
+        path: "/newArticle",
+        component: Layout,
+        redirect: "/newArticle/articleList",
+        name: "newArticle",
+        meta: { title: "文章管理", icon: "Management" },
+        children: [
+            {
+                path: "articleList",
+                name: "articleList",
+                component: () => import("@/pages/newArticle/articleList.vue"),
+                meta: { title: "文章列表", icon: "List" },
+            },
+        ],
+    },
+
     {
         path: "/404",
         name: "404",

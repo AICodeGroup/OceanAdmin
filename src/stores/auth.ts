@@ -372,6 +372,18 @@ export const useAuthStore = defineStore("auth", () => {
                 },
             ],
         },
+        {
+            path: "/newArticle",
+            name: "newArticle",
+            meta: { title: "文章管理", icon: "Management" },
+            children: [
+                {
+                    path: "articleList",
+                    name: "articleList",
+                    meta: { title: "文章列表", icon: "List" },
+                },
+            ],
+        },
     ]);
     const userInfo = ref({
         name: "",
