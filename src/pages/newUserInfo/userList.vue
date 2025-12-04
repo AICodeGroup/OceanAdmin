@@ -133,13 +133,10 @@
                                 </el-avatar>
                                 <div class="user-details">
                                     <div class="user-name">
-                                        <span class="username">{{ row.username }}</span>
-                                        <el-tag v-if="row.isOnline" size="small" type="success">
-                                            在线
-                                        </el-tag>
+                                        <span class="username">{{ row.nickname }}</span>
                                     </div>
-                                    <div class="user-nickname">{{ row.nickname }}</div>
-                                    <div class="user-id">ID: {{ row.userId }}</div>
+                                    <div class="user-nickname">标签ID: {{ row.tagId }}</div>
+                                    <div class="user-id">ID: {{ row.id }}</div>
                                 </div>
                             </div>
                         </template>
@@ -153,21 +150,16 @@
                                     <el-icon>
                                         <Iphone />
                                     </el-icon>
-                                    <span>{{ formatMobile(row.mobile) }}</span>
+                                    <span>{{ formatMobile(row.phone) }}</span>
                                 </div>
                                 <div class="contact-item">
-                                    <el-icon>
-                                        <Message />
-                                    </el-icon>
-                                    <span>{{ formatEmail(row.email) }}</span>
+                                    <span>性别: {{ getSexText(row.sex) }}</span>
                                 </div>
-                                <div class="contact-item" v-if="row.address">
+                                <div class="contact-item" v-if="row.city">
                                     <el-icon>
                                         <Location />
                                     </el-icon>
-                                    <el-tooltip :content="row.address">
-                                        <span class="address-text">{{ formatAddress(row.address) }}</span>
-                                    </el-tooltip>
+                                    <span>{{ formatLocation(row) }}</span>
                                 </div>
                             </div>
                         </template>
@@ -176,18 +168,28 @@
                     <!-- 状态信息列 -->
                     <el-table-column label="状态" width="120" align="center">
                         <template #default="{ row }">
-                            <el-tag :type="getStatusType(row.status)">
-                                {{ getStatusText(row.status) }}
+                            <el-tag :type="row.status ? 'success' : 'danger'">
+                                {{ row.status ? '正常' : '禁用' }}
                             </el-tag>
                         </template>
                     </el-table-column>
 
+                    <!-- 积分与余额列 -->
+                    <el-table-column label="积分/余额" width="120" align="center">
+                        <template #default="{ row }">
+                            <div>
+                                <div>积分: {{ row.integral }}</div>
+                                <div style="color: #67c23a;">¥{{ row.nowMoney }}</div>
+                            </div>
+                        </template>
+                    </el-table-column>
+
                     <!-- 时间信息列 -->
-                    <el-table-column label="注册时间" width="160" sortable prop="registerTime">
+                    <el-table-column label="注册时间" width="160" sortable prop="createTime">
                         <template #default="{ row }">
                             <div class="time-info">
-                                <div>{{ formatTime(row.registerTime) }}</div>
-                                <div class="time-ago">{{ getTimeAgo(row.registerTime) }}</div>
+                                <div>{{ formatTime(row.createTime) }}</div>
+                                <div class="time-ago">{{ getTimeAgo(row.createTime) }}</div>
                             </div>
                         </template>
                     </el-table-column>
@@ -227,7 +229,7 @@
                                     重置密码
                                 </el-button>
 
-                                <el-dropdown @command="(command) => handleCommand(command, row)">
+                                <el-dropdown @command="(command: string) => handleCommand(command, row)">
                                     <el-button size="small" text>
                                         <el-icon>
                                             <MoreFilled />
@@ -236,10 +238,10 @@
                                     </el-button>
                                     <template #dropdown>
                                         <el-dropdown-menu>
-                                            <el-dropdown-item command="enable" v-if="row.status !== 'active'">
+                                            <el-dropdown-item command="enable" v-if="!row.status">
                                                 启用账号
                                             </el-dropdown-item>
-                                            <el-dropdown-item command="disable" v-if="row.status === 'active'">
+                                            <el-dropdown-item command="disable" v-if="row.status">
                                                 禁用账号
                                             </el-dropdown-item>
                                             <el-dropdown-item command="delete" divided>
@@ -289,21 +291,10 @@ import {
 // 组件引入
 import UserDetailDialog from '@/components/userSetting/userDetailDialog.vue';
 import ResetPasswordDialog from '@/components/userSetting/resetPasswordDialog.vue';
+import { getUserList, UserDetail, UserList } from '@/api/user';
 
-// 类型定义
-interface User {
-    userId: string;
-    username: string;
-    nickname: string;
-    avatar?: string;
-    mobile: string;
-    email: string;
-    address?: string;
-    registerTime: string;
-    lastLoginTime?: string;
-    status: 'active' | 'disabled' | 'frozen';
-    isOnline: boolean;
-}
+// 使用API定义的类型
+type User = UserDetail;
 
 interface SearchForm {
     keyword: string;
@@ -403,13 +394,13 @@ const handleSelectionChange = (selection: User[]) => {
 
 // 操作相关方法
 const handleViewDetail = (user: User) => {
-    currentUserId.value = user.userId;
+    currentUserId.value = String(user.id);
     detailDialogVisible.value = true;
 };
 
 const handleEdit = (user: User) => {
     // 编辑用户逻辑
-    ElMessage.info(`编辑用户: ${user.username}`);
+    ElMessage.info(`编辑用户: ${user.nickname}`);
 };
 
 const handleResetPassword = (user: User) => {
@@ -491,7 +482,7 @@ const handleCommand = (command: string, user: User) => {
 const handleEnableUser = async (user: User) => {
     try {
         await ElMessageBox.confirm(
-            `确定要启用用户 "${user.username}" 吗？`,
+            `确定要启用用户 "${user.nickname}" 吗？`,
             '提示',
             { type: 'warning' }
         );
@@ -505,7 +496,7 @@ const handleEnableUser = async (user: User) => {
 const handleDisableUser = async (user: User) => {
     try {
         await ElMessageBox.confirm(
-            `确定要禁用用户 "${user.username}" 吗？`,
+            `确定要禁用用户 "${user.nickname}" 吗？`,
             '提示',
             { type: 'warning' }
         );
@@ -519,7 +510,7 @@ const handleDisableUser = async (user: User) => {
 const handleDeleteUser = async (user: User) => {
     try {
         await ElMessageBox.confirm(
-            `确定要删除用户 "${user.username}" 吗？此操作不可恢复！`,
+            `确定要删除用户 "${user.nickname}" 吗？此操作不可恢复！`,
             '警告',
             { type: 'error' }
         );
@@ -542,18 +533,18 @@ const formatMobile = (mobile: string) => {
     return mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
 };
 
-const formatEmail = (email: string) => {
-    if (!email) return '-';
-    const [name, domain] = email.split('@');
-    if (name.length <= 2) {
-        return `${name[0]}***@${domain}`;
-    }
-    return `${name[0]}***${name.slice(-1)}@${domain}`;
+const getSexText = (sex: number) => {
+    const sexMap: { [key: number]: string } = {
+        0: '未知',
+        1: '男',
+        2: '女'
+    };
+    return sexMap[sex] || '未知';
 };
 
-const formatAddress = (address: string) => {
-    if (!address) return '-';
-    return address.length > 10 ? address.substring(0, 10) + '...' : address;
+const formatLocation = (user: User) => {
+    const parts = [user.country, user.province, user.city].filter(Boolean);
+    return parts.length > 0 ? parts.join(' ') : '-';
 };
 
 const formatTime = (time: string) => {
@@ -564,44 +555,23 @@ const getTimeAgo = (time: string) => {
     return dayjs(time).fromNow();
 };
 
-const getStatusType = (status: string) => {
-    const statusMap: { [key: string]: any } = {
-        active: 'success',
-        disabled: 'warning',
-        // 冻结状态
-        frozen: 'danger'
-    };
-    return statusMap[status] || 'info';
-};
 
-const getStatusText = (status: string) => {
-    const textMap: { [key: string]: string } = {
-        active: '正常',
-        disabled: '禁用',
-        frozen: '冻结'
-    };
-    return textMap[status] || '未知';
-};
 
 // 实际API 请求
-const apiGetUsers = async (): Promise<any> => {
+const apiGetUsers = async (): Promise<{ data: UserList }> => {
     // 构建请求参数
     const params = {
-        page: 1,
-        limit: 20,
-
+        page: pagination.current,
+        limit: pagination.size,
+        keyword: searchForm.keyword || undefined,
+        status: searchForm.status || undefined,
+        startTime: searchForm.registerTime?.[0] || undefined,
+        endTime: searchForm.registerTime?.[1] || undefined,
     };
 
     // 实际API调用
-    const response = await fetch('admin/platform/user/list', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params)
-    });
-
-    return await response.json();
+    const response = await getUserList(params) as unknown as UserList;
+    return { data: response };
 };
 
 // 模拟 API
@@ -651,7 +621,7 @@ const apiGetUsers = async (): Promise<any> => {
     margin-bottom: 20px;
 
     .page-title {
-        font-size: px;
+        font-size: 24px;
         font-weight: 600;
         color: #303133;
         margin: 0;
@@ -716,7 +686,7 @@ const apiGetUsers = async (): Promise<any> => {
 
         .user-nickname {
             font-size: 12px;
-            color: 399;
+            color: #909399;
             margin-bottom: 2px;
         }
 
@@ -790,7 +760,7 @@ const apiGetUsers = async (): Promise<any> => {
 
     .table-actions {
         flex-direction: column;
-        gap: px;
+        gap: 12px;
 
         .action-right {
             justify-content: flex-start;
