@@ -302,9 +302,50 @@ export const sendMessageToUsers = (
     });
 };
 
+// ==================== 用户基本操作 ====================
+
+// 获取用户详情（新）
+export const getUserDetailById = (id: number) => {
+    return request({
+        url: `/admin/platform/user/detail/${id}`,
+        method: "get",
+    });
+};
+
+// 修改用户信息（新）
+export const updateUserInfo = (data: any) => {
+    return request({
+        url: "/admin/platform/user/update",
+        method: "post",
+        data,
+    });
+};
+
+// 修改用户状态（新）
+export const updateUserStatusNew = (params: {
+    userId: number;
+    status: boolean;
+}) => {
+    return request({
+        url: "/admin/platform/user/status/update",
+        method: "post",
+        params,
+    });
+};
+
+// 删除用户（新）
+export const deleteUserById = (id: number) => {
+    return request({
+        url: `/admin/platform/user/${id}`,
+        method: "post",
+    });
+};
+
+// ==================== 用户积分/经验/余额操作 ====================
+
 // 操作用户积分（增加或减少）
 export const operateUserIntegral = (data: {
-    uid: number;
+    userId: number;
     operateType: "add" | "sub";
     integral: number;
 }) => {
@@ -312,5 +353,215 @@ export const operateUserIntegral = (data: {
         url: "/admin/platform/user/operate/integer",
         method: "post",
         data,
+    });
+};
+
+// 操作用户经验
+export const operateUserExperience = (data: {
+    userId: number;
+    operateType: "add" | "sub";
+    experience: number;
+    mark?: string;
+}) => {
+    return request({
+        url: "/admin/platform/user/operate/experience",
+        method: "post",
+        data,
+    });
+};
+
+// 操作用户余额
+export const operateUserBalance = (params: {
+    userId: number;
+    operateType: "add" | "sub";
+    money: number;
+}) => {
+    return request({
+        url: "/admin/platform/user/operate/balance",
+        method: "get",
+        params,
+    });
+};
+
+// ==================== 用户记录查询 ====================
+
+// 用户积分记录
+export const getUserIntegralRecord = (params: {
+    userId: number;
+    page: number;
+    limit: number;
+    dateLimit?: string;
+}) => {
+    return request({
+        url: "/admin/platform/user/integral/record",
+        method: "get",
+        params,
+    });
+};
+
+// 用户经验记录
+export const getUserExperienceRecord = (params: {
+    userId: number;
+    page: number;
+    limit: number;
+    dateLimit?: string;
+}) => {
+    return request({
+        url: "/admin/platform/user/experience/record",
+        method: "get",
+        params,
+    });
+};
+
+// 用户余额记录
+export const getUserBalanceRecord = (params: {
+    userId: number;
+    page: number;
+    limit: number;
+    dateLimit?: string;
+}) => {
+    return request({
+        url: "/admin/platform/user/balance/record",
+        method: "get",
+        params,
+    });
+};
+
+// 用户签到记录
+export const getUserSignRecord = (params: {
+    userId: number;
+    page: number;
+    limit: number;
+    dateLimit?: string;
+}) => {
+    return request({
+        url: "/admin/platform/user/sign/record",
+        method: "get",
+        params,
+    });
+};
+
+// 用户订单列表
+export const getUserOrders = (params: {
+    userId: number;
+    page: number;
+    limit: number;
+    status?: number;
+    dateLimit?: string;
+}) => {
+    return request({
+        url: "/admin/platform/user/orders",
+        method: "get",
+        params,
+    });
+};
+
+// 用户观察记录
+export const getUserObservations = (params: {
+    userId: number;
+    page: number;
+    limit: number;
+    dateLimit?: string;
+}) => {
+    return request({
+        url: "/admin/platform/user/observations",
+        method: "get",
+        params,
+    });
+};
+
+// ==================== 用户徽章管理 ====================
+
+// 授予用户徽章
+export const addUserBadge = (data: {
+    userId: number;
+    badgeId: number;
+}) => {
+    return request({
+        url: "/admin/platform/user/addUserBadge",
+        method: "post",
+        data,
+    });
+};
+
+// 删除用户徽章
+export const deleteUserBadge = (params: {
+    userId: number;
+    badgeId: number;
+}) => {
+    return request({
+        url: "/admin/platform/user/deleteUserBadge",
+        method: "delete",
+        params,
+    });
+};
+
+// ==================== 用户关系管理 ====================
+
+// 解绑家人关系
+export const unbindUserRelation = (data: {
+    userId1: number;
+    userId2: number;
+}) => {
+    return request({
+        url: "/admin/platform/user/unbindRelation",
+        method: "post",
+        data,
+    });
+};
+
+// 用户标签分配
+export const assignUserTag = (data: {
+    id: number;
+    tagId: string;
+}) => {
+    return request({
+        url: "/admin/platform/user/tag",
+        method: "post",
+        data,
+    });
+};
+
+// ==================== 会员管理 ====================
+
+// 获取会员卡列表
+export const getPaidMemberCardList = () => {
+    return request({
+        url: "/admin/platform/paid/member/list",
+        method: "get",
+    });
+};
+
+// 赠送付费会员
+export const giftPaidMember = (data: {
+    ids: number;
+    cardId: number;
+}) => {
+    return request({
+        url: "/admin/platform/user/gift/paid/member",
+        method: "post",
+        data,
+    });
+};
+
+// ==================== 数据导出 ====================
+
+// 批量导出用户数据（新）
+export const exportUserExcel = (params?: any) => {
+    return request({
+        url: "/admin/platform/export/user/excel",
+        method: "get",
+        params,
+        responseType: "blob",
+    });
+};
+
+// 导出订单数据
+export const exportOrderExcel = (params?: any) => {
+    return request({
+        url: "/admin/platform/export/order/excel",
+        method: "get",
+        params,
+        responseType: "blob",
     });
 };

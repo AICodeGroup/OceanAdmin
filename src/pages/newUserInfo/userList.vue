@@ -38,11 +38,32 @@
                         </el-col>
 
                         <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                            <el-form-item label="用户等级">
+                                <el-select v-model="searchForm.levelId" placeholder="全部等级" clearable style="width: 100%">
+                                    <el-option 
+                                        v-for="level in levelList" 
+                                        :key="level.id" 
+                                        :label="level.name" 
+                                        :value="level.id" 
+                                    />
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+
+                        <el-col :xs="24" :sm="12" :md="8" :lg="6">
                             <el-form-item label="账号状态">
                                 <el-select v-model="searchForm.status" placeholder="全部状态" clearable style="width: 100%">
-                                    <el-option label="正常" value="active" />
-                                    <el-option label="禁用" value="disabled" />
-                                    <el-option label="冻结" value="frozen" />
+                                    <el-option label="正常" :value="true" />
+                                    <el-option label="禁用" :value="false" />
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+
+                        <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                            <el-form-item label="会员类型">
+                                <el-select v-model="searchForm.isPaidMember" placeholder="全部" clearable style="width: 100%">
+                                    <el-option label="付费会员" :value="true" />
+                                    <el-option label="普通用户" :value="false" />
                                 </el-select>
                             </el-form-item>
                         </el-col>
@@ -165,6 +186,15 @@
                         </template>
                     </el-table-column>
 
+                    <!-- 注册来源列 -->
+                    <el-table-column label="注册来源" width="120" align="center">
+                        <template #default="{ row }">
+                            <el-tag :type="getRegisterTypeColor(row.registerType)" size="small">
+                                {{ getRegisterTypeText(row.registerType) }}
+                            </el-tag>
+                        </template>
+                    </el-table-column>
+
                     <!-- 状态信息列 -->
                     <el-table-column label="状态" width="120" align="center">
                         <template #default="{ row }">
@@ -174,12 +204,11 @@
                         </template>
                     </el-table-column>
 
-                    <!-- 积分与余额列 -->
-                    <el-table-column label="积分/余额" width="120" align="center">
+                    <!-- 积分列 -->
+                    <el-table-column label="积分" width="100" align="center">
                         <template #default="{ row }">
-                            <div>
-                                <div>积分: {{ row.integral }}</div>
-                                <div style="color: #67c23a;">¥{{ row.nowMoney }}</div>
+                            <div style="font-weight: 500; color: #409EFF;">
+                                {{ row.integral }}
                             </div>
                         </template>
                     </el-table-column>
@@ -238,10 +267,22 @@
                                     </el-button>
                                     <template #dropdown>
                                         <el-dropdown-menu>
-                                            <el-dropdown-item command="enable" v-if="!row.status">
+                                            <el-dropdown-item command="integral">
+                                                操作积分
+                                            </el-dropdown-item>
+                                            <el-dropdown-item command="experience">
+                                                操作经验
+                                            </el-dropdown-item>
+                                            <!-- <el-dropdown-item command="balance">
+                                                操作余额
+                                            </el-dropdown-item> -->
+                                            <el-dropdown-item command="member" divided>
+                                                赠送会员
+                                            </el-dropdown-item>
+                                            <el-dropdown-item command="enable" v-if="!row.status" divided>
                                                 启用账号
                                             </el-dropdown-item>
-                                            <el-dropdown-item command="disable" v-if="row.status">
+                                            <el-dropdown-item command="disable" v-if="row.status" divided>
                                                 禁用账号
                                             </el-dropdown-item>
                                             <el-dropdown-item command="delete" divided>
@@ -266,7 +307,21 @@
         </div>
 
         <!-- 用户详情对话框 -->
-        <user-detail-dialog v-model="detailDialogVisible" :user-id="currentUserId" @refresh="handleRefresh" />
+        <UserDetailDialog v-model="detailDialogVisible" :user-id="currentUserId" />
+
+        <!-- 用户编辑对话框 -->
+        <UserEditDialog v-model="editDialogVisible" :user-info="currentUser" @success="handleRefresh" />
+
+        <!-- 用户操作对话框（积分/经验/余额） -->
+        <UserOperateDialog 
+            v-model="operateDialogVisible" 
+            :user-id="currentUserId" 
+            :operate-type="operateType"
+            @success="handleRefresh" 
+        />
+
+        <!-- 赠送会员对话框 -->
+        <GiftMemberDialog v-model="memberDialogVisible" :user-info="currentUser" @success="handleRefresh" />
 
         <!-- 重置密码对话框 -->
         <reset-password-dialog v-model="resetPasswordDialogVisible" :user="currentUser"
@@ -289,18 +344,32 @@ import {
 } from '@element-plus/icons-vue';
 
 // 组件引入
-import UserDetailDialog from '@/components/userSetting/userDetailDialog.vue';
+import UserDetailDialog from '@/components/user/UserDetailDialog.vue';
+import UserEditDialog from '@/components/user/UserEditDialog.vue';
+import UserOperateDialog from '@/components/user/UserOperateDialog.vue';
+import GiftMemberDialog from '@/components/user/GiftMemberDialog.vue';
 import ResetPasswordDialog from '@/components/userSetting/resetPasswordDialog.vue';
-import { getUserList, UserDetail, UserList } from '@/api/user';
+import { 
+    getUserList, 
+    updateUserStatusNew, 
+    deleteUserById, 
+    exportUserExcel,
+    UserDetail, 
+    UserList 
+} from '@/api/user';
+import { getUserLevelList } from '@/api/growthSystem';
 
 // 使用API定义的类型
 type User = UserDetail;
 
 interface SearchForm {
     keyword: string;
-    status: string;
+    status?: boolean;
+    levelId?: number;
+    isPaidMember?: boolean;
     registerTime: string[];
     lastLoginTime: string[];
+    dateLimit?: string;
 }
 
 interface Pagination {
@@ -317,16 +386,24 @@ dayjs.locale('zh-cn');
 const loading = ref(false);
 const userList = ref<User[]>([]);
 const selectedRows = ref<User[]>([]);
+const levelList = ref<any[]>([]);
 const detailDialogVisible = ref(false);
+const editDialogVisible = ref(false);
+const operateDialogVisible = ref(false);
+const memberDialogVisible = ref(false);
 const resetPasswordDialogVisible = ref(false);
-const currentUserId = ref('');
+const currentUserId = ref(0);
 const currentUser = ref<User | null>(null);
+const operateType = ref<'integral' | 'experience' | 'balance'>('integral');
 
 const searchForm = reactive<SearchForm>({
     keyword: '',
-    status: '',
+    status: undefined,
+    levelId: undefined,
+    isPaidMember: undefined,
     registerTime: [],
-    lastLoginTime: []
+    lastLoginTime: [],
+    dateLimit: ''
 });
 
 const pagination = reactive<Pagination>({
@@ -341,7 +418,18 @@ const hasSelected = computed(() => selectedRows.value.length > 0);
 // 生命周期
 onMounted(() => {
     loadUserList();
+    loadLevelList();
 });
+
+// 加载等级列表
+const loadLevelList = async () => {
+    try {
+        const data = await getUserLevelList();
+        levelList.value = data || [];
+    } catch (error) {
+        console.error('加载等级列表失败:', error);
+    }
+};
 
 // 方法定义
 const loadUserList = async () => {
@@ -359,7 +447,6 @@ const loadUserList = async () => {
     }
 };
 
-// 搜索相关方法
 const handleSearch = () => {
     pagination.current = 1;
     loadUserList();
@@ -368,9 +455,12 @@ const handleSearch = () => {
 const handleReset = () => {
     Object.assign(searchForm, {
         keyword: '',
-        status: '',
+        status: undefined,
+        levelId: undefined,
+        isPaidMember: undefined,
         registerTime: [],
-        lastLoginTime: []
+        lastLoginTime: [],
+        dateLimit: ''
     });
     handleSearch();
 };
@@ -394,13 +484,13 @@ const handleSelectionChange = (selection: User[]) => {
 
 // 操作相关方法
 const handleViewDetail = (user: User) => {
-    currentUserId.value = String(user.id);
+    currentUserId.value = user.id;
     detailDialogVisible.value = true;
 };
 
 const handleEdit = (user: User) => {
-    // 编辑用户逻辑
-    ElMessage.info(`编辑用户: ${user.nickname}`);
+    currentUser.value = user;
+    editDialogVisible.value = true;
 };
 
 const handleResetPassword = (user: User) => {
@@ -409,12 +499,31 @@ const handleResetPassword = (user: User) => {
 };
 
 const handleAddUser = () => {
-
     ElMessage.info('打开新增用户对话框');
 };
 
-const handleExport = () => {
-    ElMessage.success('导出数据功能');
+const handleExport = async () => {
+    try {
+        loading.value = true;
+        const blob = await exportUserExcel(searchForm) as any;
+        
+        // 创建下载链接
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `用户数据_${new Date().getTime()}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        ElMessage.success('导出成功');
+    } catch (error) {
+        console.error('导出失败:', error);
+        ElMessage.error('导出失败');
+    } finally {
+        loading.value = false;
+    }
 };
 
 const handleRefresh = () => {
@@ -466,7 +575,25 @@ const handleBatchDelete = async () => {
 
 // 下拉菜单操作
 const handleCommand = (command: string, user: User) => {
+    currentUserId.value = user.id;
+    currentUser.value = user;
+    
     switch (command) {
+        case 'integral':
+            operateType.value = 'integral';
+            operateDialogVisible.value = true;
+            break;
+        case 'experience':
+            operateType.value = 'experience';
+            operateDialogVisible.value = true;
+            break;
+        case 'balance':
+            operateType.value = 'balance';
+            operateDialogVisible.value = true;
+            break;
+        case 'member':
+            memberDialogVisible.value = true;
+            break;
         case 'enable':
             handleEnableUser(user);
             break;
@@ -486,10 +613,14 @@ const handleEnableUser = async (user: User) => {
             '提示',
             { type: 'warning' }
         );
+        await updateUserStatusNew({ userId: user.id, status: true });
         ElMessage.success('启用成功');
         loadUserList();
-    } catch (error) {
-        // 用户取消
+    } catch (error: any) {
+        if (error !== 'cancel') {
+            console.error('启用失败:', error);
+            ElMessage.error('启用失败');
+        }
     }
 };
 
@@ -500,10 +631,14 @@ const handleDisableUser = async (user: User) => {
             '提示',
             { type: 'warning' }
         );
+        await updateUserStatusNew({ userId: user.id, status: false });
         ElMessage.success('禁用成功');
         loadUserList();
-    } catch (error) {
-        // 用户取消
+    } catch (error: any) {
+        if (error !== 'cancel') {
+            console.error('禁用失败:', error);
+            ElMessage.error('禁用失败');
+        }
     }
 };
 
@@ -514,10 +649,14 @@ const handleDeleteUser = async (user: User) => {
             '警告',
             { type: 'error' }
         );
+        await deleteUserById(user.id);
         ElMessage.success('删除成功');
         loadUserList();
-    } catch (error) {
-        // 用户取消
+    } catch (error: any) {
+        if (error !== 'cancel') {
+            console.error('删除失败:', error);
+            ElMessage.error('删除失败');
+        }
     }
 };
 
@@ -555,18 +694,41 @@ const getTimeAgo = (time: string) => {
     return dayjs(time).fromNow();
 };
 
+const getRegisterTypeText = (registerType: string) => {
+    const registerTypeMap: { [key: string]: string } = {
+        'public': '公众号',
+        'routine': '小程序',
+        'H5': 'H5',
+        'iosWx': '微信iOS',
+        'androidWx': '微信安卓',
+        'ios': 'iOS'
+    };
+    return registerTypeMap[registerType] || '未知';
+};
 
+const getRegisterTypeColor = (registerType: string) => {
+    const colorMap: { [key: string]: string } = {
+        'public': 'success',
+        'routine': 'primary',
+        'H5': 'warning',
+        'iosWx': 'info',
+        'androidWx': 'info',
+        'ios': ''
+    };
+    return colorMap[registerType] || 'info';
+};
 
 // 实际API 请求
 const apiGetUsers = async (): Promise<{ data: UserList }> => {
     // 构建请求参数
-    const params = {
+    const params: any = {
         page: pagination.current,
         limit: pagination.size,
-        keyword: searchForm.keyword || undefined,
-        status: searchForm.status || undefined,
-        startTime: searchForm.registerTime?.[0] || undefined,
-        endTime: searchForm.registerTime?.[1] || undefined,
+        keywords: searchForm.keyword || undefined,
+        status: searchForm.status,
+        levelId: searchForm.levelId,
+        isPaidMember: searchForm.isPaidMember,
+        dateLimit: searchForm.dateLimit || undefined,
     };
 
     // 实际API调用
@@ -574,37 +736,6 @@ const apiGetUsers = async (): Promise<{ data: UserList }> => {
     return { data: response };
 };
 
-// 模拟 API
-/* const mockApiGetUsers = (): Promise<{ data: { list: User[]; total: number } }> => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const mockData: User[] = Array.from({ length: 50 }, (_, i) => ({
-                userId: `1000${i + 1}`,
-                username: `user${i + 1}`,
-                nickname: `用户${i + 1}`,
-                avatar: i % 3 === 0 ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}` : '',
-                mobile: `138${String(i).padStart(8, '0')}`,
-                email: `user${i + 1}@example.com`,
-                address: i % 2 === 0 ? `北京市朝阳区某某街道${i}号` : '',
-                registerTime: dayjs().subtract(i * 2, 'day').format('YYYY-MM-DD HH:mm:ss'),
-                lastLoginTime: i % 5 !== 0 ? dayjs().subtract(i, 'hour').format('YYYY-MM-DD HH:mm:ss') : '',
-                status: i % 10 === 0 ? 'disabled' : i % 20 === 0 ? 'frozen' : 'active',
-                isOnline: i % 8 === 0
-            }));
-
-            const start = (pagination.current - 1) * pagination.size;
-            const end = start + pagination.size;
-            const pageData = mockData.slice(start, end);
-
-            resolve({
-                data: {
-                    list: pageData,
-                    total: mockData.length
-                }
-            });
-        }, 500);
-    });
-}; */
 </script>
 
 <style lang="scss" scoped>
