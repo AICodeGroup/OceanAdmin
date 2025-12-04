@@ -12,15 +12,15 @@
         <h3 class="title">海洋教育后台管理系统</h3>
       </div>
 
-      <el-form-item prop="username">
+      <el-form-item prop="account">
         <span class="svg-container">
           <el-icon><User /></el-icon>
         </span>
         <el-input
-          ref="username"
-          v-model="loginForm.username"
-          placeholder="用户名"
-          name="username"
+          ref="account"
+          v-model="loginForm.account"
+          placeholder="账号"
+          name="account"
           type="text"
           tabindex="1"
           autocomplete="on"
@@ -28,17 +28,17 @@
       </el-form-item>
 
       <el-tooltip v-model="capsTooltip" content="大写锁定已开启" placement="right" manual>
-        <el-form-item prop="password">
+        <el-form-item prop="pwd">
           <span class="svg-container">
             <el-icon><Lock /></el-icon>
           </span>
           <el-input
             :key="passwordType"
-            ref="password"
-            v-model="loginForm.password"
+            ref="pwd"
+            v-model="loginForm.pwd"
             :type="passwordType"
             placeholder="密码"
-            name="password"
+            name="pwd"
             tabindex="2"
             autocomplete="on"
             @keyup="checkCapslock"
@@ -83,13 +83,13 @@ const capsTooltip = ref(false)
 const loading = ref(false)
 
 const loginForm = reactive({
-  username: '',
-  password: ''
+  account: '',
+  pwd: ''
 })
 
 const loginRules: FormRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [
+  account: [{ required: true, message: '请输入账号', trigger: 'blur' }],
+  pwd: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
   ]
@@ -108,7 +108,7 @@ const showPwd = () => {
 
 const checkCapslock = (e: KeyboardEvent) => {
   const { key } = e
-  capsTooltip.value = key && key.length === 1 && (key >= 'A' && key <= 'Z')
+  capsTooltip.value = !!(key && key.length === 1 && (key >= 'A' && key <= 'Z'))
 }
 
 const handleLogin = () => {
@@ -117,14 +117,14 @@ const handleLogin = () => {
       loading.value = true
       try {
         const loginData = {
-          username: loginForm.username,
-          password: loginForm.password
+          account: loginForm.account,
+          pwd: loginForm.pwd
         }
         await authStore.login(loginData)
         router.push({ path: (route.query.redirect as string) || '/', replace: true })
         ElMessage.success('登录成功')
       } catch (error: any) {
-        ElMessage.error(error.message || '登录失败，请检查您的用户名和密码')
+        ElMessage.error(error.message || '登录失败，请检查您的账号和密码')
       } finally {
         loading.value = false
       }

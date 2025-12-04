@@ -1,5 +1,6 @@
-import axios, { type AxiosRequestConfig } from 'axios'
+import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { getToken } from './auth'
 
 // 为后端的通用返回结构定义接口
 export interface CommonResult<T = any> {
@@ -20,11 +21,11 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   (config) => {
-    // 这里可以添加发送请求前的逻辑，例如添加 token
-    // const token = localStorage.getItem('token')
-    // if (token && config.headers) {
-    //   config.headers.Authorization = `Bearer ${token}`
-    // }
+    // 添加 token 到 Authorization header
+    const token = getToken()
+    if (token && config.headers) {
+      config.headers.Authorization = token
+    }
     return config
   },
   (error) => {

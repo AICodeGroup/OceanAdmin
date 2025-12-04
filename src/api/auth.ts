@@ -1,9 +1,20 @@
 import request from '@/utils/request'
 
+// 登录返回数据类型
+export interface LoginResponse {
+  account: string
+  realName: string
+  isSms: boolean
+  leftTopLogo: string
+  leftSquareLogo: string
+  merSiteUrl: string | null
+  token: string
+}
+
 // 登录接口
-export function login(data: { username: string; password: string }) {
+export function login(data: { account: string; pwd: string }): Promise<LoginResponse> {
   return request({
-    url: '/admin/platform/adminLogin',
+    url: '/admin/platform/login',
     method: 'post',
     data
   })

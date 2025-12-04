@@ -13,8 +13,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/admin/platform': {
-        target: 'https://beniocean.com/api',
-        // target: 'http://localhost:8080/api',
+        // target: 'https://beniocean.com/api',
+        target: 'http://localhost:8080/api',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/admin\/platform/, '/admin/platform')
       }
