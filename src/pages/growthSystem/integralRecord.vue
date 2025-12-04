@@ -14,6 +14,7 @@
         <el-form-item label="关联类型">
           <el-select v-model="queryForm.linkType" placeholder="请选择" clearable style="width: 150px">
             <el-option label="订单" value="order" />
+            <el-option label="退款" value="refund" />
             <el-option label="签到" value="sign" />
             <el-option label="系统" value="system" />
           </el-select>
@@ -35,15 +36,27 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="时间范围">
+        <el-form-item label="快捷日期">
+          <el-select v-model="queryForm.dateLimit" placeholder="请选择" clearable style="width: 150px" @change="handleDateLimitChange">
+            <el-option label="今天" value="today" />
+            <el-option label="昨天" value="yesterday" />
+            <el-option label="近7天" value="lately7" />
+            <el-option label="近30天" value="lately30" />
+            <el-option label="本月" value="month" />
+            <el-option label="本年" value="year" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="自定义时间">
           <el-date-picker
             v-model="dateRange"
-            type="daterange"
+            type="datetimerange"
             range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            style="width: 240px"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 360px"
+            @change="handleDateRangeChange"
           />
         </el-form-item>
 
@@ -63,9 +76,8 @@
     <!-- 数据表格 -->
     <el-card>
       <el-table :data="tableData" v-loading="loading" border>
-        <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="uid" label="用户ID" width="100" />
-        <el-table-column prop="nickname" label="用户昵称" width="150" />
+        <el-table-column prop="nickName" label="用户昵称" width="150" />
         <el-table-column label="头像" width="80">
           <template #default="{ row }">
             <el-avatar :src="row.avatar" :size="40" />
@@ -78,7 +90,7 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="balance" label="当前积分" width="100" />
+        <el-table-column prop="currentIntegral" label="当前积分" width="100" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
@@ -89,11 +101,12 @@
         <el-table-column label="关联类型" width="100">
           <template #default="{ row }">
             <el-tag v-if="row.linkType === 'order'" type="success">订单</el-tag>
+            <el-tag v-else-if="row.linkType === 'refund'" type="warning">退款</el-tag>
             <el-tag v-else-if="row.linkType === 'sign'" type="primary">签到</el-tag>
             <el-tag v-else type="info">系统</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="linkId" label="关联ID" width="150" />
+        <!-- <el-table-column prop="linkId" label="关联ID" width="80" /> -->
         <el-table-column prop="title" label="标题" min-width="200" />
         <el-table-column prop="mark" label="备注" min-width="150" />
         <el-table-column prop="createTime" label="创建时间" width="180" />
@@ -128,7 +141,8 @@ const queryForm = reactive({
   uid: '',
   linkType: '',
   type: undefined,
-  status: undefined
+  status: undefined,
+  dateLimit: ''
 })
 
 const pagination = reactive({
@@ -159,6 +173,22 @@ const getStatusType = (status: number) => {
   return map[status] || ''
 }
 
+// 快捷日期改变
+const handleDateLimitChange = (value: string) => {
+  if (value) {
+    // 选择快捷日期时清空自定义时间
+    dateRange.value = []
+  }
+}
+
+// 自定义时间改变
+const handleDateRangeChange = (value: any) => {
+  if (value && value.length === 2) {
+    // 选择自定义时间时清空快捷日期
+    queryForm.dateLimit = ''
+  }
+}
+
 // 查询
 const handleQuery = async () => {
   loading.value = true
@@ -166,10 +196,17 @@ const handleQuery = async () => {
     const params: any = {
       page: pagination.page,
       limit: pagination.limit,
-      ...queryForm
+      uid: queryForm.uid,
+      linkType: queryForm.linkType,
+      type: queryForm.type,
+      status: queryForm.status
     }
 
-    if (dateRange.value && dateRange.value.length === 2) {
+    // 优先使用快捷日期
+    if (queryForm.dateLimit) {
+      params.dateLimit = queryForm.dateLimit
+    } else if (dateRange.value && dateRange.value.length === 2) {
+      // 否则使用自定义时间范围
       params.startTime = dateRange.value[0]
       params.endTime = dateRange.value[1]
     }
@@ -190,6 +227,7 @@ const handleReset = () => {
   queryForm.linkType = ''
   queryForm.type = undefined
   queryForm.status = undefined
+  queryForm.dateLimit = ''
   dateRange.value = []
   pagination.page = 1
   handleQuery()
