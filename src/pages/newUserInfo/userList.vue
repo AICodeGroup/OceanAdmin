@@ -96,7 +96,7 @@
                         </el-icon>
                         批量禁用
                     </el-button>
-                    <el-button disabled="selectedRows.length === 0" type="danger" @click="handleBatchDelete">
+                    <el-button :disabled="selectedRows.length === 0" type="danger" @click="handleBatchDelete">
                         <el-icon>
                             <Delete />
                         </el-icon>
@@ -205,7 +205,7 @@
                     <!-- 操作列 -->
                     <el-table-column label="操作" width="240" fixed="right">
                         <template #default="{ row }">
-                            <div class="uttons">
+                            <div class="action-buttons">
                                 <el-button size="small" text @click="handleViewDetail(row)">
                                     <el-icon>
                                         <View />
@@ -357,7 +357,7 @@ const loadUserList = async () => {
     loading.value = true;
     try {
         // 模拟 API 调用
-        const response = await mockApiGetUsers();
+        const response = await apiGetUsers();
         userList.value = response.data.list;
         pagination.total = response.data.total;
     } catch (error) {
@@ -568,6 +568,7 @@ const getStatusType = (status: string) => {
     const statusMap: { [key: string]: any } = {
         active: 'success',
         disabled: 'warning',
+        // 冻结状态
         frozen: 'danger'
     };
     return statusMap[status] || 'info';
@@ -582,8 +583,29 @@ const getStatusText = (status: string) => {
     return textMap[status] || '未知';
 };
 
+// 实际API 请求
+const apiGetUsers = async (): Promise<any> => {
+    // 构建请求参数
+    const params = {
+        page: 1,
+        limit: 20,
+
+    };
+
+    // 实际API调用
+    const response = await fetch('admin/platform/user/list', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params)
+    });
+
+    return await response.json();
+};
+
 // 模拟 API
-const mockApiGetUsers = (): Promise<{ data: { list: User[]; total: number } }> => {
+/* const mockApiGetUsers = (): Promise<{ data: { list: User[]; total: number } }> => {
     return new Promise((resolve) => {
         setTimeout(() => {
             const mockData: User[] = Array.from({ length: 50 }, (_, i) => ({
@@ -612,7 +634,7 @@ const mockApiGetUsers = (): Promise<{ data: { list: User[]; total: number } }> =
             });
         }, 500);
     });
-};
+}; */
 </script>
 
 <style lang="scss" scoped>
@@ -738,7 +760,9 @@ const mockApiGetUsers = (): Promise<{ data: { list: User[]; total: number } }> =
 
 .action-buttons {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 4px;
 }
 
