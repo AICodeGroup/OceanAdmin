@@ -41,14 +41,15 @@ $transition-base: all .3s cubic-bezier(.645,.045,.355,1);
 $transition-fade: opacity .3s cubic-bezier(.23,1,.32,1);
 $transition-md-fade: transform .3s cubic-bezier(.23,1,.32,1), opacity .3s cubic-bezier(.23,1,.32,1);
 
-// 菜单相关
-$menuText: #bfcbd9;
-$menuActiveText: #409EFF;
-$subMenuActiveText: #f4f4f5;
-$menuBg: #304156;
-$menuHover: #263445;
-$subMenuBg: #1f2d3d;
-$subMenuHover: #001528;
+// 菜单相关 - 深色侧边栏
+$menuText: #ffffff; // 菜单文字颜色 - 白色
+$menuActiveText: #409EFF; // 激活菜单文字 - 浅蓝色
+$subMenuActiveText: #409EFF;
+$menuBg: #304156; // 侧边栏背景
+$menuHover: rgba(0, 0, 0, 0.1); // 悬停背景
+$menuActiveBg: #2C3B41; // 激活菜单背景 - 展开后的颜色
+$subMenuBg: #2C3B41; // 子菜单背景
+$subMenuHover: rgba(0, 0, 0, 0.15);
 $sideBarWidth: 210px;
 
 // 导出变量供JS使用
@@ -58,6 +59,7 @@ $sideBarWidth: 210px;
   subMenuActiveText: $subMenuActiveText;
   menuBg: $menuBg;
   menuHover: $menuHover;
+  menuActiveBg: $menuActiveBg;
   subMenuBg: $subMenuBg;
   subMenuHover: $subMenuHover;
   sideBarWidth: $sideBarWidth;

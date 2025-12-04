@@ -61,7 +61,7 @@ const needTagsView = computed(() => appStore.tagsView)
 .sidebar-container {
   transition: width 0.28s;
   width: $sidebar-width !important;
-  background-color: #304156;
+  background-color: $menuBg;
   height: 100%;
   position: fixed;
   font-size: 0px;
@@ -70,6 +70,7 @@ const needTagsView = computed(() => appStore.tagsView)
   left: 0;
   z-index: 1001;
   overflow: hidden;
+  box-shadow: 2px 0 6px rgba(0, 21, 41, 0.08);
 }
 
 .hideSidebar {

@@ -38,6 +38,11 @@ import type { RouteRecordRaw } from 'vue-router'
 import { isExternal } from '@/utils/validate'
 import AppLink from './Link.vue'
 
+// 扩展RouteRecordRaw类型以支持noShowingChildren
+type ExtendedRouteRecord = RouteRecordRaw & {
+  noShowingChildren?: boolean
+}
+
 interface Props {
   item: RouteRecordRaw
   isNest?: boolean
@@ -49,7 +54,7 @@ const props = withDefaults(defineProps<Props>(), {
   basePath: ''
 })
 
-const onlyOneChild = ref<RouteRecordRaw>({} as RouteRecordRaw)
+const onlyOneChild = ref<ExtendedRouteRecord>({} as ExtendedRouteRecord)
 
 const hasOneShowingChild = (children: RouteRecordRaw[] = [], parent: RouteRecordRaw) => {
   const showingChildren = children.filter(item => {
@@ -85,10 +90,56 @@ const resolvePath = (routePath: string) => {
 </script>
 
 <style lang="scss" scoped>
-.nest-menu .el-sub-menu > .el-sub-menu__title,
-.el-menu-item {
+@import '@/styles/variables.scss';
+
+// 菜单项基础样式
+.el-menu-item,
+.nest-menu .el-sub-menu > .el-sub-menu__title {
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  position: relative;
+  
   &:hover {
-    background-color: #263445 !important;
+    background-color: $menuHover !important;
+    
+    :deep(.el-icon) {
+      color: $menuActiveText;
+    }
   }
+}
+
+// 子菜单标题样式
+:deep(.el-sub-menu__title) {
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  
+  &:hover {
+    background-color: $menuHover !important;
+    
+    .el-icon {
+      color: $menuActiveText;
+    }
+  }
+}
+
+// 子菜单展开时的效果
+:deep(.el-sub-menu.is-opened) {
+  > .el-sub-menu__title {
+    background-color: rgba(0, 0, 0, 0.1);
+    
+    .el-icon {
+      color: $menuActiveText;
+    }
+  }
+}
+
+// 图标样式
+:deep(.el-icon) {
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  vertical-align: middle;
+}
+
+// 菜单文字
+:deep(span) {
+  vertical-align: middle;
+  font-size: 14px;
 }
 </style>

@@ -155,6 +155,81 @@ html, body {
   background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
+// Element Plus 菜单样式覆盖 - 若依经典
+.el-menu {
+  border-right: none !important;
+  
+  // 去除菜单文字下划线
+  a {
+    text-decoration: none !important;
+  }
+}
+
+// 侧边栏菜单项样式
+.sidebar-container {
+  .el-menu-item,
+  .el-sub-menu__title {
+    // 去除下划线
+    a {
+      text-decoration: none !important;
+    }
+  }
+  
+  // 强制覆盖菜单背景色为深色
+  .el-menu {
+    background-color: #2c3e50 !important;
+  }
+  
+  // 菜单项背景色设置为稍浅的颜色
+  .el-menu-item {
+    background-color: #2c3b41 !important;
+    
+    &:hover {
+      background-color: #34495e !important;
+    }
+    
+    // 激活状态不改变背景色，只改变字体颜色
+    &.is-active {
+      background-color: #2c3b41 !important;
+    }
+  }
+  
+  // 子菜单标题
+  .el-sub-menu__title {
+    background-color: #2c3b41 !important;
+    
+    &:hover {
+      background-color: #34495e !important;
+    }
+  }
+  
+  // 子菜单项
+  .el-sub-menu .el-menu-item {
+    background-color: #253544 !important;
+    
+    &:hover {
+      background-color: #2c3e50 !important;
+    }
+    
+    // 激活状态
+    &.is-active {
+      background-color: #253544 !important;
+    }
+  }
+}
+
+// 主题色按钮样式 - 若依经典蓝
+.el-button--primary {
+  background-color: #409EFF;
+  border-color: #409EFF;
+  
+  &:hover,
+  &:focus {
+    background-color: #66b1ff;
+    border-color: #66b1ff;
+  }
+}
+
 // 响应式
 @media (max-width: 768px) {
   .app-container {
