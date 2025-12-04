@@ -1,5 +1,32 @@
 import request from "@/utils/request";
 
+// 文章详情接口定义
+export interface Article {
+    id: number;
+    author: string;
+    cid: number;
+    content: string;
+    cover: string;
+    isBanner: boolean;
+    isHot: boolean;
+    sort: number;
+    synopsis: string;
+    title: string;
+    type: number;
+    status?: boolean;
+    createTime?: string;
+    updateTime?: string;
+}
+
+// 文章列表响应结构
+export interface ArticleListResponse {
+    page: number;
+    limit: number;
+    totalPage: number;
+    total: number;
+    list: Article[];
+}
+
 // 文章列表接口定义
 export interface ArticleRequest {
     author: string;
