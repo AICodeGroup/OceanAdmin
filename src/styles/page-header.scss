@@ -1,0 +1,126 @@
+// 通用页面头部样式
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 12px 20px;
+    background: #f5f7fa;
+    border-radius: 12px;
+    border: 1px solid #e4e7ed;
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .header-icon {
+            color: #606266;
+            font-size: 20px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #303133;
+            margin: 0;
+        }
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px;
+    }
+}
+
+// 按钮图标样式
+.btn-icon {
+    margin-right: 4px;
+}
+
+// 弹窗样式优化
+:deep(.el-dialog) {
+    border-radius: 12px;
+    
+    .el-dialog__header {
+        padding: 20px 24px;
+        background: #f5f7fa;
+        border-radius: 12px 12px 0 0;
+        border-bottom: 1px solid #e4e7ed;
+        
+        .el-dialog__title {
+            color: #303133;
+            font-size: 20px;
+            font-weight: 600;
+        }
+    }
+    
+    .el-dialog__body {
+        padding: 24px;
+    }
+    
+    .el-dialog__footer {
+        padding: 16px 24px;
+        border-top: 1px solid #e4e7ed;
+    }
+}
+
+// 搜索卡片样式
+.search-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    
+    :deep(.el-card__body) {
+        padding: 24px;
+    }
+}
+
+// 表格卡片样式
+.table-section {
+    :deep(.el-card) {
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        
+        .el-card__body {
+            padding: 20px;
+        }
+    }
+}
+
+// 表格样式优化
+:deep(.el-table) {
+    border-radius: 8px;
+    
+    th.el-table__cell {
+        background-color: #f5f7fa;
+        color: #606266;
+        font-weight: 600;
+    }
+    
+    .el-table__body tr:hover > td {
+        background-color: #f5f7fa;
+    }
+}
+
+// 分页样式
+:deep(.el-pagination) {
+    .el-pagination__total,
+    .el-pagination__jump {
+        color: #606266;
+    }
+    
+    .btn-prev,
+    .btn-next,
+    .el-pager li {
+        border-radius: 6px;
+        
+        &:hover {
+            color: #409eff;
+        }
+    }
+    
+    .el-pager li.is-active {
+        background: #409eff;
+        color: #ffffff;
+    }
+}

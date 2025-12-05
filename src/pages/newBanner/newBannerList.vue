@@ -1,5 +1,21 @@
 <template>
   <div class="app-container">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <div class="header-left">
+        <el-icon class="header-icon" :size="20">
+          <Picture />
+        </el-icon>
+        <h1 class="page-title">轮播图管理</h1>
+      </div>
+      <div class="header-actions">
+        <el-button type="primary" size="large" @click="handleAdd" round>
+          <el-icon class="btn-icon"><Plus /></el-icon>
+          新增轮播图
+        </el-button>
+      </div>
+    </div>
+
     <el-card>
       <!-- 筛选条件 -->
       <el-form :model="queryParams" ref="queryForm" :inline="true" class="mb-4">
@@ -11,16 +27,8 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-          <el-button icon="Refresh" @click="resetQuery">重置</el-button>
         </el-form-item>
       </el-form>
-
-      <!-- 操作按钮 -->
-      <el-row :gutter="10" class="mb-4">
-        <el-col :span="1.5">
-          <el-button type="primary" plain icon="Plus" @click="handleAdd">新增轮播图</el-button>
-        </el-col>
-      </el-row>
 
       <!-- 数据表格 -->
       <el-table v-loading="loading" :data="bannerList">
@@ -134,6 +142,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules, UploadProps, UploadUserFile } from 'element-plus';
 import { getBannersList, createBanner, updateBanner, deleteBanner, Banner } from '@/api/banner';
 import { getToken } from '@/utils/auth';
+import { Plus, Picture } from '@element-plus/icons-vue';
 
 const loading = ref(true);
 const bannerList = ref<Banner[]>([]);
@@ -307,8 +316,52 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.mt-4 { margin-top: 1rem; }
+.app-container {
+  padding: 12px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px 20px;
+  background: #f5f7fa;
+  border-radius: 12px;
+  border: 1px solid #e4e7ed;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .header-icon {
+      color: #606266;
+      font-size: 20px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #303133;
+      margin: 0;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+.btn-icon {
+  margin-right: 4px;
+}
+
 .mb-4 { margin-bottom: 1rem; }
+.mt-4 { margin-top: 1rem; }
 .flex { display: flex; }
 .justify-end { justify-content: flex-end; }
 </style>

@@ -2,16 +2,15 @@
     <div class="user-management-page">
         <!-- 页面标题 -->
         <div class="page-header">
-            <h1 class="page-title">用户管理</h1>
+            <div class="header-left">
+                <el-icon class="header-icon" :size="20">
+                    <User />
+                </el-icon>
+                <h1 class="page-title">用户管理</h1>
+            </div>
             <div class="header-actions">
-                <el-button type="primary" @click="handleAddUser">
-                    <el-icon>
-                        <Plus />
-                    </el-icon>
-                    新增用户
-                </el-button>
-                <el-button @click="handleExport">
-                    <el-icon>
+                <el-button size="large" @click="handleExport" round>
+                    <el-icon class="btn-icon">
                         <Download />
                     </el-icon>
                     导出数据
@@ -251,12 +250,7 @@
                                     编辑
                                 </el-button>
 
-                                <el-button size="small" text type="warning" @click="handleResetPassword(row)">
-                                    <el-icon>
-                                        <Key />
-                                    </el-icon>
-                                    重置密码
-                                </el-button>
+
 
                                 <el-dropdown @command="(command: string) => handleCommand(command, row)">
                                     <el-button size="small" text>
@@ -340,7 +334,7 @@ import 'dayjs/locale/zh-cn';
 import {
     Search, Plus, Download, Check, Close, Delete,
     Refresh, Setting, Iphone, Message, Location,
-    View, Edit, Key, MoreFilled
+    View, Edit, Key, MoreFilled, User
 } from '@element-plus/icons-vue';
 
 // 组件引入
@@ -353,11 +347,11 @@ import {
     getUserList, 
     updateUserStatusNew, 
     deleteUserById, 
-    exportUserExcel,
     UserDetail, 
     UserList 
 } from '@/api/user';
 import { getUserLevelList } from '@/api/growthSystem';
+import { exportUsers } from '@/utils/export';
 
 // 使用API定义的类型
 type User = UserDetail;
@@ -503,26 +497,33 @@ const handleAddUser = () => {
 };
 
 const handleExport = async () => {
+    console.log('=== 开始导出 ===');
     try {
         loading.value = true;
-        const blob = await exportUserExcel(searchForm) as any;
         
-        // 创建下载链接
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `用户数据_${new Date().getTime()}.xlsx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        // 构建导出参数
+        const params: any = {
+            keywords: searchForm.keyword || undefined,
+            status: searchForm.status,
+            levelId: searchForm.levelId,
+            isPaidMember: searchForm.isPaidMember,
+            dateLimit: searchForm.dateLimit || undefined,
+        };
 
+        console.log('导出参数:', params);
+
+        // 使用通用导出工具函数
+        console.log('准备调用 exportUsers');
+        const result = await exportUsers(params);
+        console.log('导出完成:', result);
+        
         ElMessage.success('导出成功');
     } catch (error) {
         console.error('导出失败:', error);
         ElMessage.error('导出失败');
     } finally {
         loading.value = false;
+        console.log('=== 导出结束 ===');
     }
 };
 
@@ -740,7 +741,7 @@ const apiGetUsers = async (): Promise<{ data: UserList }> => {
 
 <style lang="scss" scoped>
 .user-management-page {
-    padding: 20px;
+    padding: 12px;
     background-color: #f5f7fa;
     min-height: 100vh;
 }
@@ -749,13 +750,28 @@ const apiGetUsers = async (): Promise<{ data: UserList }> => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
+    padding: 12px 20px;
+    background: #f5f7fa;
+    border-radius: 12px;
+    border: 1px solid #e4e7ed;
 
-    .page-title {
-        font-size: 24px;
-        font-weight: 600;
-        color: #303133;
-        margin: 0;
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .header-icon {
+            color: #606266;
+            font-size: 20px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #303133;
+            margin: 0;
+        }
     }
 
     .header-actions {
@@ -764,8 +780,12 @@ const apiGetUsers = async (): Promise<{ data: UserList }> => {
     }
 }
 
+.btn-icon {
+    margin-right: 4px;
+}
+
 .search-section {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 
     .search-card {
         :deep(.el-card__body) {

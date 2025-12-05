@@ -1,10 +1,15 @@
 <template>
   <div class="app-container">
-    <el-card shadow="never">
-      <div class="page-header">
-        <h1>积分管理</h1>
+    <div class="page-header">
+      <div class="header-left">
+        <el-icon class="header-icon" :size="20">
+          <TrophyBase />
+        </el-icon>
+        <h1 class="page-title">积分管理</h1>
       </div>
+    </div>
 
+    <el-card shadow="never">
       <el-form
         ref="formRef"
         :model="form"
@@ -65,7 +70,7 @@
 import { ref, reactive } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { Loading } from '@element-plus/icons-vue'
+import { Loading, TrophyBase } from '@element-plus/icons-vue'
 import { judgeUser } from '@/api/newOrder' // 沿用订单模块的接口
 import { operateUserIntegral } from '@/api/user' // 引入新的积分操作接口
 
@@ -160,8 +165,39 @@ const resetForm = () => {
 </script>
 
 <style lang="scss" scoped>
+.app-container {
+  padding: 12px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
 .page-header {
-  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px 20px;
+  background: #f5f7fa;
+  border-radius: 12px;
+  border: 1px solid #e4e7ed;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .header-icon {
+      color: #606266;
+      font-size: 20px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #303133;
+      margin: 0;
+    }
+  }
 }
 
 .phone-check-message {

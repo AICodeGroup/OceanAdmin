@@ -20,37 +20,14 @@ const routes: RouteRecordRaw[] = [
     {
         path: "/",
         component: Layout,
-        redirect: "/newCourse",
-        children: [
-            {
-                path: "newCourse",
-                name: "newCourse",
-                component: () => import("@/pages/newCourse/newCourseList.vue"),
-                meta: { title: "课程列表", icon: "Coin" },
-            },
-        ],
-    },
-    {
-        path: "/newBanner",
-        component: Layout,
-        redirect: "/newBanner/newBannerList",
-        name: "newBanner",
-        meta: { title: "轮播图管理", icon: "Medal" },
-        children: [
-            {
-                path: "newBannerList",
-                name: "newBannerList",
-                component: () => import("@/pages/newBanner/newBannerList.vue"),
-                meta: { title: "轮播图管理", icon: "List" },
-            },
-        ],
+        redirect: "/newCourse/newCourseList",
     },
     {
         path: "/course",
         component: Layout,
         redirect: "/course/list",
         name: "Course",
-        meta: { title: "课程管理", icon: "Reading" },
+        meta: { title: "课程管理", icon: "Reading", hidden: true },
         children: [
             {
                 path: "list",
@@ -93,7 +70,7 @@ const routes: RouteRecordRaw[] = [
         component: Layout,
         redirect: "/task/list",
         name: "task",
-        meta: { title: "日常任务管理", icon: "Calendar" },
+        meta: { title: "日常任务管理", icon: "Calendar", hidden: true },
         children: [
             {
                 path: "list",
@@ -123,13 +100,19 @@ const routes: RouteRecordRaw[] = [
         component: Layout,
         redirect: "/newCourse/newCourseList",
         name: "newCourse",
-        meta: { title: "课程管理", icon: "Coin" },
+        meta: { title: "课程管理", icon: "Reading" },
         children: [
             {
                 path: "newCourseList",
                 name: "newCourseList",
                 component: () => import("@/pages/newCourse/newCourseList.vue"),
-                meta: { title: "课程列表", icon: "Coin" },
+                meta: { title: "课程列表", icon: "List" },
+            },
+            {
+                path: "newBannerList",
+                name: "newBannerList",
+                component: () => import("@/pages/newBanner/newBannerList.vue"),
+                meta: { title: "轮播图列表", icon: "Picture" },
             },
         ],
     },
@@ -437,6 +420,39 @@ const routes: RouteRecordRaw[] = [
                 name: "articleList",
                 component: () => import("@/pages/newArticle/articleList.vue"),
                 meta: { title: "文章列表", icon: "List" },
+            },
+            {
+                path: "categoryList",
+                name: "articleCategoryList",
+                component: () => import("@/pages/newArticle/categoryList.vue"),
+                meta: { title: "文章分类", icon: "Menu" },
+            },
+            {
+                path: "bannerList",
+                name: "articleBannerList",
+                component: () => import("@/pages/newArticle/bannerList.vue"),
+                meta: { title: "轮播图管理", icon: "Picture" },
+            },
+        ],
+    },
+    {
+        path: "/product",
+        component: Layout,
+        redirect: "/product/productList",
+        name: "product",
+        meta: { title: "商品管理", icon: "ShoppingBag" },
+        children: [
+            {
+                path: "productList",
+                name: "productList",
+                component: () => import("@/pages/product/productList.vue"),
+                meta: { title: "商品列表", icon: "List" },
+            },
+            {
+                path: "categoryList",
+                name: "productCategoryList",
+                component: () => import("@/pages/product/categoryList.vue"),
+                meta: { title: "商品分类", icon: "Menu" },
             },
         ],
     },

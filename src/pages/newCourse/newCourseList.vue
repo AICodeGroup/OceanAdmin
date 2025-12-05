@@ -1,5 +1,21 @@
 <template>
   <div class="app-container">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <div class="header-left">
+        <el-icon class="header-icon" :size="20">
+          <Reading />
+        </el-icon>
+        <h1 class="page-title">课程管理</h1>
+      </div>
+      <div class="header-actions">
+        <el-button type="primary" size="large" @click="handleAdd" round>
+          <el-icon class="btn-icon"><Plus /></el-icon>
+          新增课程
+        </el-button>
+      </div>
+    </div>
+
     <el-card>
       <!-- 搜索表单 -->
       <el-form :model="queryParams" ref="queryForm" :inline="true">
@@ -318,7 +334,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, UploadProps, UploadUserFile } from 'element-plus';
-import { InfoFilled } from '@element-plus/icons-vue';
+import { InfoFilled, Plus, Reading } from '@element-plus/icons-vue';
 import request from '@/utils/request';
 import { getToken } from '@/utils/auth';
 import  RichTextEditor from '@/components/Editor/index.vue';
@@ -688,6 +704,62 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.app-container {
+  padding: 12px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px 20px;
+  background: #f5f7fa;
+  border-radius: 12px;
+  border: 1px solid #e4e7ed;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .header-icon {
+      color: #606266;
+      font-size: 20px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #303133;
+      margin: 0;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+.btn-icon {
+  margin-right: 4px;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}
+
+.flex {
+  display: flex;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
 .mt-4 { margin-top: 1rem; }
 .p-4 { padding: 1rem; }
 .bg-gray-100 { background-color: #f7fafc; }

@@ -141,7 +141,12 @@ export const useAuthStore = defineStore("auth", () => {
                 {
                     path: "newCourseList",
                     name: "newCourseList",
-                    meta: { title: "课程列表", icon: "Coin" },
+                    meta: { title: "课程列表", icon: "List" },
+                },
+                {
+                    path: "newBannerList",
+                    name: "newBannerList",
+                    meta: { title: "轮播图列表", icon: "Picture" },
                 },
             ],
         },
@@ -300,7 +305,7 @@ export const useAuthStore = defineStore("auth", () => {
         {
             path: "/task",
             name: "task",
-            meta: { title: "日常任务管理", icon: "Calendar" },
+            meta: { title: "日常任务管理", icon: "Calendar", hidden: true },
             children: [
                 {
                     path: "list",
@@ -318,18 +323,6 @@ export const useAuthStore = defineStore("auth", () => {
                     path: "orderList",
                     name: "orderList",
                     meta: { title: "订单列表", icon: "List" },
-                },
-            ],
-        },
-        {
-            path: "/newBanner",
-            name: "newBanner",
-            meta: { title: "轮播图管理", icon: "List" },
-            children: [
-                {
-                    path: "newBannerList",
-                    name: "newBannerList",
-                    meta: { title: "轮播图列表", icon: "List" },
                 },
             ],
         },
@@ -382,6 +375,33 @@ export const useAuthStore = defineStore("auth", () => {
                     name: "articleList",
                     meta: { title: "文章列表", icon: "List" },
                 },
+                {
+                    path: "categoryList",
+                    name: "articleCategoryList",
+                    meta: { title: "文章分类", icon: "Menu" },
+                },
+                {
+                    path: "bannerList",
+                    name: "articleBannerList",
+                    meta: { title: "轮播图管理", icon: "Picture" },
+                },
+            ],
+        },
+        {
+            path: "/product",
+            name: "product",
+            meta: { title: "商品管理", icon: "ShoppingBag" },
+            children: [
+                {
+                    path: "productList",
+                    name: "productList",
+                    meta: { title: "商品列表", icon: "List" },
+                },
+                {
+                    path: "categoryList",
+                    name: "productCategoryList",
+                    meta: { title: "商品分类", icon: "Menu" },
+                },
             ],
         },
     ]);
@@ -397,8 +417,8 @@ export const useAuthStore = defineStore("auth", () => {
             const res = await login(loginForm);
             console.log(res);
             if (res) {
-                token.value = token;
-                setToken(res);
+                token.value = res.token;
+                setToken(res.token);
                 return Promise.resolve();
             } else {
                 return Promise.reject(new Error(data.message || "登录失败"));

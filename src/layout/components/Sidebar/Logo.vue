@@ -25,7 +25,7 @@ interface Props {
 
 defineProps<Props>()
 
-const title = '海洋教育管理系统'
+const title = '心海沁洋'
 const logo = '/logo.svg' // 使用 SVG logo
 </script>
 

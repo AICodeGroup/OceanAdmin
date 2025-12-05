@@ -1,5 +1,25 @@
 <template>
   <div class="app-container">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <div class="header-left">
+        <el-icon class="header-icon" :size="20">
+          <Medal />
+        </el-icon>
+        <h1 class="page-title">徽章管理</h1>
+      </div>
+      <div class="header-actions">
+        <el-button type="primary" size="large" @click="handleAdd" round>
+          <el-icon class="btn-icon"><Plus /></el-icon>
+          新增徽章
+        </el-button>
+        <el-button type="danger" size="large" @click="handleBatchDelete" :disabled="selectedIds.length === 0" round>
+          <el-icon class="btn-icon"><Delete /></el-icon>
+          批量删除
+        </el-button>
+      </div>
+    </div>
+
     <!-- 搜索表单 -->
     <el-card shadow="never" class="mb-4">
       <el-form :model="searchForm" label-width="80px" :inline="true">
@@ -11,16 +31,6 @@
           <el-button @click="resetSearchForm">重置</el-button>
         </el-form-item>
       </el-form>
-    </el-card>
-
-    <el-card shadow="never" class="mb-4">
-      <el-button type="primary" @click="handleAdd">
-        <el-icon><Plus /></el-icon>
-        新增徽章
-      </el-button>
-      <el-button type="danger" @click="handleBatchDelete" :disabled="selectedIds.length === 0">
-        批量删除
-      </el-button>
     </el-card>
 
     <!-- 数据表格 -->
@@ -131,7 +141,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules, UploadProps, UploadUserFile } from 'element-plus'
 import { getBadgeList, addBadge, updateBadge, deleteBadge, batchDeleteBadges } from '@/api/badge'
 import { getToken } from '@/utils/auth'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Medal, Delete } from '@element-plus/icons-vue'
 
 interface Badge {
   id: number;
@@ -361,16 +371,63 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.app-container {
+  padding: 12px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px 20px;
+  background: #f5f7fa;
+  border-radius: 12px;
+  border: 1px solid #e4e7ed;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .header-icon {
+      color: #606266;
+      font-size: 20px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #303133;
+      margin: 0;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+.btn-icon {
+  margin-right: 4px;
+}
+
 .mb-4 {
   margin-bottom: 16px;
 }
-.mt-4 {
-  margin-top: 16px;
-}
+
 .flex {
   display: flex;
 }
+
 .justify-end {
   justify-content: flex-end;
+}
+
+.mt-4 {
+  margin-top: 16px;
 }
 </style>

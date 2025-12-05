@@ -19,6 +19,13 @@ export default defineConfig({
                 rewrite: (path) =>
                     path.replace(/^\/admin\/platform/, "/admin/platform"),
             },
+            "/admin/merchant": {
+                // target: 'https://beniocean.com/api',
+                target: "http://192.168.1.100:8080/api",
+                changeOrigin: true,
+                rewrite: (path) =>
+                    path.replace(/^\/admin\/merchant/, "/admin/merchant"),
+            },
         },
     },
 });

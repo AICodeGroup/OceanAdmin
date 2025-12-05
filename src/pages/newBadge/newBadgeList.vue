@@ -1,7 +1,12 @@
 <template>
     <div class="app-container">
       <div class="page-header">
-        <h1>授予徽章</h1>
+        <div class="header-left">
+          <el-icon class="header-icon" :size="20">
+            <Medal />
+          </el-icon>
+          <h1 class="page-title">授予徽章</h1>
+        </div>
       </div>
   
       <!-- 表格 -->
@@ -254,16 +259,47 @@
   </script>
   
   <style lang="scss" scoped>
+  .app-container {
+    padding: 12px;
+    background-color: #f5f7fa;
+    min-height: 100vh;
+  }
+
   .card-container {
     background: white;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     margin-bottom: 20px;
   }
 
   .page-header {
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 12px 20px;
+    background: #f5f7fa;
+    border-radius: 12px;
+    border: 1px solid #e4e7ed;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .header-icon {
+        color: #606266;
+        font-size: 20px;
+      }
+
+      .page-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #303133;
+        margin: 0;
+      }
+    }
   }
 
   .badge-icon {
