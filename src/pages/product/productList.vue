@@ -455,15 +455,25 @@
 
                         <el-row :gutter="20">
                             <el-col :span="12">
-                                <el-form-item label="商品分类" prop="cateId">
-                                    <el-select v-model="editForm.cateId" placeholder="请选择分类" style="width: 100%" clearable>
-                                        <el-option
-                                            v-for="cat in categoryList"
-                                            :key="cat.id"
-                                            :label="cat.name"
-                                            :value="cat.id.toString()"
-                                        />
-                                    </el-select>
+                                <el-form-item label="商品分类" prop="categoryId">
+                                    <el-cascader
+                                        v-model="editCategoryPath"
+                                        :options="categoryTreeOptions"
+                                        :props="{
+                                            value: 'value',
+                                            label: 'label',
+                                            children: 'children',
+                                            disabled: 'disabled',
+                                            checkStrictly: false,
+                                            emitPath: false
+                                        }"
+                                        placeholder="请选择商品分类（只能选择叶子分类）"
+                                        clearable
+                                        filterable
+                                        style="width: 100%"
+                                        @change="handleCategoryChange"
+                                    />
+                                    <div class="form-tip">必须选择三级分类</div>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="12">
@@ -735,13 +745,15 @@ import {
     batchDeleteProduct,
     getProductStats,
     getProductDetail,
-    getProductCategoryList,
+    getMerchantCategoryList,
+    getMerchantCategoryCacheTree,
     createProduct,
     updateProduct,
     Product,
     ProductListResponse,
     ProductStats,
-    ProductCategory
+    ProductCategory,
+    ProductCategoryTreeNode
 } from '@/api/product';
 
 // 类型定义
@@ -765,6 +777,8 @@ const loading = ref(false);
 const productList = ref<Product[]>([]);
 const selectedRows = ref<Product[]>([]);
 const categoryList = ref<ProductCategory[]>([]);
+const categoryTreeOptions = ref<ProductCategoryTreeNode[]>([]);
+const editCategoryPath = ref<number | undefined>(undefined);
 const viewDialogVisible = ref(false);
 const currentProduct = ref<Product | null>(null);
 const editDialogVisible = ref(false);
@@ -784,7 +798,8 @@ const editForm = reactive<any>({
     intro: '',
     image: '',
     sliderImage: '',
-    cateId: '',
+    cateId: '',  // 商户分类ID（多个，逗号分隔）
+    categoryId: undefined,  // 平台分类ID（单个，三级分类）
     unitName: '件',
     price: 0,
     otPrice: 0,
@@ -809,7 +824,7 @@ const editFormRules = {
     intro: [{ required: true, message: '请输入商品简介', trigger: 'blur' }],
     image: [{ required: true, message: '请输入商品主图', trigger: 'blur' }],
     sliderImage: [{ required: true, message: '请输入轮播图', trigger: 'blur' }],
-    cateId: [{ required: true, message: '请选择商品分类', trigger: 'change' }],
+    categoryId: [{ required: true, message: '请选择商品分类（必须选择三级分类）', trigger: 'change' }],
     unitName: [{ required: true, message: '请输入商品单位', trigger: 'blur' }]
 };
 
@@ -840,6 +855,7 @@ onMounted(() => {
     loadProductList();
     loadStats();
     loadCategoryList();
+    loadMerchantCategoryTree();
 });
 
 // 加载商品列表
@@ -881,8 +897,9 @@ const loadStats = async () => {
 // 加载分类列表
 const loadCategoryList = async () => {
     try {
-        const response = await getProductCategoryList() as unknown as ProductCategory[];
-        categoryList.value = flattenCategories(response);
+        // request拦截器已经提取了data字段，所以response就是数组本身
+        const response = await getMerchantCategoryList() as unknown as ProductCategory[];
+        categoryList.value = flattenCategories(response || []);
     } catch (error) {
         console.error('加载分类列表失败:', error);
     }
@@ -894,13 +911,50 @@ const flattenCategories = (categories: ProductCategory[]): ProductCategory[] => 
     const flatten = (items: ProductCategory[]) => {
         items.forEach(item => {
             result.push(item);
-            if (item.children && item.children.length > 0) {
-                flatten(item.children);
+            if (item.childList && item.childList.length > 0) {
+                flatten(item.childList);
             }
         });
     };
     flatten(categories);
     return result;
+};
+
+// 加载商户分类缓存树（用于级联选择器）
+const loadMerchantCategoryTree = async () => {
+    try {
+        // request拦截器已经提取了data字段，所以response就是数组本身
+        const response = await getMerchantCategoryCacheTree() as unknown as ProductCategory[];
+        // 将ProductCategory转换为级联选择器需要的格式
+        categoryTreeOptions.value = convertToCascaderOptions(response || []);
+    } catch (error) {
+        console.error('加载商户分类树失败:', error);
+    }
+};
+
+// 转换分类数据为级联选择器格式
+const convertToCascaderOptions = (categories: ProductCategory[]): ProductCategoryTreeNode[] => {
+    return categories.map(cat => {
+        const option: ProductCategoryTreeNode = {
+            value: cat.id,
+            label: cat.name,
+            disabled: false, // 根据是否有子分类来判断是否禁用
+            children: undefined
+        };
+        
+        // 如果有子分类，递归转换
+        if (cat.childList && cat.childList.length > 0) {
+            option.children = convertToCascaderOptions(cat.childList);
+            option.disabled = true; // 有子分类的节点禁用，只能选择叶子节点
+        }
+        
+        return option;
+    });
+};
+
+// 处理分类选择变更
+const handleCategoryChange = (value: number | undefined) => {
+    editForm.categoryId = value;
 };
 
 // 搜索
@@ -953,6 +1007,7 @@ const handleAddProduct = () => {
         image: '',
         sliderImage: '',
         cateId: '',
+        categoryId: undefined,
         unitName: '件',
         price: 0,
         otPrice: 0,
@@ -973,6 +1028,7 @@ const handleAddProduct = () => {
     deliveryMethods.value = ['1'];
     specList.value = [];
     skuList.value = [];
+    editCategoryPath.value = undefined;
     activeTab.value = 'basic';
     editDialogVisible.value = true;
 };
@@ -981,6 +1037,10 @@ const handleAddProduct = () => {
 const handleEdit = async (row: Product) => {
     try {
         const detail = await getProductDetail(row.id) as unknown as any;
+        
+        // 同步平台分类ID到级联选择器
+        editCategoryPath.value = detail.categoryId;
+        
         Object.assign(editForm, {
             id: detail.id,
             name: detail.name,

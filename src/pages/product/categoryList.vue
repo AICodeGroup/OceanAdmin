@@ -29,7 +29,7 @@
             <el-table
                 :data="categoryList"
                 row-key="id"
-                :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+                :tree-props="{ children: 'childList', hasChildren: 'hasChildren' }"
                 border
                 stripe
                 style="width: 100%"
@@ -45,6 +45,14 @@
                     </template>
                 </el-table-column>
                 <el-table-column prop="icon" label="图标" width="200" />
+                <el-table-column prop="level" label="级别" width="100">
+                    <template #default="{ row }">
+                        <el-tag v-if="row.level === 1 || (row.level === null && row.pid === 0)" type="danger">一级</el-tag>
+                        <el-tag v-else-if="row.level === 2" type="warning">二级</el-tag>
+                        <el-tag v-else-if="row.level === 3" type="success">三级</el-tag>
+                        <el-tag v-else type="info">未知</el-tag>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="sort" label="排序" width="100" sortable />
                 <el-table-column prop="isShow" label="显示状态" width="120">
                     <template #default="{ row }">
@@ -53,11 +61,6 @@
                             @change="handleToggleShow(row)"
                             :disabled="updating"
                         />
-                    </template>
-                </el-table-column>
-                <el-table-column prop="createTime" label="创建时间" width="180">
-                    <template #default="{ row }">
-                        {{ formatTime(row.createTime) }}
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" width="240" fixed="right">
@@ -135,18 +138,17 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import dayjs from 'dayjs';
 
 // 图标引入
 import { Menu, Plus, Refresh, Edit, Delete } from '@element-plus/icons-vue';
 
 // API导入
 import {
-    getProductCategoryList,
-    createProductCategory,
-    updateProductCategory,
-    deleteProductCategory,
-    toggleCategoryShow,
+    getMerchantCategoryList,
+    createMerchantCategory,
+    updateMerchantCategory,
+    deleteMerchantCategory,
+    toggleMerchantCategoryShow,
     ProductCategory
 } from '@/api/product';
 
@@ -164,7 +166,8 @@ const form = reactive({
     pid: 0,
     name: '',
     icon: '',
-    sort: 999,
+    level: 1,  // 默认一级分类
+    sort: 100,
     isShow: true
 });
 
@@ -179,7 +182,7 @@ const categoryTreeOptions = computed(() => {
         return categories.map(cat => ({
             value: cat.id,
             label: cat.name,
-            children: cat.children && cat.children.length > 0 ? buildTree(cat.children) : undefined
+            children: cat.childList && cat.childList.length > 0 ? buildTree(cat.childList) : undefined
         }));
     };
     
@@ -198,7 +201,8 @@ onMounted(() => {
 const loadCategoryList = async () => {
     loading.value = true;
     try {
-        const response = await getProductCategoryList() as unknown as ProductCategory[];
+        // request拦截器已经提取了data字段，所以response就是数组本身
+        const response = await getMerchantCategoryList() as unknown as ProductCategory[];
         categoryList.value = response || [];
     } catch (error) {
         console.error('加载分类列表失败:', error);
@@ -220,7 +224,8 @@ const handleAdd = () => {
         pid: 0,
         name: '',
         icon: '',
-        sort: 999,
+        level: 1,  // 顶级分类
+        sort: 100,
         isShow: true
     });
     dialogVisible.value = true;
@@ -228,12 +233,26 @@ const handleAdd = () => {
 
 // 添加子分类
 const handleAddChild = (row: ProductCategory) => {
+    // 计算当前分类的级别（如果level为null，根据pid推断）
+    let currentLevel = row.level;
+    if (currentLevel === null || currentLevel === undefined) {
+        // 如果level为null，根据pid推断：pid=0为一级，否则为二级（默认）
+        currentLevel = row.pid === 0 ? 1 : 2;
+    }
+    
+    // 检查是否已经是三级分类
+    if (currentLevel >= 3) {
+        ElMessage.warning('最多支持三级分类');
+        return;
+    }
+    
     Object.assign(form, {
         id: undefined,
         pid: row.id,
         name: '',
         icon: '',
-        sort: 999,
+        level: currentLevel + 1,  // 子分类 level=父分类 level+1
+        sort: 100,
         isShow: true
     });
     dialogVisible.value = true;
@@ -241,11 +260,18 @@ const handleAddChild = (row: ProductCategory) => {
 
 // 编辑分类
 const handleEdit = (row: ProductCategory) => {
+    // 如果level为null，根据pid推断
+    let level = row.level;
+    if (level === null || level === undefined) {
+        level = row.pid === 0 ? 1 : 2;
+    }
+    
     Object.assign(form, {
         id: row.id,
         pid: row.pid,
         name: row.name,
         icon: row.icon,
+        level: level,  // 使用推断后的level
         sort: row.sort,
         isShow: row.isShow
     });
@@ -262,11 +288,26 @@ const handleSave = async () => {
         
         if (form.id) {
             // 编辑
-            await updateProductCategory(form as any);
+            const data = {
+                id: form.id,
+                pid: form.pid,
+                name: form.name,
+                icon: form.icon || '',
+                level: form.level,
+                sort: form.sort
+            };
+            await updateMerchantCategory(data);
             ElMessage.success('分类更新成功');
         } else {
             // 新增
-            await createProductCategory(form as any);
+            const data = {
+                pid: form.pid,
+                name: form.name,
+                icon: form.icon || '',
+                level: form.level,
+                sort: form.sort
+            };
+            await createMerchantCategory(data);
             ElMessage.success('分类创建成功');
         }
         
@@ -285,7 +326,7 @@ const handleSave = async () => {
 // 删除分类
 const handleDelete = async (row: ProductCategory) => {
     // 检查是否有子分类
-    if (row.children && row.children.length > 0) {
+    if (row.childList && row.childList.length > 0) {
         ElMessage.warning('该分类下存在子分类，无法删除');
         return;
     }
@@ -301,7 +342,7 @@ const handleDelete = async (row: ProductCategory) => {
             }
         );
 
-        await deleteProductCategory(row.id);
+        await deleteMerchantCategory(row.id);
         ElMessage.success('删除成功');
         loadCategoryList();
     } catch (error: any) {
@@ -316,7 +357,7 @@ const handleDelete = async (row: ProductCategory) => {
 const handleToggleShow = async (row: ProductCategory) => {
     updating.value = true;
     try {
-        await toggleCategoryShow(row.id);
+        await toggleMerchantCategoryShow(row.id);
         ElMessage.success('状态更新成功');
         loadCategoryList();
     } catch (error) {
@@ -327,11 +368,6 @@ const handleToggleShow = async (row: ProductCategory) => {
     } finally {
         updating.value = false;
     }
-};
-
-// 格式化时间
-const formatTime = (time: string) => {
-    return time ? dayjs(time).format('YYYY-MM-DD HH:mm:ss') : '-';
 };
 </script>
 

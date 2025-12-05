@@ -56,20 +56,6 @@ export interface ProductStats {
     pending: number;
 }
 
-// 商品分类接口
-export interface ProductCategory {
-    id: number;
-    merId: number;
-    pid: number;
-    name: string;
-    icon: string;
-    sort: number;
-    isShow: boolean;
-    createTime: string;
-    updateTime: string;
-    children?: ProductCategory[];
-}
-
 // 商品规格接口
 export interface ProductAttr {
     attributeName: string;
@@ -286,20 +272,21 @@ export const getProductSalesRank = (params?: {
     });
 };
 
-// ===== 商品分类管理接口 =====
+// ===== 商户端商品分类管理接口 =====
 
 // 分类接口响应类型
 export interface ProductCategory {
     id: number;
-    merId: number;
+    merId?: number;
     pid: number;
     name: string;
     icon: string;
+    level: number | null;  // 1-一级，2-二级，3-三级
     sort: number;
     isShow: boolean;
-    createTime: string;
-    updateTime: string;
-    children?: ProductCategory[];
+    createTime?: string;
+    updateTime?: string;
+    childList?: ProductCategory[];  // API返回的子分类字段是childList
 }
 
 export interface ProductCategoryTreeNode {
@@ -309,29 +296,21 @@ export interface ProductCategoryTreeNode {
     children?: ProductCategoryTreeNode[];
 }
 
-// 获取分类列表（树形） - 商户端
-export const getProductCategoryList = () => {
+// 获取商户分类列表（树形）
+export const getMerchantCategoryList = () => {
     return request({
-        url: "/admin/merchant/store/product/category/list",
+        url: "/admin/merchant/store/product/category/cache/tree",
         method: "get",
     });
 };
 
-// 获取分类列表（树形） - 平台端
-export const getPlatformCategoryList = () => {
-    return request({
-        url: "/admin/platform/product/category/list",
-        method: "get",
-    });
-};
-
-// 创建分类 - 商户端
-export const createProductCategory = (data: {
+// 创建商户分类
+export const createMerchantCategory = (data: {
     pid: number;
     name: string;
     icon?: string;
-    sort?: number;
-    isShow?: boolean;
+    level: number;
+    sort: number;
 }) => {
     return request({
         url: "/admin/merchant/store/product/category/add",
@@ -340,29 +319,14 @@ export const createProductCategory = (data: {
     });
 };
 
-// 创建分类 - 平台端
-export const createPlatformCategory = (data: {
+// 更新商户分类
+export const updateMerchantCategory = (data: {
+    id: number;
     pid: number;
     name: string;
     icon?: string;
-    sort?: number;
-    isShow?: boolean;
-}) => {
-    return request({
-        url: "/admin/platform/product/category/add",
-        method: "post",
-        data,
-    });
-};
-
-// 更新分类 - 商户端
-export const updateProductCategory = (data: {
-    id: number;
-    pid?: number;
-    name?: string;
-    icon?: string;
-    sort?: number;
-    isShow?: boolean;
+    level: number;
+    sort: number;
 }) => {
     return request({
         url: "/admin/merchant/store/product/category/update",
@@ -371,66 +335,26 @@ export const updateProductCategory = (data: {
     });
 };
 
-// 更新分类 - 平台端
-export const updatePlatformCategory = (data: {
-    id: number;
-    pid?: number;
-    name?: string;
-    icon?: string;
-    sort?: number;
-    isShow?: boolean;
-}) => {
-    return request({
-        url: "/admin/platform/product/category/update",
-        method: "post",
-        data,
-    });
-};
-
-// 删除分类 - 商户端
-export const deleteProductCategory = (id: number) => {
+// 删除商户分类
+export const deleteMerchantCategory = (id: number) => {
     return request({
         url: `/admin/merchant/store/product/category/delete/${id}`,
         method: "post",
     });
 };
 
-// 删除分类 - 平台端
-export const deletePlatformCategory = (id: number) => {
-    return request({
-        url: `/admin/platform/product/category/delete/${id}`,
-        method: "post",
-    });
-};
-
-// 显示/隐藏分类 - 商户端
-export const toggleCategoryShow = (id: number) => {
+// 显示/隐藏商户分类
+export const toggleMerchantCategoryShow = (id: number) => {
     return request({
         url: `/admin/merchant/store/product/category/update/show/${id}`,
         method: "post",
     });
 };
 
-// 显示/隐藏分类 - 平台端
-export const togglePlatformCategoryShow = (id: number) => {
-    return request({
-        url: `/admin/platform/product/category/update/show/${id}`,
-        method: "post",
-    });
-};
-
-// 分类缓存树 - 商户端
-export const getCategoryCacheTree = () => {
+// 获取商户分类缓存树（用于级联选择器）
+export const getMerchantCategoryCacheTree = () => {
     return request({
         url: "/admin/merchant/store/product/category/cache/tree",
-        method: "get",
-    });
-};
-
-// 分类缓存树 - 平台端
-export const getPlatformCategoryCacheTree = () => {
-    return request({
-        url: "/admin/platform/product/category/cache/tree",
         method: "get",
     });
 };
