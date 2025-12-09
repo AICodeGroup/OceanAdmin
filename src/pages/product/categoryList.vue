@@ -39,17 +39,23 @@
                 <el-table-column prop="name" label="分类名称" min-width="200">
                     <template #default="{ row }">
                         <div class="category-name">
-                            <el-icon v-if="row.icon" style="margin-right: 8px"><component :is="row.icon" /></el-icon>
+                            <img v-if="row.icon" :src="row.icon" style="width: 24px; height: 24px; margin-right: 8px; object-fit: cover; border-radius: 4px;" />
                             <span>{{ row.name }}</span>
                         </div>
                     </template>
                 </el-table-column>
-                <el-table-column prop="icon" label="图标" width="200" />
+                <el-table-column prop="icon" label="图标" width="150">
+                    <template #default="{ row }">
+                        <div v-if="row.icon" style="display: flex; align-items: center; gap: 8px;">
+                            <img :src="row.icon" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #e4e7ed;" />
+                        </div>
+                        <span v-else style="color: #909399;">-</span>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="level" label="级别" width="100">
                     <template #default="{ row }">
                         <el-tag v-if="row.level === 1 || (row.level === null && row.pid === 0)" type="danger">一级</el-tag>
-                        <el-tag v-else-if="row.level === 2" type="warning">二级</el-tag>
-                        <el-tag v-else-if="row.level === 3" type="success">三级</el-tag>
+                        <el-tag v-else-if="row.level === 2" type="success">二级</el-tag>
                         <el-tag v-else type="info">未知</el-tag>
                     </template>
                 </el-table-column>
@@ -236,13 +242,13 @@ const handleAddChild = (row: ProductCategory) => {
     // 计算当前分类的级别（如果level为null，根据pid推断）
     let currentLevel = row.level;
     if (currentLevel === null || currentLevel === undefined) {
-        // 如果level为null，根据pid推断：pid=0为一级，否则为二级（默认）
+        // 如果level为null，根据pid推断：pid=0为一级，否则为二级
         currentLevel = row.pid === 0 ? 1 : 2;
     }
     
-    // 检查是否已经是三级分类
-    if (currentLevel >= 3) {
-        ElMessage.warning('最多支持三级分类');
+    // 检查是否已经是二级分类
+    if (currentLevel >= 2) {
+        ElMessage.warning('最多支持二级分类');
         return;
     }
     

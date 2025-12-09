@@ -169,7 +169,7 @@ const rules: FormRules = {
 // 上传配置
 const uploadUrl = '/api/upload/image'
 const uploadHeaders = {
-  Authorization: `Bearer ${getToken()}`
+  Authorization: `${getToken()}`
 }
 
 // 获取列表数据

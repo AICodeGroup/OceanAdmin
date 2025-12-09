@@ -83,15 +83,33 @@ const routes: RouteRecordRaw[] = [
     {
         path: "/newOrder",
         component: Layout,
-        redirect: "/newOrder/orderList",
+        redirect: "/newOrder/orderStatistics",
         name: "newOrder",
         meta: { title: "订单管理", icon: "ShoppingCart" },
         children: [
             {
+                path: "orderStatistics",
+                name: "orderStatistics",
+                component: () => import("@/pages/newOrder/orderStatistics.vue"),
+                meta: { title: "订单统计", icon: "DataAnalysis" },
+            },
+            {
+                path: "courseOrderList",
+                name: "courseOrderList",
+                component: () => import("@/pages/newOrder/courseOrderList.vue"),
+                meta: { title: "课程订单", icon: "Reading" },
+            },
+            {
+                path: "entityOrderList",
+                name: "entityOrderList",
+                component: () => import("@/pages/newOrder/entityOrderList.vue"),
+                meta: { title: "实体商品订单", icon: "ShoppingBag" },
+            },
+            {
                 path: "orderList",
                 name: "orderList",
                 component: () => import("@/pages/newOrder/orderList.vue"),
-                meta: { title: "订单列表", icon: "List" },
+                meta: { title: "订单列表（旧）", icon: "DocumentCopy" },
             },
         ],
     },

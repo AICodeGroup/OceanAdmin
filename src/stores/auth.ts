@@ -320,9 +320,24 @@ export const useAuthStore = defineStore("auth", () => {
             meta: { title: "订单管理", icon: "ShoppingCart" },
             children: [
                 {
+                    path: "orderStatistics",
+                    name: "orderStatistics",
+                    meta: { title: "订单统计", icon: "DataAnalysis" },
+                },
+                {
+                    path: "courseOrderList",
+                    name: "courseOrderList",
+                    meta: { title: "课程订单", icon: "Reading" },
+                },
+                {
+                    path: "entityOrderList",
+                    name: "entityOrderList",
+                    meta: { title: "实体商品订单", icon: "ShoppingBag" },
+                },
+                {
                     path: "orderList",
                     name: "orderList",
-                    meta: { title: "订单列表", icon: "List" },
+                    meta: { title: "订单列表（旧）", icon: "DocumentCopy" },
                 },
             ],
         },

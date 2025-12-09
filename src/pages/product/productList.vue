@@ -107,14 +107,24 @@
 
                         <el-col :xs="24" :sm="12" :md="8" :lg="6">
                             <el-form-item label="商品分类">
-                                <el-select v-model="searchForm.categoryId" placeholder="请选择分类" clearable size="large" style="width: 100%">
-                                    <el-option 
-                                        v-for="item in categoryList" 
-                                        :key="item.id" 
-                                        :label="item.name" 
-                                        :value="item.id"
-                                    />
-                                </el-select>
+                                <el-cascader
+                                    v-model="searchForm.categoryId"
+                                    :options="categoryTreeOptions"
+                                    :props="{
+                                        value: 'value',
+                                        label: 'label',
+                                        children: 'children',
+                                        disabled: 'disabled',
+                                        checkStrictly: false,
+                                        emitPath: false
+                                    }"
+                                    :show-all-levels="false"
+                                    placeholder="请选择分类"
+                                    clearable
+                                    size="large"
+                                    filterable
+                                    style="width: 100%"
+                                />
                             </el-form-item>
                         </el-col>
 
@@ -467,13 +477,14 @@
                                             checkStrictly: false,
                                             emitPath: false
                                         }"
-                                        placeholder="请选择商品分类（只能选择叶子分类）"
+                                        :show-all-levels="false"
+                                        placeholder="请选择商品分类（只能选择二级分类）"
                                         clearable
                                         filterable
                                         style="width: 100%"
                                         @change="handleCategoryChange"
                                     />
-                                    <div class="form-tip">必须选择三级分类</div>
+                                    <!-- <div class="form-tip">先选择一级分类，再选择二级分类</div> -->
                                 </el-form-item>
                             </el-col>
                             <el-col :span="12">
@@ -483,7 +494,8 @@
                             </el-col>
                         </el-row>
 
-                        <el-row :gutter="20">
+                        <!-- 单规格商品显示价格库存，多规格在SKU表格中填写 -->
+                        <el-row :gutter="20" v-if="!editForm.specType">
                             <el-col :span="8">
                                 <el-form-item label="商品价格" prop="price">
                                     <el-input-number v-model="editForm.price" :min="0" :precision="2" :step="1" style="width: 100%" />
@@ -501,7 +513,7 @@
                             </el-col>
                         </el-row>
 
-                        <el-row :gutter="20">
+                        <el-row :gutter="20" v-if="!editForm.specType">
                             <el-col :span="8">
                                 <el-form-item label="库存" prop="stock">
                                     <el-input-number v-model="editForm.stock" :min="0" :step="1" style="width: 100%" />
@@ -518,6 +530,30 @@
                                 </el-form-item>
                             </el-col>
                         </el-row>
+                        
+                        <!-- 多规格商品仅显示虚拟销量和排序 -->
+                        <el-row :gutter="20" v-if="editForm.specType">
+                            <el-col :span="12">
+                                <el-form-item label="虚拟销量" prop="ficti">
+                                    <el-input-number v-model="editForm.ficti" :min="0" :step="1" style="width: 100%" />
+                                    <div class="form-tip">虚拟销量用于展示，不影响实际库存</div>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="排序" prop="sort">
+                                    <el-input-number v-model="editForm.sort" :min="0" :step="1" style="width: 100%" />
+                                    <div class="form-tip">数值越大越靠前</div>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        
+                        <el-alert
+                            v-if="editForm.specType"
+                            title="多规格商品的价格、库存、成本价等信息请在【商品规格】标签页的SKU表格中配置"
+                            type="info"
+                            :closable="false"
+                            style="margin-bottom: 20px;"
+                        />
 
                         <el-form-item label="关键词">
                             <el-input v-model="editForm.keyword" placeholder="多个关键词用逗号分隔" />
@@ -745,7 +781,6 @@ import {
     batchDeleteProduct,
     getProductStats,
     getProductDetail,
-    getMerchantCategoryList,
     getMerchantCategoryCacheTree,
     createProduct,
     updateProduct,
@@ -776,7 +811,6 @@ interface Pagination {
 const loading = ref(false);
 const productList = ref<Product[]>([]);
 const selectedRows = ref<Product[]>([]);
-const categoryList = ref<ProductCategory[]>([]);
 const categoryTreeOptions = ref<ProductCategoryTreeNode[]>([]);
 const editCategoryPath = ref<number | undefined>(undefined);
 const viewDialogVisible = ref(false);
@@ -824,7 +858,7 @@ const editFormRules = {
     intro: [{ required: true, message: '请输入商品简介', trigger: 'blur' }],
     image: [{ required: true, message: '请输入商品主图', trigger: 'blur' }],
     sliderImage: [{ required: true, message: '请输入轮播图', trigger: 'blur' }],
-    categoryId: [{ required: true, message: '请选择商品分类（必须选择三级分类）', trigger: 'change' }],
+    categoryId: [{ required: true, message: '请选择商品分类（必须选择二级分类）', trigger: 'change' }],
     unitName: [{ required: true, message: '请输入商品单位', trigger: 'blur' }]
 };
 
@@ -854,7 +888,6 @@ const pagination = reactive<Pagination>({
 onMounted(() => {
     loadProductList();
     loadStats();
-    loadCategoryList();
     loadMerchantCategoryTree();
 });
 
@@ -894,31 +927,6 @@ const loadStats = async () => {
     }
 };
 
-// 加载分类列表
-const loadCategoryList = async () => {
-    try {
-        // request拦截器已经提取了data字段，所以response就是数组本身
-        const response = await getMerchantCategoryList() as unknown as ProductCategory[];
-        categoryList.value = flattenCategories(response || []);
-    } catch (error) {
-        console.error('加载分类列表失败:', error);
-    }
-};
-
-// 扁平化分类树
-const flattenCategories = (categories: ProductCategory[]): ProductCategory[] => {
-    const result: ProductCategory[] = [];
-    const flatten = (items: ProductCategory[]) => {
-        items.forEach(item => {
-            result.push(item);
-            if (item.childList && item.childList.length > 0) {
-                flatten(item.childList);
-            }
-        });
-    };
-    flatten(categories);
-    return result;
-};
 
 // 加载商户分类缓存树（用于级联选择器）
 const loadMerchantCategoryTree = async () => {
@@ -935,17 +943,26 @@ const loadMerchantCategoryTree = async () => {
 // 转换分类数据为级联选择器格式
 const convertToCascaderOptions = (categories: ProductCategory[]): ProductCategoryTreeNode[] => {
     return categories.map(cat => {
+        // 计算当前分类的级别（如果level为null，根据pid推断）
+        let level = cat.level;
+        if (level === null || level === undefined) {
+            level = cat.pid === 0 ? 1 : 2;
+        }
+        
+        const hasChildren = cat.childList && cat.childList.length > 0;
+        
         const option: ProductCategoryTreeNode = {
             value: cat.id,
             label: cat.name,
-            disabled: false, // 根据是否有子分类来判断是否禁用
+            // 一级分类：有子分类不禁用（可展开），没有子分类禁用（避免被选中）
+            // 二级分类：不禁用（可选中）
+            disabled: level === 1 && !hasChildren,
             children: undefined
         };
         
         // 如果有子分类，递归转换
-        if (cat.childList && cat.childList.length > 0) {
+        if (hasChildren && cat.childList) {
             option.children = convertToCascaderOptions(cat.childList);
-            option.disabled = true; // 有子分类的节点禁用，只能选择叶子节点
         }
         
         return option;
@@ -955,6 +972,8 @@ const convertToCascaderOptions = (categories: ProductCategory[]): ProductCategor
 // 处理分类选择变更
 const handleCategoryChange = (value: number | undefined) => {
     editForm.categoryId = value;
+    // 同时更新cateId字段（兼容旧字段）
+    editForm.cateId = value ? String(value) : '';
 };
 
 // 搜索
@@ -1038,7 +1057,7 @@ const handleEdit = async (row: Product) => {
     try {
         const detail = await getProductDetail(row.id) as unknown as any;
         
-        // 同步平台分类ID到级联选择器
+        // 同步分类ID到级联选择器
         editCategoryPath.value = detail.categoryId;
         
         Object.assign(editForm, {
@@ -1048,6 +1067,7 @@ const handleEdit = async (row: Product) => {
             image: detail.image,
             sliderImage: detail.sliderImage,
             cateId: detail.cateId,
+            categoryId: detail.categoryId,
             unitName: detail.unitName,
             price: detail.price,
             otPrice: detail.otPrice,
@@ -1062,9 +1082,41 @@ const handleEdit = async (row: Product) => {
             isPaidMember: detail.isPaidMember,
             isHot: detail.isHot,
             redeemIntegral: detail.redeemIntegral,
+            isAutoUp: detail.isAutoUp || false,
             content: detail.content || ''
         });
         deliveryMethods.value = detail.deliveryMethod ? detail.deliveryMethod.split(',') : ['1'];
+        
+        // 如果是多规格商品，回显规格数据
+        if (detail.specType && detail.attrList && detail.attrValueList) {
+            // 回显规格列表
+            specList.value = detail.attrList.map((attr: any) => ({
+                attributeName: attr.attributeName,
+                isShowImage: attr.isShowImage,
+                optionList: attr.optionList || [],
+                showInput: false,
+                inputValue: ''
+            }));
+            
+            // 回显SKU列表
+            skuList.value = detail.attrValueList.map((sku: any) => ({
+                stock: sku.stock,
+                price: sku.price,
+                image: sku.image,
+                cost: sku.cost,
+                otPrice: sku.otPrice,
+                weight: sku.weight || 0,
+                volume: sku.volume || 0,
+                attrValue: sku.attrValue,
+                barCode: sku.barCode || '',
+                isDefault: sku.isDefault || false
+            }));
+        } else {
+            // 单规格商品，清空规格数据
+            specList.value = [];
+            skuList.value = [];
+        }
+        
         activeTab.value = 'basic';
         editDialogVisible.value = true;
     } catch (error) {
@@ -1207,8 +1259,9 @@ const handleSaveProduct = async () => {
             deliveryMethod: deliveryMethods.value.join(',')
         };
         
-        // 如果是多规格，添加规格和SKU数据
+        // 添加规格和SKU数据
         if (editForm.specType) {
+            // 多规格：使用配置的规格和SKU
             formData.attrList = specList.value.filter(spec => 
                 spec.attributeName && spec.optionList.length > 0
             ).map(spec => ({
@@ -1234,6 +1287,32 @@ const handleSaveProduct = async () => {
             if (formData.attrValueList.length > 0) {
                 formData.attrValueList[0].isDefault = true;
             }
+        } else {
+            // 单规格：attrList包含一个"规格"属性，attrValueList包含一个默认SKU
+            formData.attrList = [
+                {
+                    attributeName: '规格',
+                    isShowImage: false,
+                    optionList: [
+                        {
+                            optionName: '默认',
+                            image: ''
+                        }
+                    ]
+                }
+            ];
+            formData.attrValueList = [{
+                stock: editForm.stock || 0,
+                price: editForm.price || 0,
+                image: editForm.image || '',
+                cost: editForm.cost || 0,
+                otPrice: editForm.otPrice || 0,
+                weight: 0,
+                volume: 0,
+                attrValue: '{"规格":"默认"}',
+                barCode: '',
+                isDefault: true
+            }];
         }
         
         if (editForm.id) {

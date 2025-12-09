@@ -281,7 +281,7 @@ export interface ProductCategory {
     pid: number;
     name: string;
     icon: string;
-    level: number | null;  // 1-一级，2-二级，3-三级
+    level: number | null;  // 1-一级，2-二级
     sort: number;
     isShow: boolean;
     createTime?: string;

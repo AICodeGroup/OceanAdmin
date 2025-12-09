@@ -106,7 +106,7 @@
                 :limit="1"
                 :on-success="handleUploadSuccess"
                 :on-remove="handleRemove"
-                :headers="{ Authorization: 'Bearer ' + getToken() }" >
+                :headers="{ Authorization: getToken() }" >
                 <el-icon><Plus /></el-icon>
             </el-upload>
         </el-form-item>
