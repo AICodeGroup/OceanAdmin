@@ -185,18 +185,18 @@
           </el-col>
         </el-row>
         
-        <!-- 第四行：图片URL和图标URL -->
+        <!-- 第四行：图片和图标 -->
         <el-row :gutter="20">
           <el-col :span="12">
-            <!-- 物种图片URL -->
-            <el-form-item label="物种图片URL">
-              <el-input v-model="form.imageUrl" placeholder="请输入物种图片URL" />
+            <!-- 物种图片 -->
+            <el-form-item label="物种图片">
+              <ImageUpload v-model="form.imageUrl" model="product" :pid="1" placeholder="上传图片" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <!-- 物种图标URL -->
-            <el-form-item label="物种图标URL">
-              <el-input v-model="form.iconUrl" placeholder="请输入物种图标URL" />
+            <!-- 物种图标 -->
+            <el-form-item label="物种图标">
+              <ImageUpload v-model="form.iconUrl" model="product" :pid="1" placeholder="上传图标" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -236,6 +236,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 // Vue Router 导入
 import { useRouter } from 'vue-router'
+// 组件导入
+import ImageUpload from '@/components/ImageUpload/index.vue'
 // API 接口导入
 import {getSpeciesList,createSpeciesCategory,updateSpeciesCategory,deleteSpeciesCategory,getSpeciesTree,saveSpecies}from '@/api/species'
 

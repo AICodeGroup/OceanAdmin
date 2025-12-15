@@ -458,9 +458,9 @@ const handleUploadSuccess = (response: any) => {
     hasEditor: !!editorRef.value
   })
   
-  // el-upload的回调接收的是原始响应：{code: 200, data: "url", message: null}
-  if (response && response.code === 200 && response.data && editorRef.value) {
-    const imageUrl = response.data
+  // el-upload的回调接收的是原始响应：{code: 200, data: { url: "..." }, message: null}
+  if (response && response.code === 200 && response.data?.url && editorRef.value) {
+    const imageUrl = response.data.url
     console.log('准备插入图片:', imageUrl)
     
     // 插入图片，设置宽度为750px

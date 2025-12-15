@@ -259,7 +259,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="徽章图标" prop="icon">
-          <el-input v-model="form.icon" placeholder="请输入图标URL" />
+          <ImageUpload v-model="form.icon" model="system" :pid="0" placeholder="上传图标" />
         </el-form-item>
         <el-form-item label="获得条件" prop="condition">
           <el-input v-model="form.condition" placeholder="请输入获得条件" />
@@ -342,6 +342,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import ImageUpload from '@/components/ImageUpload/index.vue'
 
 // 响应式数据
 const loading = ref(false)

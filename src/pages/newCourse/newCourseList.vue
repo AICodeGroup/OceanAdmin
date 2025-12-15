@@ -175,12 +175,14 @@
         <el-form-item label="轮播图" prop="course.sliderImage">
             <el-upload
                 v-model:file-list="fileList"
-                action="https://beniocean.com/api/admin/platform/uploadOss"
+                action="/admin/platform/upload/image"
                 list-type="picture-card"
                 multiple
                 :on-success="handleUploadSuccess"
                 :on-remove="handleRemove"
-                :headers="{ Authorization: getToken() }" >
+                :headers="{ Authorization: getToken() }"
+                :data="{ model: 'product', pid: 1 }"
+                name="multipart" >
                 <el-icon><Plus /></el-icon>
             </el-upload>
         </el-form-item>
@@ -206,10 +208,12 @@
                         />
                         <el-upload
                             :show-file-list="false"
-                            action="https://beniocean.com/api/admin/platform/uploadOss"
+                            action="/api/admin/platform/upload/image"
                             :on-success="handleIconUploadSuccess"
                             :headers="{ Authorization: 'Bearer ' + getToken() }"
                             accept="image/*"
+                            :data="{ model: 'product', pid: 1 }"
+                            name="multipart"
                         >
                             <el-button size="small" type="primary" plain>
                                 {{ form.course.iconUrl ? '更换' : '上传' }}
@@ -604,12 +608,12 @@ const submitForm = () => {
 };
 
 const handleUploadSuccess: UploadProps['onSuccess'] = (response, uploadFile, uploadFiles) => {
-    // 根据你的 API 响应 { code: 200, data: '...' } 进行调整
-    if (response.code === 200 && typeof response.data === 'string' && response.data) {
+    // 根据你的 API 响应 { code: 200, data: { url: '...' } } 进行调整
+    if (response.code === 200 && response.data?.url) {
         // 关键：找到当前文件在 fileList 中的索引并更新其 url
         const index = uploadFiles.findIndex(f => f.uid === uploadFile.uid);
         if (index !== -1) {
-            uploadFiles[index].url = response.data;
+            uploadFiles[index].url = response.data.url;
         }
         // 立即更新 fileList 和 form.course.sliderImage
         fileList.value = uploadFiles;
@@ -630,8 +634,8 @@ const handleRemove: UploadProps['onRemove'] = (_, uploadFiles) => {
 };
 
 const handleIconUploadSuccess: UploadProps['onSuccess'] = (response) => {
-    if (response.code === 200 && typeof response.data === 'string' && response.data) {
-        form.course.iconUrl = response.data;
+    if (response.code === 200 && response.data?.url) {
+        form.course.iconUrl = response.data.url;
         ElMessage.success('图标上传成功');
     } else {
         ElMessage.error('图标上传失败，响应数据不正确');

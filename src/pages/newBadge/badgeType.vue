@@ -92,12 +92,14 @@
         <el-form-item label="图标" prop="icon">
           <el-upload
             v-model:file-list="fileList"
-            action="https://beniocean.com/api/admin/platform/uploadOss"
+            action="/admin/platform/upload/image"
             list-type="picture-card"
             :limit="1"
             :on-success="handleUploadSuccess"
             :on-remove="handleRemove"
             :headers="{ Authorization: getToken() }"
+            :data="{ model: 'system', pid: 0 }"
+            name="multipart"
           >
             <el-icon><Plus /></el-icon>
           </el-upload>
@@ -268,8 +270,8 @@ const handleDelete = async (row: BadgeType) => {
 }
 
 const handleUploadSuccess: UploadProps['onSuccess'] = (response) => {
-  if (response.code === 200 && typeof response.data === 'string' && response.data) {
-    form.icon = response.data
+  if (response.code === 200 && response.data?.url) {
+    form.icon = response.data.url
     ElMessage.success('上传成功')
   } else {
     ElMessage.error('上传失败')

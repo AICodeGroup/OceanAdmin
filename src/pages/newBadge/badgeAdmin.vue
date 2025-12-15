@@ -121,12 +121,14 @@
         <el-form-item label="图标" prop="iconUrl">
           <el-upload
             v-model:file-list="fileList"
-            action="https://beniocean.com/api/admin/platform/uploadOss"
+            action="/admin/platform/upload/image"
             list-type="picture-card"
             :limit="1"
             :on-success="handleUploadSuccess"
             :on-remove="handleRemove"
             :headers="{ Authorization: getToken() }"
+            :data="{ model: 'system', pid: 0 }"
+            name="multipart"
           >
             <el-icon><Plus /></el-icon>
           </el-upload>
@@ -456,11 +458,11 @@ const handleCurrentChange = (page: number) => {
 }
 
 const handleUploadSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
-  if (response.code === 200 && typeof response.data === 'string' && response.data) {
-    form.iconUrl = response.data
+  if (response.code === 200 && response.data?.url) {
+    form.iconUrl = response.data.url
     fileList.value = fileList.value.map(file => {
       if (file.uid === uploadFile.uid) {
-        return { ...file, url: response.data }
+        return { ...file, url: response.data.url }
       }
       return file
     })

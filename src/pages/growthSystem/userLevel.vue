@@ -85,11 +85,11 @@
         </el-form-item>
 
         <el-form-item label="等级图标" prop="icon">
-          <el-input v-model="formData.icon" placeholder="图标URL地址" />
+          <ImageUpload v-model="formData.icon" model="system" :pid="0" placeholder="上传图标" />
         </el-form-item>
 
         <el-form-item label="背景图" prop="backImage">
-          <el-input v-model="formData.backImage" placeholder="背景图URL地址" />
+          <ImageUpload v-model="formData.backImage" model="system" :pid="0" placeholder="上传背景图" />
         </el-form-item>
 
         <el-form-item label="背景颜色" prop="backColor">
@@ -119,6 +119,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+import ImageUpload from '@/components/ImageUpload/index.vue'
 import {
   getUserLevelList,
   saveUserLevel,

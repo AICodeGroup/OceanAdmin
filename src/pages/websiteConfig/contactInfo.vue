@@ -114,19 +114,19 @@
           <el-input v-model="temp.companyAddress" placeholder="请输入公司地址" />
         </el-form-item>
 
-        <el-divider content-position="left">二维码配置 (输入图片URL)</el-divider>
+        <el-divider content-position="left">二维码配置</el-divider>
 
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="微信公众号" prop="wechatOfficialQrCode">
-              <el-input v-model="temp.wechatOfficialQrCode" placeholder="图片URL" />
-              <el-input v-model="temp.wechatOfficialName" placeholder="公众号名称" style="margin-top: 5px" />
+              <ImageUpload v-model="temp.wechatOfficialQrCode" model="system" :pid="8" placeholder="上传二维码" />
+              <el-input v-model="temp.wechatOfficialName" placeholder="公众号名称" style="margin-top: 10px" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
              <el-form-item label="微信小程序" prop="wechatMiniQrCode">
-              <el-input v-model="temp.wechatMiniQrCode" placeholder="图片URL" />
-              <el-input v-model="temp.wechatMiniName" placeholder="小程序名称" style="margin-top: 5px" />
+              <ImageUpload v-model="temp.wechatMiniQrCode" model="system" :pid="8" placeholder="上传二维码" />
+              <el-input v-model="temp.wechatMiniName" placeholder="小程序名称" style="margin-top: 10px" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -134,13 +134,13 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="小红书" prop="xiaohongshuQrCode">
-              <el-input v-model="temp.xiaohongshuQrCode" placeholder="图片URL" />
-              <el-input v-model="temp.xiaohongshuLink" placeholder="主页链接" style="margin-top: 5px" />
+              <ImageUpload v-model="temp.xiaohongshuQrCode" model="system" :pid="8" placeholder="上传二维码" />
+              <el-input v-model="temp.xiaohongshuLink" placeholder="主页链接" style="margin-top: 10px" />
             </el-form-item>
           </el-col>
            <el-col :span="12">
             <el-form-item label="微信客服" prop="wechatServiceQrCode">
-              <el-input v-model="temp.wechatServiceQrCode" placeholder="图片URL" />
+              <ImageUpload v-model="temp.wechatServiceQrCode" model="system" :pid="8" placeholder="上传二维码" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -148,12 +148,12 @@
          <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="课程咨询" prop="courseConsultQrCode">
-              <el-input v-model="temp.courseConsultQrCode" placeholder="图片URL" />
+              <ImageUpload v-model="temp.courseConsultQrCode" model="system" :pid="8" placeholder="上传二维码" />
             </el-form-item>
           </el-col>
            <el-col :span="12">
             <el-form-item label="品牌合作" prop="brandCoopQrCode">
-              <el-input v-model="temp.brandCoopQrCode" placeholder="图片URL" />
+              <ImageUpload v-model="temp.brandCoopQrCode" model="system" :pid="8" placeholder="上传二维码" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -196,6 +196,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import ImageUpload from '@/components/ImageUpload/index.vue'
 import { 
   getContactList, 
   addContact, 

@@ -1,1066 +1,920 @@
-# 订单管理接口文档（后台管理）
 
-## 目录
+📋 目录
+
 - [权限控制说明](#权限控制说明)
-- [课程订单管理](#课程订单管理)
-- [实体商品订单管理](#实体商品订单管理)
-- [通用说明](#通用说明)
+- [一、课程订单接口](#一课程订单接口)
+- [二、实体商品订单接口](#二实体商品订单接口)
+- [三、通用说明](#三通用说明)
 
 ---
 
-## 🔐 权限控制说明
+🔐 权限控制说明
 
-### 管理员权限特性
-所有后台接口具有**管理员权限**，可以管理所有用户的订单：
+重要安全机制
 
-1. **无用户限制**
-   - 管理员可以查看和操作任何用户的订单
-   - 可以指定userId查询特定用户的订单
-   - 用于后台管理、客服支持等场景
+所有前台接口都已实施严格的权限控制，确保用户只能操作自己的订单：
 
-2. **全局操作权限**
-   - 查询：可以查看系统中所有订单
-   - 更新：可以修改任何订单的状态
-   - 删除：可以删除任何订单
-   - 统计：可以查看全局订单统计数据
+1. 自动用户验证
+- ✅ 所有接口自动从Token中获取当前登录用户ID
+- ✅ 无需在请求中手动传递userId参数
+- ✅ 防止用户伪造他人ID进行操作
+2. 权限校验机制
+- 查询订单：自动验证订单是否属于当前用户，非本人订单返回"无权查看此订单"错误
+- 创建订单：自动绑定到当前登录用户
+- 取消订单：自动验证所有权后才能操作
+- 删除订单：自动验证所有权后才能操作
 
-3. **订单类型管理**
-   - 课程订单接口：自动过滤 `productType=0`
-   - 实体商品订单接口：自动过滤 `productType=1`
-   - 确保后台管理分类清晰
+3. 订单类型自动过滤
+- 课程订单接口：自动设置 `productType=0`，只返回课程订单
+- 实体商品订单接口：自动设置 `productType=1`，只返回实体商品订单
 
-### 与前端接口的区别
-| 特性 | 后台接口 | 前端接口 |
-|------|---------|---------|
-| 用户权限 | 管理员权限 | 普通用户权限 |
-| 操作范围 | 所有用户订单 | 仅本人订单 |
-| userId来源 | 可指定任意用户 | 自动从Token获取 |
-| 权限校验 | 管理员身份验证 | 严格的所有权校验 |
-| 使用场景 | 后台管理系统 | 小程序/APP |
+与后台接口的区别
 
-### 安全提示
-⚠️ **重要**：后台接口应仅在管理系统中使用，不应暴露给前端用户，需配合管理员身份验证机制。
+特性
+前端接口
+后台接口
+| 用户ID来源 | 自动从Token获取 | 可指定任意用户 |
+| 权限范围 | 只能操作本人订单 | 可操作所有用户订单 |
+| 安全级别 | 高（严格校验） | 管理员权限 |
+| 使用场景 | 小程序/APP用户 | 后台管理员 |
 
----
 
-## 课程订单管理
+一、课程订单接口
 
-### 基础信息
-- **Base URL**: `/api/admin/platform/product-orders`
-- **Controller**: `ProductOrdersAdminController`
-- **描述**: 后台课程订单管理接口
+Base URL: `/api/front/product-orders`  
+权限: 需要用户登录（Token验证）
+
 
 ---
 
-### 1. 创建课程订单
+1.1 根据ID获取课程订单详情
 
-#### 接口信息
-- **URL**: `POST /api/admin/platform/product-orders/create`
-- **描述**: 管理员为用户创建课程订单
-- **权限**: 需要管理员权限，可以为任何用户创建订单
+接口信息
+- URL: `GET /api/front/product-orders/get/{id}`
+- 描述: 获取指定ID的课程订单详情
+- 权限: 自动验证订单所有权
 
-#### 请求头
-```
-Content-Type: application/json
-Authorization: Bearer YOUR_ADMIN_TOKEN
-```
+请求参数
+参数名
+类型
+位置
+必填
+说明
+id
+Integer
+Path
+是
+课程订单ID
 
-#### 请求体
-```json
-{
-  "userId": 100,
-  "phone": "13800138000",
-  "productId": 10,
-  "scheduleId": 5,
-  "payType": "微信",
-  "paidAt": "2023-11-01 10:35:00",
-  "remark": "管理员代下单"
-}
-```
+请求示例
+```Plain Text
+GET /api/front/product-orders/get/1
+Authorization: Bearer YOUR_TOKEN```
 
-#### 请求参数说明
-| 参数名 | 类型 | 必填 | 说明 |
-|--------|------|------|------|
-| userId | Integer | 是 | 用户ID（管理员可以指定任何用户） |
-| phone | String | 是 | 联系电话 |
-| productId | Integer | 是 | 课程ID |
-| scheduleId | Integer | 否 | 排期ID（如果课程有排期） |
-| payType | String | 否 | 支付方式 |
-| paidAt | Date | 否 | 支付时间 |
-| remark | String | 否 | 订单备注 |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "订单创建成功",
-  "data": null
-}
-```
-
-#### 错误响应
-```json
-{
-  "code": 400,
-  "message": "用户不存在",
-  "data": null
-}
-```
-
-**⚠️ 注意**：
-- 管理员可以为任何用户创建订单
-- 系统会自动生成订单号
-- 会自动根据课程信息计算积分
-- 如果指定了排期ID，会自动填充排期相关信息
-- 订单类型（productType）会自动设置为0（课程订单）
-
----
-
-### 2. 订单分页列表
-
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-orders/list`
-- **描述**: 获取课程订单分页列表
-- **权限**: 需要管理员权限
-
-#### 请求参数
-```json
-{
-  "page": 1,              // 页码，默认1
-  "limit": 20,            // 每页数量，默认20
-  "orderNo": "",          // 订单号（可选）
-  "userId": 0,            // 用户ID（可选）
-  "productId": 0,         // 商品ID（可选）
-  "status": 0,            // 订单状态（可选）：0-待支付，1-已支付，2-已取消，3-已退款
-  "productType": 0,       // 产品类型：0-课程
-  "startDate": "",        // 开始日期（可选）
-  "endDate": ""           // 结束日期（可选）
-}
-```
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "data": {
-    "orderDetails": [
-      {
-        "id": 1,
-        "orderNo": "ORDER20231101001",
-        "userId": 100,
-        "userName": "张三",
-        "phone": "13800138000",
-        "productId": 10,
-        "productName": "Python编程入门",
-        "payAmount": 299.00,
-        "status": 1,
-        "productType": 0,
-        "startDate": "2023-11-15 09:00:00",
-        "endDate": "2023-11-15 17:00:00",
-        "location": "北京市朝阳区",
-        "createdAt": "2023-11-01 10:30:00"
-      }
-    ],
-    "totalCount": 100
-  }
-}
-```
-
----
-
-### 3. 获取订单详情（按ID）
-
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-orders/detail/{id}`
-- **描述**: 根据订单ID获取订单详情
-- **权限**: 需要管理员权限
-
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| id | Integer | Path | 是 | 订单ID |
-
-#### 响应示例
-```json
+响应示例
+```JSON
 {
   "code": 200,
   "message": "成功",
   "data": {
     "id": 1,
-    "orderNo": "ORDER20231101001",
-    "userId": 100,
-    "userNickname": "张三",
+    "orderNo": "PT651175447337801139238",
+    "userId": 19,
+    "userNickname": "愿你笑口常开",
     "userAvatar": "https://example.com/avatar.jpg",
-    "phone": "13800138000",
-    "productId": 10,
-    "productName": "Python编程入门",
+    "phone": "15219584316",
+    "productId": 111,
+    "productName": "海洋生态",
     "image": "https://example.com/course.jpg",
-    "location": "北京市朝阳区",
-    "duration": "8h",
-    "scheduleId": 5,
-    "scheduleName": "2023年11月第一期",
-    "startDate": "2023-11-15 09:00:00",
-    "endDate": "2023-11-15 17:00:00",
-    "scheduleLocation": "北京市朝阳区xxx大厦3楼培训室",
-    "scheduleStatus": 3,
-    "payAmount": 299.00,
-    "points": 20,
+    "location": "深圳",
+    "duration": "2-3h",
+    "scheduleId": 0,
+    "scheduleName": "第一期",
+    "startDate": "2025-07-23 00:00:00",
+    "endDate": "2025-07-26 00:00:00",
+    "scheduleLocation": "深圳大鹏湾潜水基地",
+    "scheduleStatus": 1,
+    "payAmount": "100.00",
+    "points": 100,
     "payType": "微信",
     "status": 1,
-    "paidAt": "2023-11-01 10:35:00",
+    "paidAt": "2025-07-26 16:38:36",
     "productType": 0,
-    "remark": "管理员备注",
-    "createdAt": "2023-11-01 10:30:00",
-    "updatedAt": "2023-11-01 10:30:00",
-    "latitude": "39.9042",
-    "longitude": "116.4074"
+    "remark": "备注信息",
+    "createdAt": "2025-08-06 17:42:58",
+    "updatedAt": "2025-08-06 17:42:58"
   }
-}
-```
+}```
 
-#### 响应字段说明
+响应字段说明
 
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | Integer | 订单ID |
-| orderNo | String | 订单号 |
-| userId | Integer | 用户ID |
-| userNickname | String | 用户昵称 |
-| userAvatar | String | 用户头像URL |
-| phone | String | 联系电话 |
-| productId | Integer | 课程ID |
-| productName | String | 课程名称 |
-| image | String | 课程图片URL |
-| location | String | 课程地点 |
-| duration | String | 课程时长 |
-| **scheduleId** | **Integer** | **排期ID** |
-| **scheduleName** | **String** | **排期名称** |
-| **startDate** | **Date** | **排期开始时间** |
-| **endDate** | **Date** | **排期结束时间** |
-| **scheduleLocation** | **String** | **排期地点（详细地址）** |
-| **scheduleStatus** | **Integer** | **排期状态：0-未开放，1-报名中，2-已满员，3-已结束** |
+字段名
+类型
+说明
+id
+Integer
+订单ID
+orderNo
+String
+订单号
+userId
+Integer
+用户ID
+userNickname
+String
+用户昵称
+userAvatar
+String
+用户头像URL
+phone
+String
+联系电话
+productId
+Integer
+课程ID
+productName
+String
+课程名称
+image
+String
+课程图片URL
+location
+String
+课程地点
+duration
+String
+课程时长
+| scheduleId | Integer | 排期ID |
+| scheduleName | String | 排期名称 |
+| startDate | Date | 排期开始时间 |
+| endDate | Date | 排期结束时间 |
+| scheduleLocation | String | 排期地点（详细地址） |
+| scheduleStatus | Integer | 排期状态：0-未开放，1-报名中，2-已满员，3-已结束 |
 | payAmount | BigDecimal | 支付金额 |
 | points | Integer | 获得的积分 |
 | payType | String | 支付方式 |
-| status | Integer | 订单状态：0-待支付，1-已支付，2-已取消，3-已退款 |
+| status | Integer | 订单状态 |
 | paidAt | Date | 支付时间 |
 | productType | Integer | 产品类型：0-课程，1-实物商品 |
 | remark | String | 订单备注 |
 | createdAt | Date | 创建时间 |
 | updatedAt | Date | 更新时间 |
-| latitude | String | 课程位置纬度 |
-| longitude | String | 课程位置经度 |
 
-**📌 排期信息说明**：
-- 管理员可以查看完整的排期详细信息
-- `scheduleLocation` 提供比课程 `location` 更详细的地址
-- `scheduleStatus` 可用于判断排期当前状态并进行管理操作
-- 如果订单无排期（`scheduleId = 0`），排期相关字段返回 `null`
-
----
-
-### 4. 获取订单详情（按订单号）
-
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-orders/detail/orderNo/{orderNo}`
-- **描述**: 根据订单号获取订单详情
-- **权限**: 需要管理员权限
-
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| orderNo | String | Path | 是 | 订单号 |
-
-#### 响应示例
-参考"获取订单详情（按ID）"的响应示例
-
----
-
-### 5. 获取指定用户的订单列表
-
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-orders/user/{userId}`
-- **描述**: 获取指定用户的课程订单列表
-- **权限**: 需要管理员权限
-
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| userId | Integer | Path | 是 | 用户ID |
-| page | Integer | Query | 否 | 页码，默认1 |
-| limit | Integer | Query | 否 | 每页数量，默认20 |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "data": {
-    "list": [
-      {
-        "id": 1,
-        "orderNo": "ORDER20231101001",
-        "productName": "Python编程入门",
-        "payAmount": 299.00,
-        "status": 1,
-        "createdAt": "2023-11-01 10:30:00"
-      }
-    ],
-    "total": 10,
-    "pageNum": 1,
-    "pageSize": 20
-  }
-}
-```
-
----
-
-### 6. 更新订单状态
-
-#### 接口信息
-- **URL**: `POST /api/admin/platform/product-orders/status/update`
-- **描述**: 更新课程订单状态
-- **权限**: 需要管理员权限
-- **日志**: 记录操作日志
-
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| orderNo | String | Query | 是 | 订单号 |
-| status | Integer | Query | 是 | 订单状态：0-待支付，1-已支付，2-已取消，3-已退款 |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "订单状态更新成功",
-  "data": null
-}
-```
-
----
-
-### 7. 删除订单（软删除）
-
-#### 接口信息
-- **URL**: `POST /api/admin/platform/product-orders/delete/{id}`
-- **描述**: 软删除课程订单
-- **权限**: 需要管理员权限
-- **日志**: 记录操作日志
-
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| id | Integer | Path | 是 | 订单ID |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "订单删除成功",
-  "data": null
-}
-```
-
----
-
-### 8. 批量删除订单
-
-#### 接口信息
-- **URL**: `POST /api/admin/platform/product-orders/batch/delete`
-- **描述**: 批量软删除课程订单
-- **权限**: 需要管理员权限
-- **日志**: 记录操作日志
-
-#### 请求参数
-```json
-[1, 2, 3, 4, 5]  // 订单ID数组
-```
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "批量删除成功",
-  "data": null
-}
-```
-
----
-
-### 8. 课程订单统计信息
-
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-orders/statistics`
-- **描述**: 获取课程订单统计信息（仅统计课程订单）
-- **权限**: 需要管理员权限
-
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| startDate | String | Query | 否 | 开始日期，格式：yyyy-MM-dd |
-| endDate | String | Query | 否 | 结束日期，格式：yyyy-MM-dd |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "data": {
-    "totalOrders": 850,
-    "pendingPaymentOrders": 80,
-    "paidOrders": 700,
-    "cancelledOrders": 50,
-    "refundedOrders": 20,
-    "totalAmount": "254250.00",
-    "paidAmount": "209500.00",
-    "pendingAmount": "23800.00",
-    "refundedAmount": "5950.00",
-    "courseOrderCount": 850,
-    "courseOrderAmount": "254250.00",
-    "entityOrderCount": 0,
-    "entityOrderAmount": "0.00",
-    "todayOrders": 42,
-    "todayAmount": "12600.00",
-    "weekOrders": 285,
-    "weekAmount": "85250.00",
-    "monthOrders": 850,
-    "monthAmount": "254250.00"
-  }
-}
-```
-
-#### 响应字段说明
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| totalOrders | Long | 订单总数 |
-| pendingPaymentOrders | Long | 待支付订单数 |
-| paidOrders | Long | 已支付订单数 |
-| cancelledOrders | Long | 已取消订单数 |
-| refundedOrders | Long | 已退款订单数 |
-| totalAmount | BigDecimal | 订单总金额 |
-| paidAmount | BigDecimal | 已支付订单总金额 |
-| pendingAmount | BigDecimal | 待支付订单总金额 |
-| refundedAmount | BigDecimal | 已退款金额 |
-| courseOrderCount | Long | 课程订单数量 |
-| courseOrderAmount | BigDecimal | 课程订单金额 |
-| entityOrderCount | Long | 实体商品订单数量 |
-| entityOrderAmount | BigDecimal | 实体商品订单金额 |
-| todayOrders | Long | 今日新增订单数 |
-| todayAmount | BigDecimal | 今日订单金额 |
-| weekOrders | Long | 本周新增订单数 |
-| weekAmount | BigDecimal | 本周订单金额 |
-| monthOrders | Long | 本月新增订单数 |
-| monthAmount | BigDecimal | 本月订单金额 |
-
----
-
-### 8.1 全部订单统计信息
-
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-orders/statistics/all`
-- **描述**: 获取全部订单统计信息（包含课程订单和实体商品订单）
-- **权限**: 需要管理员权限
-
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| startDate | String | Query | 否 | 开始日期，格式：yyyy-MM-dd |
-| endDate | String | Query | 否 | 结束日期，格式：yyyy-MM-dd |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "data": {
-    "totalOrders": 1250,
-    "pendingPaymentOrders": 120,
-    "paidOrders": 1050,
-    "cancelledOrders": 60,
-    "refundedOrders": 20,
-    "totalAmount": "373800.00",
-    "paidAmount": "315350.00",
-    "pendingAmount": "35600.00",
-    "refundedAmount": "5950.00",
-    "courseOrderCount": 850,
-    "courseOrderAmount": "254250.00",
-    "entityOrderCount": 400,
-    "entityOrderAmount": "119550.00",
-    "todayOrders": 65,
-    "todayAmount": "19500.00",
-    "weekOrders": 420,
-    "weekAmount": "126000.00",
-    "monthOrders": 1250,
-    "monthAmount": "373800.00"
-  }
-}
-```
-
-#### 响应字段说明
-参考"课程订单统计信息"的响应字段说明
-
----
-
-### 9. 导出订单列表
-
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-orders/export`
-- **描述**: 导出课程订单列表
-- **权限**: 需要管理员权限
-
-#### 请求参数
-参考"订单分页列表"的请求参数
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "导出功能待实现",
-  "data": null
-}
-```
-
----
-
-## 实体商品订单管理
-
-### 基础信息
-- **Base URL**: `/api/admin/platform/product-entity-orders`
-- **Controller**: `ProductEntityOrdersAdminController`
-- **描述**: 后台实体商品订单管理接口
-
----
-
-### 1. 创建实体商品订单
-
-#### 接口信息
-- **URL**: `POST /api/admin/platform/product-entity-orders/create`
-- **描述**: 管理员为用户创建实体商品订单
-- **权限**: 需要管理员权限，可以为任何用户创建订单
-
-#### 请求头
-```
-Content-Type: application/json
-Authorization: Bearer YOUR_ADMIN_TOKEN
-```
-
-#### 请求体
-```json
-{
-  "userId": 101,
-  "phone": "13900139000",
-  "productId": 20,
-  "payType": "支付宝",
-  "paidAt": "2023-11-02 10:00:00",
-  "remark": "管理员代下单",
-  "shippingAddress": "北京市朝阳区xx街道xx号",
-  "consigneeName": "李四",
-  "consigneePhone": "13900139000"
-}
-```
-
-#### 请求参数说明
-| 参数名 | 类型 | 必填 | 说明 |
-|--------|------|------|------|
-| userId | Integer | 是 | 用户ID（管理员可以指定任何用户） |
-| phone | String | 是 | 联系电话 |
-| productId | Integer | 是 | 商品ID |
-| payType | String | 否 | 支付方式 |
-| paidAt | Date | 否 | 支付时间 |
-| remark | String | 否 | 订单备注 |
-| shippingAddress | String | 否 | 收货地址 |
-| consigneeName | String | 否 | 收货人姓名 |
-| consigneePhone | String | 否 | 收货人电话 |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "订单创建成功",
-  "data": null
-}
-```
-
-#### 错误响应
-```json
+📌 排期信息说明：
+- 如果订单有排期（scheduleId > 0），则会返回完整的排期信息
+- scheduleLocation 是排期的详细地点，比 location 更具体
+- scheduleStatus 可用于判断排期当前状态
+- 排期时间范围由 startDate 和 endDate 定义
+错误响应
+```JSON
 {
   "code": 400,
-  "message": "用户不存在",
+  "message": "无权查看此订单",
   "data": null
-}
-```
+}```
 
-**⚠️ 注意**：
-- 管理员可以为任何用户创建订单
-- 系统会自动生成订单号
-- 会自动根据商品信息计算积分
-- 订单类型（productType）会自动设置为1（实体商品订单）
-- 可以指定收货地址和收货人信息
 
 ---
 
-### 2. 实体商品订单分页列表
+1.2 根据订单号获取课程订单详情
 
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-entity-orders/list`
-- **描述**: 获取实体商品订单分页列表
-- **权限**: 需要管理员权限
+接口信息
+- URL: `GET /api/front/product-orders/getByOrderNo/{orderNo}`
+- 描述: 根据订单号获取课程订单详情
+- 权限: 自动验证订单所有权
 
-#### 请求参数
-```json
+请求参数
+参数名
+类型
+位置
+必填
+说明
+orderNo
+String
+Path
+是
+订单号
+
+请求示例
+```Plain Text
+GET /api/front/product-orders/getByOrderNo/PT651175447337801139238
+Authorization: Bearer YOUR_TOKEN```
+
+响应示例
+参考"1.1 根据ID获取课程订单详情"的响应示例
+
+
+---
+
+1.3 课程报名（创建课程订单）
+
+接口信息
+- URL: `POST /api/front/product-orders/register`
+- 描述: 用户报名课程，创建课程订单
+- 权限: 自动绑定到当前登录用户
+
+请求参数
+```JSON
 {
-  "page": 1,              // 页码，默认1
-  "limit": 20,            // 每页数量，默认20
-  "orderNo": "",          // 订单号（可选）
-  "userId": 0,            // 用户ID（可选）
-  "productId": 0,         // 商品ID（可选）
-  "status": 0,            // 订单状态（可选）：0-待支付，1-已支付，2-已取消，3-已退款，4-待发货，5-已发货，6-已完成
-  "productType": 1,       // 产品类型：1-实体商品
-  "startDate": "",        // 开始日期（可选）
-  "endDate": ""           // 结束日期（可选）
-}
-```
+  "productId": 111,
+  "scheduleId": 1,
+  "phone": "15219584316",
+  "points": 100,
+  "payType": "微信",
+  "remark": "备注信息",
+  "registrantName": "张三",
+  "registrantIdCard": "440123199001011234",
+  "emergencyContact": "李四",
+  "emergencyPhone": "13800138000",
+  "participantName": "王五",
+  "participantAge": 25,
+  "participantGender": 1,
+  "specialRequirements": "素食"
+}```
 
-#### 响应示例
-```json
+参数说明
+参数名
+类型
+必填
+说明
+productId
+Integer
+是
+课程ID
+scheduleId
+Integer
+否
+课程排期ID
+phone
+String
+是
+联系电话
+points
+Integer
+否
+使用的积分
+payType
+String
+否
+支付方式
+remark
+String
+否
+订单备注
+registrantName
+String
+是
+报名人姓名
+registrantIdCard
+String
+否
+报名人身份证号
+emergencyContact
+String
+是
+紧急联系人
+emergencyPhone
+String
+是
+紧急联系电话
+participantName
+String
+否
+参与者姓名（给他人报名时填写）
+participantAge
+Integer
+否
+参与者年龄
+participantGender
+Integer
+否
+参与者性别：0-未知，1-男，2-女
+specialRequirements
+String
+否
+特殊需求说明
+
+响应示例
+```JSON
+{
+  "code": 200,
+  "message": "报名成功",
+  "data": "ORDER_NO_123456"
+}```
+
+
+---
+
+1.4 获取用户的课程订单列表
+
+接口信息
+- URL: `GET /api/front/product-orders/getUserOrders`
+- 描述: 获取当前用户的所有课程订单
+- 权限: 自动过滤当前用户的课程订单
+
+请求参数
+无需参数（自动从Token获取用户ID）
+
+请求示例
+```Plain Text
+GET /api/front/product-orders/getUserOrders
+Authorization: Bearer YOUR_TOKEN```
+
+响应示例
+```JSON
+{
+  "code": 200,
+  "message": "成功",
+  "data": [
+    {
+      "id": 1,
+      "orderNo": "PT651175447337801139238",
+      "productName": "海洋生态",
+      "payAmount": "100.00",
+      "status": 1,
+      "createdAt": "2025-08-06 17:42:58"
+    },
+    {
+      "id": 2,
+      "orderNo": "PT118175447351427749044",
+      "productName": "珊瑚保护",
+      "payAmount": "999.00",
+      "status": 1,
+      "createdAt": "2025-08-06 17:45:14"
+    }
+  ]
+}```
+
+
+---
+
+1.5 获取用户的下一个排期订单
+
+接口信息
+- URL: `GET /api/front/product-orders/getNextScheduledOrder`
+- 描述: 获取当前用户即将开始的下一个课程排期订单
+- 权限: 自动过滤当前用户的订单
+
+请求参数
+无需参数（自动从Token获取用户ID）
+
+请求示例
+```Plain Text
+GET /api/front/product-orders/getNextScheduledOrder
+Authorization: Bearer YOUR_TOKEN```
+
+响应示例
+```JSON
 {
   "code": 200,
   "message": "成功",
   "data": {
-    "orderDetails": [
-      {
-        "id": 1,
-        "orderNo": "ORDER20231101002",
-        "userId": 101,
-        "userName": "李四",
-        "phone": "13900139000",
-        "productId": 20,
-        "productName": "编程书籍套装",
-        "payAmount": 199.00,
-        "status": 5,
-        "productType": 1,
-        "shippingAddress": "北京市朝阳区xx街道xx号",
-        "expressCompany": "顺丰速运",
-        "expressNo": "SF1234567890",
-        "createdAt": "2023-11-01 14:20:00"
-      }
-    ],
-    "totalCount": 200
+    "id": 3,
+    "orderNo": "PT202512081234567890",
+    "productName": "潜水体验课",
+    "startDate": "2025-12-15 09:00:00",
+    "endDate": "2025-12-15 17:00:00",
+    "status": 1
   }
-}
-```
+}```
+
 
 ---
 
-### 3. 获取实体商品订单详情（按ID）
+1.6 获取用户已支付且已过期的课程订单
 
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-entity-orders/detail/{id}`
-- **描述**: 根据订单ID获取实体商品订单详情
-- **权限**: 需要管理员权限
+接口信息
+- URL: `GET /api/front/product-orders/getUserPastPaidOrders`
+- 描述: 获取当前用户已支付且已结束的课程订单（包含关联账号）
+- 权限: 自动过滤当前用户的订单
 
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| id | Integer | Path | 是 | 订单ID |
+请求参数
+无需参数
 
-#### 响应示例
-```json
+响应示例
+```JSON
+{
+  "code": 200,
+  "message": "成功",
+  "data": [
+    {
+      "id": 10,
+      "orderNo": "PT202511011234567890",
+      "productName": "海洋生态",
+      "endDate": "2025-11-01 17:00:00",
+      "status": 1
+    }
+  ]
+}```
+
+
+---
+
+1.7 获取足迹订单（用于地图显示）
+
+接口信息
+- URL: `GET /api/front/product-orders/getUserPastPaidOrdersToWorld`
+- 描述: 获取当前用户自己账号已支付且已过期的订单，用于足迹地图显示
+- 权限: 仅返回本人账号订单（不包含关联账号）
+
+请求参数
+无需参数
+
+响应示例
+```JSON
+{
+  "code": 200,
+  "message": "成功",
+  "data": [
+    {
+      "id": 10,
+      "orderNo": "PT202511011234567890",
+      "productName": "海洋生态",
+      "location": "深圳大鹏湾",
+      "latitude": 22.5833,
+      "longitude": 114.2500,
+      "endDate": "2025-11-01 17:00:00"
+    }
+  ]
+}```
+
+
+---
+
+1.8 取消课程报名
+
+接口信息
+- URL: `POST /api/front/product-orders/cancel/{orderNo}`
+- 描述: 取消课程报名（仅可取消待支付状态的订单）
+- 权限: 自动验证订单所有权
+
+请求参数
+参数名
+类型
+位置
+必填
+说明
+orderNo
+String
+Path
+是
+订单号
+
+请求示例
+```Plain Text
+POST /api/front/product-orders/cancel/PT651175447337801139238
+Authorization: Bearer YOUR_TOKEN```
+
+响应示例
+```JSON
+{
+  "code": 200,
+  "message": "取消成功",
+  "data": true
+}```
+
+限制说明
+- ⚠️ 仅可取消状态为"待支付"（status=0）的订单
+- ⚠️ 已支付的订单不能直接取消，需要走退款流程
+
+---
+
+二、实体商品订单接口
+
+Base URL: `/api/front/product-entity-orders`  
+权限: 需要用户登录（Token验证）
+
+
+---
+
+2.1 根据ID获取实体商品订单详情
+
+接口信息
+- URL: `GET /api/front/product-entity-orders/get/{id}`
+- 描述: 获取指定ID的实体商品订单详情
+- 权限: 自动验证订单所有权
+
+请求参数
+参数名
+类型
+位置
+必填
+说明
+id
+Integer
+Path
+是
+实体商品订单ID
+
+请求示例
+```Plain Text
+GET /api/front/product-entity-orders/get/1
+Authorization: Bearer YOUR_TOKEN```
+
+响应示例
+```JSON
 {
   "code": 200,
   "message": "成功",
   "data": {
     "id": 1,
-    "orderNo": "ORDER20231101002",
-    "userId": 101,
-    "userName": "李四",
-    "phone": "13900139000",
-    "productId": 20,
-    "productName": "编程书籍套装",
-    "payAmount": 199.00,
+    "orderNo": "PE202512081234567890",
+    "userId": 19,
+    "phone": "15219584316",
+    "productId": 201,
+    "productName": "潜水装备套装",
+    "payAmount": "1999.00",
     "status": 5,
     "productType": 1,
-    "shippingAddress": "北京市朝阳区xx街道xx号",
+    "shippingAddress": "广东省深圳市南山区xx路xx号",
     "expressCompany": "顺丰速运",
     "expressNo": "SF1234567890",
-    "createdAt": "2023-11-01 14:20:00",
-    "updatedAt": "2023-11-02 10:00:00"
+    "createdAt": "2025-12-08 10:30:00",
+    "updatedAt": "2025-12-08 15:20:00"
   }
-}
-```
+}```
+
 
 ---
 
-### 4. 获取实体商品订单详情（按订单号）
+2.2 根据订单号获取实体商品订单详情
 
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-entity-orders/detail/orderNo/{orderNo}`
-- **描述**: 根据订单号获取实体商品订单详情
-- **权限**: 需要管理员权限
+接口信息
+- URL: `GET /api/front/product-entity-orders/getByOrderNo/{orderNo}`
+- 描述: 根据订单号获取实体商品订单详情
+- 权限: 自动验证订单所有权
 
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| orderNo | String | Path | 是 | 订单号 |
+请求参数
+参数名
+类型
+位置
+必填
+说明
+orderNo
+String
+Path
+是
+订单号
 
-#### 响应示例
-参考"获取实体商品订单详情（按ID）"的响应示例
+响应示例
+参考"2.1 根据ID获取实体商品订单详情"的响应示例
+
 
 ---
 
-### 5. 获取指定用户的实体商品订单列表
+2.3 创建实体商品订单
 
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-entity-orders/user/{userId}`
-- **描述**: 获取指定用户的实体商品订单列表
-- **权限**: 需要管理员权限
+接口信息
+- URL: `POST /api/front/product-entity-orders/create`
+- 描述: 用户购买实体商品，创建订单
+- 权限: 自动绑定到当前登录用户
 
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| userId | Integer | Path | 是 | 用户ID |
-| page | Integer | Query | 否 | 页码，默认1 |
-| limit | Integer | Query | 否 | 每页数量，默认20 |
+请求参数
+批量购买场景：
+```JSON
+{
+    "phone": "13800138000",
+    "addressId": 123,
+    "payType": "weixin",
+    "remark": "请尽快发货",
+    "cartItems": [
+        {
+            "productId": 101,
+            "attrValueId": 2001,
+            "num": 2,
+            "remark": "要红色的"
+        },
+        {
+            "productId": 102,
+             "attrValueId": 2001,
+            "num": 2,
+            "num": 1
+        }
+    ]
+}```
+单品购买场景：
+```JSON
+{
+    "phone": "13800138000",
+    "addressId": 123,
+    "productId": 101,
+    "attrValueId": 2001,
+    "num": 1,
+    "payType": "weixin",
+    "remark": "请尽快发货"
+}```
+参数说明
+参数名
+类型
+必填
+说明
+productId
+Integer
+是
+商品ID
+phone
+String
+是
+联系电话
+payType
+String
+否
+支付方式
+remark
+String
+否
+订单备注
+shippingAddress
+String
+是
+收货地址
+consigneeName
+String
+是
+收货人姓名
+consigneePhone
+String
+是
+收货人电话
 
-#### 响应示例
-```json
+响应示例
+```JSON
+{
+  "code": 200,
+  "message": "订单创建成功",
+  "data": "PE202512081234567890"
+}```
+
+
+---
+
+2.4 获取用户的实体商品订单列表
+
+接口信息
+- URL: `GET /api/front/product-entity-orders/getUserOrders`
+- 描述: 获取当前用户的所有实体商品订单
+- 权限: 自动过滤当前用户的实体商品订单
+
+请求参数
+无需参数
+
+响应示例
+```JSON
 {
   "code": 200,
   "message": "成功",
-  "data": {
-    "list": [
-      {
-        "id": 1,
-        "orderNo": "ORDER20231101002",
-        "productName": "编程书籍套装",
-        "payAmount": 199.00,
-        "status": 5,
-        "expressNo": "SF1234567890",
-        "createdAt": "2023-11-01 14:20:00"
-      }
-    ],
-    "total": 15,
-    "pageNum": 1,
-    "pageSize": 20
-  }
-}
-```
+  "data": [
+    {
+      "id": 1,
+      "orderNo": "PE202512081234567890",
+      "productName": "潜水装备套装",
+      "payAmount": "1999.00",
+      "status": 5,
+      "expressNo": "SF1234567890",
+      "createdAt": "2025-12-08 10:30:00"
+    }
+  ]
+}```
+
 
 ---
 
-### 6. 更新实体商品订单状态
+2.5 获取用户已支付的实体商品订单
 
-#### 接口信息
-- **URL**: `POST /api/admin/platform/product-entity-orders/status/update`
-- **描述**: 更新实体商品订单状态
-- **权限**: 需要管理员权限
-- **日志**: 记录操作日志
+接口信息
+- URL: `GET /api/front/product-entity-orders/getUserPaidOrders`
+- 描述: 获取当前用户已支付的实体商品订单
+- 权限: 自动过滤当前用户的订单
 
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| orderNo | String | Query | 是 | 订单号 |
-| status | Integer | Query | 是 | 订单状态：0-待支付，1-已支付，2-已取消，3-已退款，4-待发货，5-已发货，6-已完成 |
-
-#### 状态说明
-| 状态码 | 状态名称 | 说明 |
-|--------|----------|------|
-| 0 | 待支付 | 订单已创建，等待用户支付 |
-| 1 | 已支付 | 用户已支付，等待商家发货 |
-| 2 | 已取消 | 订单已取消 |
-| 3 | 已退款 | 订单已退款 |
-| 4 | 待发货 | 已支付，等待发货 |
-| 5 | 已发货 | 商品已发货，等待收货 |
-| 6 | 已完成 | 订单已完成 |
-
-#### 响应示例
-```json
+响应示例
+```JSON
 {
   "code": 200,
-  "message": "订单状态更新成功",
-  "data": null
-}
-```
+  "message": "成功",
+  "data": [
+    {
+      "id": 1,
+      "orderNo": "PE202512081234567890",
+      "productName": "潜水装备套装",
+      "status": 1,
+      "payAmount": "1999.00"
+    }
+  ]
+}```
+
 
 ---
 
-### 7. 删除实体商品订单（软删除）
+2.6 获取用户待支付的实体商品订单
 
-#### 接口信息
-- **URL**: `POST /api/admin/platform/product-entity-orders/delete/{id}`
-- **描述**: 软删除实体商品订单
-- **权限**: 需要管理员权限
-- **日志**: 记录操作日志
+接口信息
+- URL: `GET /api/front/product-entity-orders/getUserUnpaidOrders`
+- 描述: 获取当前用户待支付的实体商品订单
+- 权限: 自动过滤当前用户的订单
 
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| id | Integer | Path | 是 | 订单ID |
+响应示例
+```JSON
+{
+  "code": 200,
+  "message": "成功",
+  "data": [
+    {
+      "id": 2,
+      "orderNo": "PE202512081234567891",
+      "productName": "防晒衣",
+      "status": 0,
+      "payAmount": "299.00"
+    }
+  ]
+}```
 
-#### 响应示例
-```json
+
+---
+
+2.7 取消实体商品订单
+
+接口信息
+- URL: `POST /api/front/product-entity-orders/cancel/{orderNo}`
+- 描述: 取消实体商品订单
+- 权限: 自动验证订单所有权
+
+请求参数
+参数名
+类型
+位置
+必填
+说明
+orderNo
+String
+Path
+是
+订单号
+
+请求示例
+```Plain Text
+POST /api/front/product-entity-orders/cancel/PE202512081234567890
+Authorization: Bearer YOUR_TOKEN```
+
+响应示例
+```JSON
+{
+  "code": 200,
+  "message": "订单取消成功",
+  "data": true
+}```
+
+
+---
+
+2.8 删除实体商品订单
+
+接口信息
+- URL: `DELETE /api/front/product-entity-orders/delete/{id}`
+- 描述: 删除实体商品订单（软删除）
+- 权限: 自动验证订单所有权
+
+请求参数
+参数名
+类型
+位置
+必填
+说明
+id
+Integer
+Path
+是
+订单ID
+
+请求示例
+```Plain Text
+DELETE /api/front/product-entity-orders/delete/1
+Authorization: Bearer YOUR_TOKEN```
+
+响应示例
+```JSON
 {
   "code": 200,
   "message": "订单删除成功",
-  "data": null
-}
-```
+  "data": true
+}```
+
 
 ---
 
-### 8. 批量删除实体商品订单
+三、通用说明
 
-#### 接口信息
-- **URL**: `POST /api/admin/platform/product-entity-orders/batch/delete`
-- **描述**: 批量软删除实体商品订单
-- **权限**: 需要管理员权限
-- **日志**: 记录操作日志
+订单状态说明
 
-#### 请求参数
-```json
-[1, 2, 3, 4, 5]  // 订单ID数组
-```
+课程订单状态
+status
+状态名称
+说明
+可操作
+0
+待支付
+订单已创建，等待支付
+可取消
+1
+已支付
+已支付，可以参加课程
+-
+2
+已取消
+订单已取消
+-
+3
+已退款
+订单已退款
+-
 
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "批量删除成功",
-  "data": null
-}
-```
+实体商品订单状态
+status
+状态名称
+说明
+可操作
+0
+待支付
+订单已创建，等待支付
+可取消
+1
+已支付
+已支付，等待发货
+-
+2
+已取消
+订单已取消
+-
+3
+已退款
+订单已退款
+-
+4
+待发货
+已支付，等待发货
+-
+5
+已发货
+商品已发货，等待收货
+-
+6
+已完成
+订单已完成
+可删除
 
----
+产品类型说明
+productType
+说明
+0
+课程
+1
+实物商品
 
-### 8. 订单发货
+错误码说明
+错误码
+说明
+200
+成功
+400
+请求参数错误 / 无权操作
+401
+未授权，需要登录
+403
+权限不足
+404
+订单不存在
+500
+服务器内部错误
 
-#### 接口信息
-- **URL**: `POST /api/admin/platform/product-entity-orders/ship`
-- **描述**: 实体商品订单发货
-- **权限**: 需要管理员权限
-- **日志**: 记录操作日志
+请求头说明
+所有接口都需要在请求头中携带Token：
+```Plain Text
+Authorization: Bearer YOUR_ACCESS_TOKEN```
 
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| orderNo | String | Query | 是 | 订单号 |
-| expressCompany | String | Query | 是 | 物流公司名称，如：顺丰速运、中通快递 |
-| expressNo | String | Query | 是 | 物流单号 |
+注意事项
 
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "发货功能待实现",
-  "data": null
-}
-```
-
----
-
-### 9. 订单退款
-
-#### 接口信息
-- **URL**: `POST /api/admin/platform/product-entity-orders/refund/{orderNo}`
-- **描述**: 实体商品订单退款
-- **权限**: 需要管理员权限
-- **日志**: 记录操作日志
-
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| orderNo | String | Path | 是 | 订单号 |
-| reason | String | Query | 是 | 退款原因 |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "退款功能待实现",
-  "data": null
-}
-```
-
----
-
-### 10. 实体商品订单统计信息
-
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-entity-orders/statistics`
-- **描述**: 获取实体商品订单统计信息（仅统计实体商品订单）
-- **权限**: 需要管理员权限
-
-#### 请求参数
-| 参数名 | 类型 | 位置 | 必填 | 说明 |
-|--------|------|------|------|------|
-| startDate | String | Query | 否 | 开始日期，格式：yyyy-MM-dd |
-| endDate | String | Query | 否 | 结束日期，格式：yyyy-MM-dd |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "data": {
-    "totalOrders": 400,
-    "pendingPaymentOrders": 40,
-    "paidOrders": 350,
-    "cancelledOrders": 10,
-    "refundedOrders": 0,
-    "totalAmount": "119550.00",
-    "paidAmount": "105850.00",
-    "pendingAmount": "11800.00",
-    "refundedAmount": "0.00",
-    "courseOrderCount": 0,
-    "courseOrderAmount": "0.00",
-    "entityOrderCount": 400,
-    "entityOrderAmount": "119550.00",
-    "todayOrders": 23,
-    "todayAmount": "6900.00",
-    "weekOrders": 135,
-    "weekAmount": "40750.00",
-    "monthOrders": 400,
-    "monthAmount": "119550.00"
-  }
-}
-```
-
-#### 响应字段说明
-参考课程订单管理中"课程订单统计信息"的响应字段说明
-
-**📊 统计说明**：
-- **按类型过滤**：该接口仅统计实体商品订单（productType=1）
-- **时间范围**：如果不指定startDate和endDate，则统计所有时间段的订单
-- **实时数据**：统计数据实时从数据库计算，确保数据准确性
-- **今日/本周/本月**：按创建时间（createdAt）进行统计
+1. 安全性
+- 所有接口都需要用户登录验证
+- 订单信息自动绑定到当前登录用户
+- 无法查看或操作他人的订单
+2. 订单取消规则
+- 课程订单：只能取消待支付状态的订单
+- 实体商品订单：可以取消待支付和待发货状态的订单
+- 已支付需退款的订单请联系客服
+3. 订单删除规则
+- 仅支持软删除（is_del=true）
+- 删除后订单在列表中不可见，但数据库保留记录
+- 管理员仍可在后台查看已删除订单
+4. 数据过滤
+- 课程订单接口自动过滤 productType=0
+- 实体商品订单接口自动过滤 productType=1
+- 所有接口自动过滤当前登录用户的订单
 
 ---
 
-### 11. 导出订单列表
+📞 技术支持
 
-#### 接口信息
-- **URL**: `GET /api/admin/platform/product-entity-orders/export`
-- **描述**: 导出实体商品订单列表
-- **权限**: 需要管理员权限
+如有问题，请联系技术支持团队。
 
-#### 请求参数
-参考"实体商品订单分页列表"的请求参数
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "message": "导出功能待实现",
-  "data": null
-}
-```
-
----
-
-## 通用说明
-
-### 产品类型说明（productType）
-| productType | 说明 |
-|-------------|------|
-| 0 | 课程 |
-| 1 | 实物商品 |
-
-### 订单状态说明
-
-#### 课程订单状态
-| status | 状态名称 | 说明 |
-|--------|----------|------|
-| 0 | 待支付 | 订单已创建，等待用户支付 |
-| 1 | 已支付 | 用户已支付，可以参加课程 |
-| 2 | 已取消 | 订单已取消 |
-| 3 | 已退款 | 订单已退款 |
-
-#### 实体商品订单状态
-| status | 状态名称 | 说明 |
-|--------|----------|------|
-| 0 | 待支付 | 订单已创建，等待用户支付 |
-| 1 | 已支付 | 用户已支付，等待商家发货 |
-| 2 | 已取消 | 订单已取消 |
-| 3 | 已退款 | 订单已退款 |
-| 4 | 待发货 | 已支付，等待发货 |
-| 5 | 已发货 | 商品已发货，等待收货 |
-| 6 | 已完成 | 订单已完成 |
-
-### 错误码说明
-| 错误码 | 说明 |
-|--------|------|
-| 200 | 成功 |
-| 400 | 请求参数错误 |
-| 401 | 未授权，需要登录 |
-| 403 | 权限不足 |
-| 404 | 资源不存在 |
-| 500 | 服务器内部错误 |
-
-### 注意事项
-
-1. **权限要求**
-   - 所有接口都需要管理员权限
-   - 请在请求头中携带有效的 Token
-
-2. **日志记录**
-   - 标记有"日志记录"的接口会自动记录操作日志
-   - 日志包含操作人、操作时间、操作内容等信息
-
-3. **软删除**
-   - 删除操作均为软删除，不会真正删除数据
-   - 软删除的订单可以通过数据库恢复
-
-4. **待实现功能**
-   - 订单统计功能
-   - 订单导出功能
-   - 实体商品发货功能
-   - 订单退款功能
-
-5. **数据过滤**
-   - 课程订单接口自动过滤 `productType=0`
-   - 实体商品订单接口自动过滤 `productType=1`
-
-6. **分页参数**
-   - 默认页码为 1
-   - 默认每页数量为 20
-   - 最大每页数量建议不超过 100
-
-### 请求示例
-
-```bash
-# 获取课程订单列表
-curl -X GET "http://localhost:8080/api/admin/platform/product-orders/list?page=1&limit=20" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-
-# 更新订单状态
-curl -X POST "http://localhost:8080/api/admin/platform/product-orders/status/update?orderNo=ORDER20231101001&status=1" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-
-# 获取实体商品订单列表
-curl -X GET "http://localhost:8080/api/admin/platform/product-entity-orders/list?page=1&limit=20" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-
-# 订单发货
-curl -X POST "http://localhost:8080/api/admin/platform/product-entity-orders/ship?orderNo=ORDER20231101002&expressCompany=顺丰速运&expressNo=SF1234567890" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
-
----
-
-## 更新日志
-
-### v1.0.0 (2024-12-08)
-- 初始版本
-- 创建课程订单管理接口
-- 创建实体商品订单管理接口
-- 支持订单的增删改查
-- 支持订单状态管理
-- 支持批量操作
-
----
-
-**文档维护**: CRMEB Team  
-**最后更新**: 2024-12-08  
-**版本**: v1.0.0
+文档维护: 开发团队  
+最后更新: 2024-12-08  
+版本: v2.0

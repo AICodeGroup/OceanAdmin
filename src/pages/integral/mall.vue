@@ -191,7 +191,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="商品图片" prop="image">
-          <el-input v-model="form.image" placeholder="请输入图片URL" />
+          <ImageUpload v-model="form.image" model="product" :pid="1" placeholder="上传图片" />
         </el-form-item>
         <el-form-item label="所需积分" prop="points">
           <el-input-number v-model="form.points" :min="1" placeholder="请输入所需积分" />
@@ -223,6 +223,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import ImageUpload from '@/components/ImageUpload/index.vue'
 
 // 响应式数据
 const loading = ref(false)

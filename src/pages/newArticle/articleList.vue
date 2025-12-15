@@ -278,19 +278,8 @@
 
                 <el-form-item label="封面图片" prop="cover">
                     <div class="cover-upload-container">
-                        <el-input v-model="form.cover" placeholder="请输入图片URL地址" clearable>
-                            <template #prefix>
-                                <el-icon><Picture /></el-icon>
-                            </template>
-                        </el-input>
-                        <el-alert title="建议尺寸：750x420px，大小不超过2MB，支持jpg、png格式" type="info" :closable="false" show-icon />
-                        <el-image v-if="form.cover" :src="form.cover" class="cover-preview" fit="cover" :preview-src-list="[form.cover]" preview-teleported>
-                            <template #error>
-                                <div class="image-slot">
-                                    <el-icon><Picture /></el-icon>
-                                </div>
-                            </template>
-                        </el-image>
+                        <ImageUpload v-model="form.cover" model="article" :pid="5" placeholder="上传封面" />
+                        <el-alert title="建议尺寸：750x420px，大小不超过2MB，支持jpg、png格式" type="info" :closable="false" show-icon style="margin-top: 10px" />
                     </div>
                 </el-form-item>
 
@@ -384,6 +373,9 @@ import {
     RefreshLeft, CircleCheck, CircleClose, Document, User
 } from '@element-plus/icons-vue';
 
+// 组件引入
+import ImageUpload from '@/components/ImageUpload/index.vue';
+
 // API导入
 import { 
     getArticleList, 
@@ -464,10 +456,7 @@ const rules: FormRules = {
         { required: true, message: '请输入作者', trigger: 'blur' },
         { max: 50, message: '作者最多50个字符', trigger: 'blur' }
     ],
-    cover: [
-        { required: true, message: '请输入封面图片URL', trigger: 'blur' },
-        { max: 255, message: 'URL最多255个字符', trigger: 'blur' }
-    ],
+    cover: [{ required: true, message: '请上传封面图片', trigger: 'change' }],
     synopsis: [
         { required: true, message: '请输入文章简介', trigger: 'blur' },
         { max: 200, message: '简介最多200个字符', trigger: 'blur' }

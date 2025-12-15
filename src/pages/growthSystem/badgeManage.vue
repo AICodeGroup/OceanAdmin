@@ -134,7 +134,7 @@
         </el-form-item>
 
         <el-form-item label="徽章图标" prop="iconUrl">
-          <el-input v-model="formData.iconUrl" placeholder="请输入图标URL地址" />
+          <ImageUpload v-model="formData.iconUrl" model="system" :pid="0" placeholder="上传图标" />
         </el-form-item>
 
         <el-form-item label="徽章类型" prop="typeId">
@@ -230,6 +230,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh } from '@element-plus/icons-vue'
+import ImageUpload from '@/components/ImageUpload/index.vue'
 import {
   getBadgeList,
   addBadge,
@@ -284,7 +285,7 @@ const grantForm = ref({
 const rules = {
   name: [{ required: true, message: '请输入徽章名称', trigger: 'blur' }],
   description: [{ required: true, message: '请输入徽章描述', trigger: 'blur' }],
-  iconUrl: [{ required: true, message: '请输入图标URL', trigger: 'blur' }],
+  iconUrl: [{ required: true, message: '请上传徽章图标', trigger: 'change' }],
   typeId: [{ required: true, message: '请选择徽章类型', trigger: 'change' }],
   isGranted: [{ required: true, message: '请选择授予方式', trigger: 'change' }]
 }

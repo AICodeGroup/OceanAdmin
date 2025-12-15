@@ -109,26 +109,10 @@
             <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
                 <el-form-item label="封面图片" prop="cover">
                     <div class="cover-upload">
-                        <el-input v-model="form.cover" placeholder="请输入封面图片URL" />
+                        <ImageUpload v-model="form.cover" model="article" :pid="5" placeholder="上传封面" />
                         <div class="upload-tips">
                             <span>建议尺寸：750x420px，大小不超过2MB，支持jpg、png格式</span>
                         </div>
-                        <el-image 
-                            v-if="form.cover" 
-                            :src="form.cover" 
-                            class="cover-preview" 
-                            fit="cover"
-                            :preview-src-list="[form.cover]"
-                            preview-teleported
-                        >
-                            <template #error>
-                                <div class="image-slot">
-                                    <el-icon>
-                                        <Picture />
-                                    </el-icon>
-                                </div>
-                            </template>
-                        </el-image>
                     </div>
                 </el-form-item>
 
@@ -149,6 +133,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, FormInstance, FormRules } from 'element-plus';
 import { Plus, Picture, Close } from '@element-plus/icons-vue';
+import ImageUpload from '@/components/ImageUpload/index.vue';
 import dayjs from 'dayjs';
 import {
     getBannerList,
@@ -177,13 +162,8 @@ const form = reactive({
 });
 
 const rules: FormRules = {
-    cover: [
-        { required: true, message: '请输入封面图片URL', trigger: 'blur' },
-        { max: 255, message: 'URL最多255个字符', trigger: 'blur' }
-    ],
-    sort: [
-        { required: true, message: '请输入排序', trigger: 'blur' }
-    ]
+    cover: [{ required: true, message: '请上传封面图片', trigger: 'change' }],
+    sort: [{ required: true, message: '请输入排序', trigger: 'blur' }]
 };
 
 // 生命周期

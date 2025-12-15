@@ -85,26 +85,10 @@
 
                 <el-form-item label="分类图标" prop="icon">
                     <div class="icon-upload">
-                        <el-input v-model="form.icon" placeholder="请输入图标URL" />
+                        <ImageUpload v-model="form.icon" model="article" :pid="5" placeholder="上传图标" />
                         <div class="upload-tips">
                             <span>建议尺寸：100x100px，大小不超过500KB，支持jpg、png格式</span>
                         </div>
-                        <el-image 
-                            v-if="form.icon" 
-                            :src="form.icon" 
-                            class="icon-preview" 
-                            fit="cover"
-                            :preview-src-list="[form.icon]"
-                            preview-teleported
-                        >
-                            <template #error>
-                                <div class="image-slot">
-                                    <el-icon>
-                                        <Picture />
-                                    </el-icon>
-                                </div>
-                            </template>
-                        </el-image>
                     </div>
                 </el-form-item>
 
@@ -125,6 +109,7 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus';
 import { Plus, Edit, Delete, Picture, Menu } from '@element-plus/icons-vue';
+import ImageUpload from '@/components/ImageUpload/index.vue';
 import {
     getArticleCategoryList,
     createArticleCategory,

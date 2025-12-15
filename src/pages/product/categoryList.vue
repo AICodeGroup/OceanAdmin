@@ -97,7 +97,7 @@
                 </el-form-item>
 
                 <el-form-item label="分类图标">
-                    <el-input v-model="form.icon" placeholder="请输入分类图标URL" />
+                    <ImageUpload v-model="form.icon" model="product" :pid="1" placeholder="上传图标" />
                 </el-form-item>
 
                 <el-form-item label="排序">
@@ -124,6 +124,9 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 
 // 图标引入
 import { Menu, Plus, Refresh, Edit, Delete } from '@element-plus/icons-vue';
+
+// 组件引入
+import ImageUpload from '@/components/ImageUpload/index.vue';
 
 // API导入
 import {
