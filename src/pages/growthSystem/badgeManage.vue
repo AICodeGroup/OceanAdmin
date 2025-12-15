@@ -85,6 +85,18 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="自动授予" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.canAutoGrant === 1 ? 'success' : 'info'">
+              {{ row.canAutoGrant === 1 ? '允许' : '禁止' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="threshold" label="自动获取阈值" width="120">
+          <template #default="{ row }">
+            {{ row.threshold || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="sort" label="排序" width="80" />
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column label="操作" fixed="right" width="180">
@@ -170,6 +182,18 @@
           </el-radio-group>
         </el-form-item>
 
+        <el-form-item label="允许自动授予" prop="canAutoGrant">
+          <el-radio-group v-model="formData.canAutoGrant">
+            <el-radio :value="1">允许</el-radio>
+            <el-radio :value="0">禁止</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <el-form-item label="自动获取阈值" prop="threshold" v-if="formData.canAutoGrant === 1">
+          <el-input-number v-model="formData.threshold" :min="0" :precision="0" />
+          <span class="form-tip">达到该节数后自动获取</span>
+        </el-form-item>
+
         <el-form-item label="排序" prop="sort">
           <el-input-number v-model="formData.sort" :min="0" :precision="0" />
           <span class="form-tip">数字越小越靠前</span>
@@ -246,6 +270,8 @@ const formData = ref({
   level: undefined,
   conditionParam: '',
   isGranted: 0,
+  canAutoGrant: 0,
+  threshold: undefined,
   sort: 0
 })
 
@@ -317,6 +343,8 @@ const handleAdd = () => {
     level: undefined,
     conditionParam: '',
     isGranted: 0,
+    canAutoGrant: 0,
+    threshold: undefined,
     sort: 0
   }
   dialogVisible.value = true

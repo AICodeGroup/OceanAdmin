@@ -484,6 +484,14 @@ export const addUserBadge = (data: {
     });
 };
 
+// 获取用户徽章记录
+export const getUserBadgeHistory = (userId: number) => {
+    return request({
+        url: `/admin/platform/user/badge-history/${userId}`,
+        method: "get",
+    });
+};
+
 // 删除用户徽章
 export const deleteUserBadge = (params: {
     userId: number;

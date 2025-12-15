@@ -25,7 +25,7 @@
         <el-form-item label="积分抵扣金额" prop="integralDeductionMoney">
           <el-input-number 
             v-model="formData.integralDeductionMoney" 
-            :min="0.01" 
+            :min="0" 
             :precision="2"
             :step="0.01"
           />
@@ -71,8 +71,35 @@
           <span class="form-tip">积分从哪个节点开始计算冻结时间</span>
         </el-form-item>
 
+        <el-divider content-position="left">定时任务设置</el-divider>
+
+        <el-form-item label="积分发放任务">
+          <el-switch v-model="taskConfigForm.enabled" active-text="开启" inactive-text="关闭" />
+          <span class="form-tip">开启后，系统将定时扫描并发放满足条件的积分</span>
+        </el-form-item>
+
+        <el-form-item label="执行频率">
+          <el-select v-model="taskConfigForm.cronType" placeholder="请选择" @change="handleCronTypeChange" style="width: 300px">
+            <el-option label="每小时" value="0 0 0/1 * * ?" />
+            <el-option label="每天凌晨2点" value="0 0 2 * * ?" />
+            <el-option label="每30分钟" value="0 0/30 * * * ?" />
+            <el-option label="自定义" value="custom" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="Cron表达式" v-if="taskConfigForm.cronType === 'custom'">
+          <el-input v-model="taskConfigForm.cronExpression" placeholder="请输入Cron表达式" style="width: 300px" />
+          <span class="form-tip">例如: 0 0 12 * * ? (每天中午12点)</span>
+        </el-form-item>
+
         <el-form-item>
-          <el-button type="primary" @click="handleSubmit">保存配置</el-button>
+          <el-button type="primary" @click="handleTaskConfigSubmit">保存任务配置</el-button>
+        </el-form-item>
+
+        <el-divider />
+
+        <el-form-item>
+          <el-button type="primary" @click="handleSubmit">保存基础配置</el-button>
           <el-button @click="loadConfig">重置</el-button>
         </el-form-item>
       </el-form>
@@ -81,9 +108,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getIntegralConfig, setIntegralConfig } from '@/api/growthSystem'
+import { getIntegralConfig, setIntegralConfig, configIntegralGrantTask } from '@/api/growthSystem'
 
 const loading = ref(false)
 const formRef = ref()
@@ -96,6 +123,12 @@ const formData = ref({
   orderGiveIntegral: 100,
   freezeIntegralDay: 7,
   integralFreezeNode: 'pay'
+})
+
+const taskConfigForm = reactive({
+  enabled: true,
+  cronType: '0 0 0/1 * * ?',
+  cronExpression: '0 0 0/1 * * ?'
 })
 
 const rules = {
@@ -119,6 +152,28 @@ const rules = {
   ]
 }
 
+const handleCronTypeChange = (val: string) => {
+  if (val !== 'custom') {
+    taskConfigForm.cronExpression = val
+  }
+}
+
+const handleTaskConfigSubmit = async () => {
+  loading.value = true
+  try {
+    await configIntegralGrantTask({
+      status: taskConfigForm.enabled ? 0 : 1,
+      cronExpression: taskConfigForm.cronExpression
+    })
+    ElMessage.success('任务配置保存成功')
+  } catch (error) {
+    console.error('任务配置保存失败:', error)
+    ElMessage.error('任务配置保存失败')
+  } finally {
+    loading.value = false
+  }
+}
+
 // 加载配置
 const loadConfig = async () => {
   loading.value = true
@@ -133,6 +188,18 @@ const loadConfig = async () => {
         orderGiveIntegral: data.orderGiveIntegral,
         freezeIntegralDay: data.freezeIntegralDay,
         integralFreezeNode: data.integralFreezeNode
+      }
+      
+      // 加载任务配置
+      if (data.orderIntegralGrantCron) {
+        taskConfigForm.enabled = data.orderIntegralGrantStatus === 0
+        taskConfigForm.cronExpression = data.orderIntegralGrantCron
+        const presets = ['0 0 0/1 * * ?', '0 0 2 * * ?', '0 0/30 * * * ?']
+        if (presets.includes(data.orderIntegralGrantCron)) {
+          taskConfigForm.cronType = data.orderIntegralGrantCron
+        } else {
+          taskConfigForm.cronType = 'custom'
+        }
       }
     }
   } catch (error) {

@@ -283,3 +283,12 @@ export const exportIntegralExchanges = (params?: any) => {
     responseType: 'blob'
   })
 }
+
+// 积分任务配置
+export const configIntegralGrantTask = (data: { cronExpression: string; status: number }) => {
+  return request({
+    url: '/admin/platform/integral/configGrantOrderIntegralTask',
+    method: 'post',
+    data
+  })
+}

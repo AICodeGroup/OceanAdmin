@@ -106,6 +106,13 @@ export const useAuthStore = defineStore("auth", () => {
                             name: "BadgeAdmin",
                             meta: { title: "徽章配置", icon: "Setting" },
                         },
+                                         {
+                        path: "type",
+                        name: "BadgeType",
+                        component: () =>
+                            import("@/pages/newBadge/badgeType.vue"),
+                        meta: { title: "徽章分类", icon: "Folder" },
+                    },
                     ],
                 },
                 {
@@ -126,10 +133,15 @@ export const useAuthStore = defineStore("auth", () => {
                     meta: { title: "用户列表", icon: "UserFilled" },
                 },
                 {
-                    path: "userEnrollList",
-                    name: "userEnrollList",
-                    meta: { title: "用户报名列表", icon: "UserFilled" },
+                    path: "familyRelationship",
+                    name: "familyRelationship",
+                    meta: { title: "家人绑定管理", icon: "Link" },
                 },
+                // {
+                //     path: "userEnrollList",
+                //     name: "userEnrollList",
+                //     meta: { title: "用户报名列表", icon: "UserFilled" },
+                // },
             ],
         },
 
@@ -334,11 +346,11 @@ export const useAuthStore = defineStore("auth", () => {
                     name: "entityOrderList",
                     meta: { title: "实体商品订单", icon: "ShoppingBag" },
                 },
-                {
-                    path: "orderList",
-                    name: "orderList",
-                    meta: { title: "订单列表（旧）", icon: "DocumentCopy" },
-                },
+                // {
+                //     path: "orderList",
+                //     name: "orderList",
+                //     meta: { title: "订单列表（旧）", icon: "DocumentCopy" },
+                // },
             ],
         },
         {
@@ -416,6 +428,48 @@ export const useAuthStore = defineStore("auth", () => {
                     path: "categoryList",
                     name: "productCategoryList",
                     meta: { title: "商品分类", icon: "Menu" },
+                },
+            ],
+        },
+        {
+            path: "/websiteConfig",
+            name: "WebsiteConfig",
+            meta: { title: "网站配置", icon: "Monitor" },
+            children: [
+                {
+                    path: "contactInfo",
+                    name: "ContactInfo",
+                    meta: { title: "联系方式管理", icon: "Phone" },
+                },
+                {
+                    path: "consultation",
+                    name: "Consultation",
+                    meta: { title: "在线咨询管理", icon: "ChatDotRound" },
+                },
+            ],
+        },
+        {
+            path: "/system",
+            name: "System",
+            meta: { title: "系统配置", icon: "Setting", hidden: true },
+            children: [
+                {
+                    path: "config",
+                    name: "SystemConfig",
+                    meta: { title: "系统配置", icon: "Tools" },
+                },
+            ],
+        },
+    
+        {
+            path: "/sensitiveLog",
+            name: "SensitiveLogRoot",
+            meta: { title: "敏感操作日志", icon: "List" },
+            children: [
+                {
+                    path: "index",
+                    name: "SensitiveLog",
+                    meta: { title: "敏感操作日志", icon: "List" },
                 },
             ],
         },

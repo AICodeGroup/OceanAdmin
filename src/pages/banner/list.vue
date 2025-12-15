@@ -104,8 +104,17 @@
             <el-icon v-else class="upload-icon"><Plus /></el-icon>
           </el-upload>
         </el-form-item>
-        <el-form-item label="跳转链接" prop="link">
-          <el-input v-model="form.link" placeholder="请输入跳转链接" />
+        <el-form-item label="轮播图类型" prop="bannerType">
+          <el-radio-group v-model="form.bannerType">
+            <el-radio :label="0">首页轮播图</el-radio>
+            <el-radio :label="1">物种轮播图</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="小程序跳转地址" prop="link">
+          <el-input v-model="form.link" placeholder="请输入小程序跳转地址" />
+        </el-form-item>
+        <el-form-item label="网站跳转地址" prop="webLink" v-if="form.bannerType === 0">
+          <el-input v-model="form.webLink" placeholder="请输入网站跳转地址" />
         </el-form-item>
         <el-form-item label="排序" prop="sort">
           <el-input-number v-model="form.sort" :min="0" :max="999" />
@@ -155,8 +164,10 @@ const form = reactive({
   title: '',
   image: '',
   link: '',
+  webLink: '',
   sort: 0,
-  status: 1
+  status: 1,
+  bannerType: 0
 })
 
 // 表单验证规则
@@ -275,8 +286,10 @@ const resetForm = () => {
     title: '',
     image: '',
     link: '',
+    webLink: '',
     sort: 0,
-    status: 1
+    status: 1,
+    bannerType: 0
   })
   formRef.value?.resetFields()
 }

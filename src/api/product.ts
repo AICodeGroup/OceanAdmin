@@ -358,3 +358,12 @@ export const getMerchantCategoryCacheTree = () => {
         method: "get",
     });
 };
+
+// 获取商品下单记录
+export const getProductPaymentRecords = (productId: number, params?: { page?: number; limit?: number }) => {
+    return request({
+        url: `/admin/platform/product-orders-old/payment-records/${productId}`,
+        method: "get",
+        params
+    });
+};

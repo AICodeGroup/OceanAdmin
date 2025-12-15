@@ -43,10 +43,10 @@
         <el-icon><Plus /></el-icon>
         新增课程
       </el-button>
-      <el-button type="success" @click="handleExport">
+      <!-- <el-button type="success" @click="handleExport">
         <el-icon><Download /></el-icon>
         导出数据
-      </el-button>
+      </el-button> -->
     </div>
 
     <!-- 表格 -->

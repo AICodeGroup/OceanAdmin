@@ -56,10 +56,27 @@ export const getCourseList = (params: any) => {
   })
 }
 
+// 获取后台课程列表
+export const getAdminCourseList = (params: any) => {
+  return request({
+    url: '/admin/platform/product/course/list',
+    method: 'get',
+    params
+  })
+}
+
 // 获取课程详情
 export const getCourseDetail = (id: number) => {
   return request({
     url: `/api/courses/${id}`,
+    method: 'get'
+  })
+}
+
+// 获取后台课程详情
+export const getAdminCourseDetail = (id: number) => {
+  return request({
+    url: `/admin/platform/product/course/detail/${id}`,
     method: 'get'
   })
 }

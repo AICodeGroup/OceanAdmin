@@ -13,6 +13,10 @@
           <el-icon class="btn-icon"><Plus /></el-icon>
           新增徽章
         </el-button>
+        <el-button size="large" @click="handleTaskConfig" round>
+          <el-icon class="btn-icon"><Setting /></el-icon>
+          任务配置
+        </el-button>
         <el-button type="danger" size="large" @click="handleBatchDelete" :disabled="selectedIds.length === 0" round>
           <el-icon class="btn-icon"><Delete /></el-icon>
           批量删除
@@ -54,6 +58,18 @@
             <el-tag :type="scope.row.isGranted === 1 ? 'success' : 'info'">
               {{ scope.row.isGranted === 1 ? '是' : '否' }}
             </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="自动授予" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.canAutoGrant === 1 ? 'success' : 'info'">
+              {{ row.canAutoGrant === 1 ? '允许' : '禁止' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="threshold" label="自动获取阈值" width="120">
+          <template #default="{ row }">
+            {{ row.threshold || '-' }}
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间" width="180" />
@@ -115,14 +131,28 @@
             <el-icon><Plus /></el-icon>
           </el-upload>
         </el-form-item>
-        <el-form-item label="类型ID" prop="typeId">
-          <el-input-number v-model="form.typeId" :min="1" controls-position="right" />
+        <el-form-item label="徽章类型" prop="typeId">
+          <el-select v-model="form.typeId" placeholder="请选择徽章类型" style="width: 100%">
+            <el-option
+              v-for="item in badgeTypeList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="等级" prop="level">
           <el-input-number v-model="form.level" :min="1" controls-position="right" />
         </el-form-item>
         <el-form-item label="是否可授权" prop="isGranted">
           <el-switch v-model="form.isGranted" :active-value="1" :inactive-value="0" />
+        </el-form-item>
+        <el-form-item label="允许自动授予" prop="canAutoGrant">
+          <el-switch v-model="form.canAutoGrant" :active-value="1" :inactive-value="0" />
+        </el-form-item>
+        <el-form-item label="自动获取阈值" prop="threshold" v-if="form.canAutoGrant === 1">
+          <el-input-number v-model="form.threshold" :min="0" :precision="0" />
+          <span class="ml-2 text-gray-400 text-xs">达到该节数后自动获取</span>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -132,6 +162,31 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 任务配置对话框 -->
+    <el-dialog v-model="taskConfigVisible" title="徽章任务配置" width="500px">
+      <el-form :model="taskConfigForm" label-width="120px">
+        <el-form-item label="任务开关">
+          <el-switch v-model="taskConfigForm.enabled" active-text="开启" inactive-text="关闭" />
+        </el-form-item>
+        <el-form-item label="执行频率">
+          <el-select v-model="taskConfigForm.cronType" placeholder="请选择" @change="handleCronTypeChange" style="width: 100%">
+            <el-option label="每小时" value="0 0 0/1 * * ?" />
+            <el-option label="每天凌晨2点" value="0 0 2 * * ?" />
+            <el-option label="每30分钟" value="0 0/30 * * * ?" />
+            <el-option label="自定义" value="custom" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Cron表达式" v-if="taskConfigForm.cronType === 'custom'">
+          <el-input v-model="taskConfigForm.cronExpression" placeholder="请输入Cron表达式" />
+          <div class="form-tip">例如: 0 0 12 * * ? (每天中午12点)</div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="taskConfigVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleTaskConfigSubmit">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -139,9 +194,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules, UploadProps, UploadUserFile } from 'element-plus'
-import { getBadgeList, addBadge, updateBadge, deleteBadge, batchDeleteBadges } from '@/api/badge'
+import { getBadgeList, addBadge, updateBadge, deleteBadge, batchDeleteBadges, configBadgeGrantTask, getBadgeGrantTaskConfig, getBadgeTypeList } from '@/api/badge'
 import { getToken } from '@/utils/auth'
-import { Plus, Medal, Delete } from '@element-plus/icons-vue'
+import { Plus, Medal, Delete, Setting } from '@element-plus/icons-vue'
 
 interface Badge {
   id: number;
@@ -151,16 +206,68 @@ interface Badge {
   typeId: number;
   level: number;
   isGranted: number;
+  threshold?: number;
+  canAutoGrant?: number;
   createdAt: string;
 }
 
 const loading = ref(false)
 const tableData = ref<Badge[]>([])
 const selectedIds = ref<number[]>([])
+const badgeTypeList = ref<any[]>([])
 const formVisible = ref(false)
+const taskConfigVisible = ref(false)
 const formTitle = ref('新增徽章')
 const formRef = ref<FormInstance>()
 const fileList = ref<UploadUserFile[]>([])
+
+// 任务配置
+const taskConfigForm = reactive({
+  enabled: true,
+  cronType: '0 0 0/1 * * ?',
+  cronExpression: '0 0 0/1 * * ?'
+})
+
+const handleTaskConfig = async () => {
+  try {
+    const res: any = await getBadgeGrantTaskConfig()
+    if (res) {
+      taskConfigForm.enabled = res.status === 0
+      taskConfigForm.cronExpression = res.cronExpression
+      // 如果cronExpression在预设列表中，则设置cronType为该值，否则为custom
+      const presets = ['0 0 0/1 * * ?', '0 0 2 * * ?', '0 0/30 * * * ?']
+      if (presets.includes(res.cronExpression)) {
+        taskConfigForm.cronType = res.cronExpression
+      } else {
+        taskConfigForm.cronType = 'custom'
+      }
+    }
+    taskConfigVisible.value = true
+  } catch (error) {
+    console.error('获取配置失败:', error)
+    ElMessage.error('获取配置失败')
+  }
+}
+
+const handleCronTypeChange = (val: string) => {
+  if (val !== 'custom') {
+    taskConfigForm.cronExpression = val
+  }
+}
+
+const handleTaskConfigSubmit = async () => {
+  try {
+    await configBadgeGrantTask({
+      status: taskConfigForm.enabled ? 0 : 1,
+      cronExpression: taskConfigForm.cronExpression
+    })
+    ElMessage.success('配置保存成功')
+    taskConfigVisible.value = false
+  } catch (error) {
+    console.error('配置保存失败:', error)
+    ElMessage.error('配置保存失败')
+  }
+}
 
 // 表单模型
 const form = reactive({
@@ -170,7 +277,9 @@ const form = reactive({
   iconUrl: '',
   typeId: 1,
   level: 1,
-  isGranted: 0
+  isGranted: 0,
+  canAutoGrant: 0,
+  threshold: undefined as number | undefined
 })
 
 // 表单验证规则
@@ -245,6 +354,8 @@ const resetForm = () => {
   form.typeId = 1
   form.level = 1
   form.isGranted = 0
+  form.canAutoGrant = 0
+  form.threshold = undefined
   fileList.value = []
   formRef.value?.resetFields()
 }
@@ -365,8 +476,21 @@ const handleRemove: UploadProps['onRemove'] = () => {
   fileList.value = []
 }
 
+// 加载徽章分类列表
+const loadBadgeTypes = async () => {
+  try {
+    const res = await getBadgeTypeList()
+    if (Array.isArray(res)) {
+      badgeTypeList.value = res
+    }
+  } catch (error) {
+    console.error('获取徽章分类列表失败:', error)
+  }
+}
+
 onMounted(() => {
   getList()
+  loadBadgeTypes()
 })
 </script>
 
@@ -413,6 +537,12 @@ onMounted(() => {
 
 .btn-icon {
   margin-right: 4px;
+}
+
+.form-tip {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
 }
 
 .mb-4 {

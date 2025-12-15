@@ -48,7 +48,7 @@ export function batchDeleteBadges(ids: number[]) {
 // 获取徽章类型列表
 export function getBadgeTypeList() {
   return request({
-    url: '/badge/types',
+    url: '/admin/platform/badge/type/list',
     method: 'get'
   })
 }
@@ -106,6 +106,8 @@ export interface BadgeItem {
   typeId: number
   level: number
   isGranted: number // 0 表示不可以，1 表示可以
+  threshold?: number
+  canAutoGrant?: number
   createdAt: string
   updatedAt: string
 }
@@ -154,5 +156,98 @@ export function grantUserBadge(userId: number, badgeId: number) {
     url: '/admin/platform/grantUser',
     method: 'post',
     params: { userId, badgeId }
+  })
+}
+
+// 徽章任务配置
+export function configBadgeGrantTask(data: { cronExpression: string; status: number }) {
+  return request({
+    url: '/admin/platform/badge/configGrantTask',
+    method: 'post',
+    data
+  })
+}
+
+// 获取徽章任务配置
+export function getBadgeGrantTaskConfig() {
+  return request({
+    url: '/admin/platform/badge/getGrantTaskConfig',
+    method: 'get'
+  })
+}
+
+// ==================== 徽章分类管理接口 ====================
+
+// 添加徽章分类
+export function addBadgeType(data: any) {
+  return request({
+    url: '/admin/platform/badge/type/add',
+    method: 'post',
+    data
+  })
+}
+
+// 修改徽章分类
+export function updateBadgeType(data: any) {
+  return request({
+    url: '/admin/platform/badge/type/update',
+    method: 'put',
+    data
+  })
+}
+
+// 删除徽章分类
+export function deleteBadgeType(id: number) {
+  return request({
+    url: `/admin/platform/badge/type/delete/${id}`,
+    method: 'delete'
+  })
+}
+
+// 获取徽章分类详情
+export function getBadgeTypeDetail(id: number) {
+  return request({
+    url: `/admin/platform/badge/type/detail/${id}`,
+    method: 'get'
+  })
+}
+
+// 获取徽章分类树结构
+export function getBadgeTypeTree() {
+  return request({
+    url: '/admin/platform/badge/type/tree',
+    method: 'get'
+  })
+}
+
+// 获取徽章分类树结构（包含徽章）
+export function getBadgeTypeTreeWithBadges() {
+  return request({
+    url: '/admin/platform/badge/type/tree/with/badges',
+    method: 'get'
+  })
+}
+
+// 根据父级ID获取子分类
+export function getBadgeTypeChildren(pid: number) {
+  return request({
+    url: `/admin/platform/badge/type/children/${pid}`,
+    method: 'get'
+  })
+}
+
+// 获取所有一级分类
+export function getFirstLevelBadgeTypes() {
+  return request({
+    url: '/admin/platform/badge/type/first/level',
+    method: 'get'
+  })
+}
+
+// 清除徽章分类树缓存
+export function clearBadgeTypeCache() {
+  return request({
+    url: '/admin/platform/badge/type/clear/cache',
+    method: 'post'
   })
 }

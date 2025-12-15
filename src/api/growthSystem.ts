@@ -19,6 +19,15 @@ export function setIntegralConfig(data: any) {
   })
 }
 
+// 积分任务配置
+export function configIntegralGrantTask(data: { cronExpression: string; status: number }) {
+  return request({
+    url: '/admin/platform/integral/configGrantOrderIntegralTask',
+    method: 'post',
+    data
+  })
+}
+
 // 积分记录分页列表
 export function getIntegralList(params: any) {
   return request({

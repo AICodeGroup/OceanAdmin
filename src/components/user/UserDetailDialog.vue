@@ -268,6 +268,31 @@
               />
             </div>
           </el-tab-pane>
+
+          <!-- 用章记录 -->
+          <el-tab-pane label="用章记录" name="badges">
+            <el-table :data="badgeRecords" border>
+              <el-table-column label="徽章图标" width="100" align="center">
+                <template #default="{ row }">
+                  <el-image 
+                    v-if="row.badge?.iconUrl" 
+                    :src="row.badge.iconUrl" 
+                    style="width: 40px; height: 40px" 
+                    fit="contain"
+                    preview-teleported
+                    :preview-src-list="[row.badge.iconUrl]"
+                  />
+                </template>
+              </el-table-column>
+              <el-table-column prop="badge.name" label="徽章名称" width="150" />
+              <el-table-column prop="badge.description" label="描述" min-width="200" show-overflow-tooltip />
+              <el-table-column prop="createTime" label="获得时间" width="180">
+                <template #default="{ row }">
+                   {{ row.createdAt }}
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-tab-pane>
         </el-tabs>
       </el-card>
     </div>
@@ -284,7 +309,8 @@ import {
   getUserBalanceRecord,
   getUserSignRecord,
   getUserOrders,
-  getUserObservations
+  getUserObservations,
+  getUserBadgeHistory
 } from '@/api/user'
 
 interface Props {
@@ -317,6 +343,7 @@ const balanceRecords = ref<any[]>([])
 const signRecords = ref<any[]>([])
 const orders = ref<any[]>([])
 const observations = ref<any[]>([])
+const badgeRecords = ref<any[]>([])
 
 // 分页配置
 const integralPagination = reactive({ page: 1, limit: 10, total: 0 })
@@ -367,6 +394,9 @@ const handleTabClick = (tab: any) => {
       break
     case 'observations':
       if (observations.value.length === 0) loadObservations()
+      break
+    case 'badges':
+      if (badgeRecords.value.length === 0) loadBadgeRecords()
       break
   }
 }
@@ -458,6 +488,16 @@ const loadObservations = async () => {
     observationsPagination.total = data.total || 0
   } catch (error) {
     console.error('加载观察记录失败:', error)
+  }
+}
+
+// 加载徽章记录
+const loadBadgeRecords = async () => {
+  try {
+    const data = await getUserBadgeHistory(props.userId) as unknown as any[]
+    badgeRecords.value = data || []
+  } catch (error) {
+    console.error('加载徽章记录失败:', error)
   }
 }
 

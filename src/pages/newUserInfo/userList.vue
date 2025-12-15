@@ -9,12 +9,12 @@
                 <h1 class="page-title">用户管理</h1>
             </div>
             <div class="header-actions">
-                <el-button size="large" @click="handleExport" round>
+                <!-- <el-button size="large" @click="handleExport" round>
                     <el-icon class="btn-icon">
                         <Download />
                     </el-icon>
                     导出数据
-                </el-button>
+                </el-button> -->
             </div>
         </div>
 
@@ -270,6 +270,9 @@
                                             <!-- <el-dropdown-item command="balance">
                                                 操作余额
                                             </el-dropdown-item> -->
+                                            <el-dropdown-item command="timeline">
+                                                成长轨迹
+                                            </el-dropdown-item>
                                             <el-dropdown-item command="member" divided>
                                                 赠送会员
                                             </el-dropdown-item>
@@ -317,6 +320,9 @@
         <!-- 赠送会员对话框 -->
         <GiftMemberDialog v-model="memberDialogVisible" :user-info="currentUser" @success="handleRefresh" />
 
+        <!-- 用户成长轨迹对话框 -->
+        <UserTimelineDialog v-model="timelineDialogVisible" :user-id="currentUserId" />
+
         <!-- 重置密码对话框 -->
         <reset-password-dialog v-model="resetPasswordDialogVisible" :user="currentUser"
             @success="handlePasswordResetSuccess" />
@@ -341,6 +347,7 @@ import {
 import UserDetailDialog from '@/components/user/UserDetailDialog.vue';
 import UserEditDialog from '@/components/user/UserEditDialog.vue';
 import UserOperateDialog from '@/components/user/UserOperateDialog.vue';
+import UserTimelineDialog from '@/components/user/UserTimelineDialog.vue';
 import GiftMemberDialog from '@/components/user/GiftMemberDialog.vue';
 import ResetPasswordDialog from '@/components/userSetting/resetPasswordDialog.vue';
 import { 
@@ -385,6 +392,7 @@ const detailDialogVisible = ref(false);
 const editDialogVisible = ref(false);
 const operateDialogVisible = ref(false);
 const memberDialogVisible = ref(false);
+const timelineDialogVisible = ref(false);
 const resetPasswordDialogVisible = ref(false);
 const currentUserId = ref(0);
 const currentUser = ref<User | null>(null);
@@ -591,6 +599,9 @@ const handleCommand = (command: string, user: User) => {
         case 'balance':
             operateType.value = 'balance';
             operateDialogVisible.value = true;
+            break;
+        case 'timeline':
+            timelineDialogVisible.value = true;
             break;
         case 'member':
             memberDialogVisible.value = true;

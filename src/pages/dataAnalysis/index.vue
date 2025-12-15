@@ -159,6 +159,91 @@
         </el-col>
       </el-row>
     </div>
+
+    <!-- 转化漏斗分析 -->
+    <div class="card-container" style="margin-top: 20px;">
+      <div class="section-header" style="margin-bottom: 20px; font-size: 16px; font-weight: 600;">
+        转化漏斗分析
+      </div>
+      <el-form :model="funnelForm" :inline="true">
+        <el-form-item label="类型">
+          <el-radio-group v-model="funnelForm.productType" @change="handleFunnelTypeChange">
+            <el-radio :label="0">课程</el-radio>
+            <el-radio :label="1">实物商品</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="选择商品/课程">
+          <el-select
+            v-model="funnelForm.productId"
+            placeholder="请输入关键词搜索"
+            filterable
+            remote
+            :remote-method="searchProducts"
+            :loading="productSearchLoading"
+            style="width: 300px"
+            @change="handleFunnelQuery"
+          >
+            <el-option
+              v-for="item in productOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="时间范围">
+          <el-date-picker
+            v-model="funnelForm.dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            @change="handleFunnelQuery"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleFunnelQuery">分析</el-button>
+          <el-button @click="handleFunnelReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+
+      <div v-loading="funnelLoading" class="funnel-content" v-if="funnelData">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <div class="funnel-stats">
+              <div class="stat-item">
+                <div class="label">浏览人数</div>
+                <div class="value">{{ funnelData.totalBrowseUsers }}</div>
+              </div>
+              <div class="stat-item">
+                <div class="label">浏览次数</div>
+                <div class="value">{{ funnelData.totalBrowseCount }}</div>
+              </div>
+              <div class="stat-item">
+                <div class="label">购买人数</div>
+                <div class="value">{{ funnelData.totalPurchaseUsers }}</div>
+              </div>
+              <div class="stat-item">
+                <div class="label">购买次数</div>
+                <div class="value">{{ funnelData.totalPurchaseCount }}</div>
+              </div>
+              <div class="stat-item highlight">
+                <div class="label">整体转化率</div>
+                <div class="value">{{ funnelData.overallConversionRate }}%</div>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="16">
+            <div ref="funnelChartRef" class="chart" style="height: 400px; width: 100%;"></div>
+          </el-col>
+        </el-row>
+      </div>
+      <div v-else class="empty-placeholder" style="text-align: center; padding: 40px; color: #909399;">
+        请选择商品/课程进行分析
+      </div>
+    </div>
   </div>
 </template>
 
@@ -179,8 +264,11 @@ import {
   getRegisterTrend,
   getVisitTrend,
   getEnrollTrend,
-  getOrderTrend
+  getOrderTrend,
+  getConversionFunnel
 } from '@/api/dataAnalysis'
+import { getProductList } from '@/api/product'
+import { getAdminCourseList } from '@/api/course'
 
 // 概览数据
 const overviewData = ref<any>({})
@@ -199,6 +287,19 @@ const registerTrendData = ref<any>({})
 const visitTrendData = ref<any>({})
 const enrollTrendData = ref<any>({})
 const orderTrendData = ref<any>({})
+
+// 漏斗分析数据
+const funnelForm = ref({
+  productType: 0, // 0-课程, 1-实物商品
+  productId: undefined as number | undefined,
+  dateRange: null as any
+})
+const productOptions = ref<any[]>([])
+const productSearchLoading = ref(false)
+const funnelData = ref<any>(null)
+const funnelLoading = ref(false)
+const funnelChartRef = ref<HTMLElement>()
+let funnelChart: echarts.ECharts | null = null
 
 // 图表引用
 const registerChartRef = ref<HTMLElement>()
@@ -397,12 +498,159 @@ const initCharts = () => {
   })
 }
 
+// 搜索商品/课程
+const searchProducts = async (query: string) => {
+  if (!query) {
+    productOptions.value = []
+    return
+  }
+  productSearchLoading.value = true
+  try {
+    let res: any
+    if (funnelForm.value.productType === 0) {
+      // 搜索课程
+      res = await getAdminCourseList({ name: query, page: 1, limit: 20 })
+      // 假设API返回结构包含list
+      const list = res.list || res.data?.list || []
+      productOptions.value = list.map((item: any) => ({
+        label: item.title,
+        value: item.id
+      }))
+    } else {
+      // 搜索实物商品
+      res = await getProductList({ name: query, page: 1, limit: 20 })
+      const list = res.list || res.data?.list || []
+      productOptions.value = list.map((item: any) => ({
+        label: item.name,
+        value: item.id
+      }))
+    }
+  } catch (error) {
+    console.error('搜索失败:', error)
+  } finally {
+    productSearchLoading.value = false
+  }
+}
+
+const handleFunnelTypeChange = () => {
+  funnelForm.value.productId = undefined
+  productOptions.value = []
+  funnelData.value = null
+}
+
+const handleFunnelQuery = () => {
+  loadFunnelData()
+}
+
+const handleFunnelReset = () => {
+  funnelForm.value.productId = undefined
+  funnelForm.value.dateRange = null
+  funnelData.value = null
+}
+
+const loadFunnelData = async () => {
+  if (!funnelForm.value.productId) return
+  
+  funnelLoading.value = true
+  try {
+    const params: any = {
+      productType: funnelForm.value.productType
+    }
+    
+    if (funnelForm.value.dateRange && funnelForm.value.dateRange.length === 2) {
+      params.startDate = funnelForm.value.dateRange[0]
+      params.endDate = funnelForm.value.dateRange[1]
+    }
+    
+    const res = await getConversionFunnel(funnelForm.value.productId, params)
+    funnelData.value = res.data || res // 根据实际返回结构调整
+    
+    nextTick(() => {
+        if (!funnelChart && funnelChartRef.value) {
+            funnelChart = echarts.init(funnelChartRef.value)
+        }
+        if (funnelData.value) {
+            renderFunnelChart(funnelData.value)
+        }
+    })
+  } catch (error) {
+    console.error('加载漏斗数据失败:', error)
+    ElMessage.error('加载漏斗数据失败')
+  } finally {
+    funnelLoading.value = false
+  }
+}
+
+const renderFunnelChart = (data: any) => {
+    if (!funnelChart) return
+    
+    const stages = data.funnelStages || []
+    
+    const option = {
+        title: {
+            text: '转化漏斗',
+            left: 'center'
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b} : {c} ({d}%)'
+        },
+        legend: {
+            data: stages.map((s: any) => s.stageName),
+            bottom: 0
+        },
+        series: [
+            {
+                name: '转化漏斗',
+                type: 'funnel',
+                left: '10%',
+                top: 60,
+                bottom: 60,
+                width: '80%',
+                min: 0,
+                max: stages[0]?.value || 100,
+                minSize: '0%',
+                maxSize: '100%',
+                sort: 'descending',
+                gap: 2,
+                label: {
+                    show: true,
+                    position: 'inside'
+                },
+                labelLine: {
+                    length: 10,
+                    lineStyle: {
+                        width: 1,
+                        type: 'solid'
+                    }
+                },
+                itemStyle: {
+                    borderColor: '#fff',
+                    borderWidth: 1
+                },
+                emphasis: {
+                    label: {
+                        fontSize: 20
+                    }
+                },
+                data: stages.map((s: any) => ({
+                    value: s.value,
+                    name: s.stageName
+                }))
+            }
+        ]
+    }
+    
+    funnelChart.setOption(option)
+}
+
 // 处理窗口大小变化
 const handleResize = () => {
   registerChart?.resize()
   visitChart?.resize()
   enrollChart?.resize()
   orderChart?.resize()
+  funnelChart?.resize()
 }
 
 // 处理查询
@@ -438,6 +686,7 @@ onUnmounted(() => {
   visitChart?.dispose()
   enrollChart?.dispose()
   orderChart?.dispose()
+  funnelChart?.dispose()
 })
 </script>
 
@@ -581,6 +830,40 @@ onUnmounted(() => {
     .chart {
       width: 100%;
       height: 350px;
+    }
+  }
+}
+
+.funnel-stats {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  
+  .stat-item {
+    margin-bottom: 20px;
+    text-align: center;
+    padding: 15px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    
+    .label {
+      color: #909399;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    
+    .value {
+      color: #303133;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    &.highlight {
+      background: #ecf5ff;
+      .value {
+        color: #409EFF;
+      }
     }
   }
 }

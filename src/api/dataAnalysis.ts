@@ -52,3 +52,16 @@ export function getComprehensiveTrend(data: any) {
     data
   })
 }
+
+// 获取转化漏斗分析
+export function getConversionFunnel(productId: number, params: {
+  productType: number;
+  startDate?: string;
+  endDate?: string;
+}) {
+  return request({
+    url: `/admin/platform/product-orders-old/conversion-funnel/${productId}`,
+    method: 'get',
+    params
+  })
+}

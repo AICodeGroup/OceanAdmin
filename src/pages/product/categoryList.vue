@@ -29,7 +29,6 @@
             <el-table
                 :data="categoryList"
                 row-key="id"
-                :tree-props="{ children: 'childList', hasChildren: 'hasChildren' }"
                 border
                 stripe
                 style="width: 100%"
@@ -52,13 +51,7 @@
                         <span v-else style="color: #909399;">-</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="level" label="级别" width="100">
-                    <template #default="{ row }">
-                        <el-tag v-if="row.level === 1 || (row.level === null && row.pid === 0)" type="danger">一级</el-tag>
-                        <el-tag v-else-if="row.level === 2" type="success">二级</el-tag>
-                        <el-tag v-else type="info">未知</el-tag>
-                    </template>
-                </el-table-column>
+
                 <el-table-column prop="sort" label="排序" width="100" sortable />
                 <el-table-column prop="isShow" label="显示状态" width="120">
                     <template #default="{ row }">
@@ -69,13 +62,9 @@
                         />
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" width="240" fixed="right">
+                <el-table-column label="操作" width="180" fixed="right">
                     <template #default="{ row }">
                         <div class="action-buttons">
-                            <el-button size="small" text type="primary" @click="handleAddChild(row)">
-                                <el-icon><Plus /></el-icon>
-                                添加子分类
-                            </el-button>
                             <el-button size="small" text type="warning" @click="handleEdit(row)">
                                 <el-icon><Edit /></el-icon>
                                 编辑
@@ -103,18 +92,6 @@
                 :rules="formRules"
                 label-width="100px"
             >
-                <el-form-item label="上级分类">
-                    <el-tree-select
-                        v-model="form.pid"
-                        :data="categoryTreeOptions"
-                        check-strictly
-                        :render-after-expand="false"
-                        placeholder="请选择上级分类（不选则为顶级分类）"
-                        clearable
-                        style="width: 100%"
-                    />
-                </el-form-item>
-
                 <el-form-item label="分类名称" prop="name">
                     <el-input v-model="form.name" placeholder="请输入分类名称" maxlength="100" show-word-limit />
                 </el-form-item>
@@ -142,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 // 图标引入
@@ -182,21 +159,7 @@ const formRules = {
     name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }]
 };
 
-// 分类树选项
-const categoryTreeOptions = computed(() => {
-    const buildTree = (categories: ProductCategory[]): any[] => {
-        return categories.map(cat => ({
-            value: cat.id,
-            label: cat.name,
-            children: cat.childList && cat.childList.length > 0 ? buildTree(cat.childList) : undefined
-        }));
-    };
-    
-    // 添加顶级选项
-    return [
-        { value: 0, label: '顶级分类', children: buildTree(categoryList.value) }
-    ];
-});
+
 
 // 生命周期
 onMounted(() => {
@@ -237,47 +200,16 @@ const handleAdd = () => {
     dialogVisible.value = true;
 };
 
-// 添加子分类
-const handleAddChild = (row: ProductCategory) => {
-    // 计算当前分类的级别（如果level为null，根据pid推断）
-    let currentLevel = row.level;
-    if (currentLevel === null || currentLevel === undefined) {
-        // 如果level为null，根据pid推断：pid=0为一级，否则为二级
-        currentLevel = row.pid === 0 ? 1 : 2;
-    }
-    
-    // 检查是否已经是二级分类
-    if (currentLevel >= 2) {
-        ElMessage.warning('最多支持二级分类');
-        return;
-    }
-    
-    Object.assign(form, {
-        id: undefined,
-        pid: row.id,
-        name: '',
-        icon: '',
-        level: currentLevel + 1,  // 子分类 level=父分类 level+1
-        sort: 100,
-        isShow: true
-    });
-    dialogVisible.value = true;
-};
+
 
 // 编辑分类
 const handleEdit = (row: ProductCategory) => {
-    // 如果level为null，根据pid推断
-    let level = row.level;
-    if (level === null || level === undefined) {
-        level = row.pid === 0 ? 1 : 2;
-    }
-    
     Object.assign(form, {
         id: row.id,
-        pid: row.pid,
+        pid: 0,  // 一级分类默认pid为0
         name: row.name,
         icon: row.icon,
-        level: level,  // 使用推断后的level
+        level: 1,  // 一级分类
         sort: row.sort,
         isShow: row.isShow
     });
@@ -331,12 +263,6 @@ const handleSave = async () => {
 
 // 删除分类
 const handleDelete = async (row: ProductCategory) => {
-    // 检查是否有子分类
-    if (row.childList && row.childList.length > 0) {
-        ElMessage.warning('该分类下存在子分类，无法删除');
-        return;
-    }
-    
     try {
         await ElMessageBox.confirm(
             `确定要删除分类"${row.name}"吗？此操作不可恢复。`,

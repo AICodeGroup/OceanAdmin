@@ -15,12 +15,12 @@
                     </el-icon>
                     新增商品
                 </el-button>
-                <el-button size="large" @click="handleExport" round>
-                    <el-icon class="btn-icon">
-                        <Download />
-                    </el-icon>
-                    导出数据
-                </el-button>
+<!--                <el-button size="large" @click="handleExport" round>-->
+<!--                    <el-icon class="btn-icon">-->
+<!--                        <Download />-->
+<!--                    </el-icon>-->
+<!--                    导出数据-->
+<!--                </el-button>-->
             </div>
         </div>
 
@@ -107,24 +107,21 @@
 
                         <el-col :xs="24" :sm="12" :md="8" :lg="6">
                             <el-form-item label="商品分类">
-                                <el-cascader
+                                <el-select
                                     v-model="searchForm.categoryId"
-                                    :options="categoryTreeOptions"
-                                    :props="{
-                                        value: 'value',
-                                        label: 'label',
-                                        children: 'children',
-                                        disabled: 'disabled',
-                                        checkStrictly: false,
-                                        emitPath: false
-                                    }"
-                                    :show-all-levels="false"
-                                    placeholder="请选择分类"
+                                    placeholder="请选择一级分类"
                                     clearable
                                     size="large"
                                     filterable
                                     style="width: 100%"
-                                />
+                                >
+                                    <el-option
+                                        v-for="category in firstLevelCategories"
+                                        :key="category.value"
+                                        :label="category.label"
+                                        :value="category.value"
+                                    />
+                                </el-select>
                             </el-form-item>
                         </el-col>
 
@@ -338,6 +335,10 @@
                                     <el-icon><Edit /></el-icon>
                                     编辑
                                 </el-button>
+                                <el-button size="small" text type="info" @click="handleViewOrders(row)">
+                                    <el-icon><List /></el-icon>
+                                    下单信息
+                                </el-button>
                                 <el-button size="small" text type="info" @click="handleView(row)">
                                     <el-icon><View /></el-icon>
                                     查看
@@ -375,6 +376,33 @@
                 </div>
             </el-card>
         </div>
+
+        <!-- 查看下单信息弹窗 -->
+        <el-dialog v-model="orderDialogVisible" title="下单信息" width="900px" destroy-on-close>
+            <el-table v-loading="orderLoading" :data="orderList" border style="width: 100%">
+                <el-table-column prop="orderNo" label="订单号" min-width="180" />
+                <el-table-column prop="userName" label="用户名称" width="150" />
+                <el-table-column prop="phone" label="手机号" width="120" />
+                <el-table-column prop="sku" label="SKU" width="150" show-overflow-tooltip />
+                <el-table-column prop="payAmount" label="支付金额" width="100">
+                    <template #default="{ row }">¥{{ row.payAmount }}</template>
+                </el-table-column>
+                <el-table-column prop="payType" label="支付方式" width="100" />
+                <el-table-column prop="paidAt" label="支付时间" width="180" />
+            </el-table>
+            
+            <div class="pagination-section" style="margin-top: 20px; text-align: right;">
+                <el-pagination
+                    v-model:current-page="orderPagination.current"
+                    v-model:page-size="orderPagination.size"
+                    :total="orderPagination.total"
+                    :page-sizes="[10, 20, 50]"
+                    layout="total, sizes, prev, pager, next"
+                    @current-change="handleOrderPageChange"
+                    @size-change="handleOrderSizeChange"
+                />
+            </div>
+        </el-dialog>
 
         <!-- 查看商品详情弹窗 -->
         <el-dialog v-model="viewDialogVisible" title="商品详情" width="900px" destroy-on-close>
@@ -466,25 +494,21 @@
                         <el-row :gutter="20">
                             <el-col :span="12">
                                 <el-form-item label="商品分类" prop="categoryId">
-                                    <el-cascader
-                                        v-model="editCategoryPath"
-                                        :options="categoryTreeOptions"
-                                        :props="{
-                                            value: 'value',
-                                            label: 'label',
-                                            children: 'children',
-                                            disabled: 'disabled',
-                                            checkStrictly: false,
-                                            emitPath: false
-                                        }"
-                                        :show-all-levels="false"
-                                        placeholder="请选择商品分类（只能选择二级分类）"
+                                    <el-select
+                                        v-model="editForm.categoryId"
+                                        placeholder="请选择商品分类（只能选择一级分类）"
                                         clearable
                                         filterable
                                         style="width: 100%"
                                         @change="handleCategoryChange"
-                                    />
-                                    <!-- <div class="form-tip">先选择一级分类，再选择二级分类</div> -->
+                                    >
+                                        <el-option
+                                            v-for="category in firstLevelCategories"
+                                            :key="category.value"
+                                            :label="category.label"
+                                            :value="category.value"
+                                        />
+                                    </el-select>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="12">
@@ -738,14 +762,28 @@
 
                     <!-- 商品详情 -->
                     <el-tab-pane label="商品详情" name="content">
-                        <el-form-item label="详情内容">
-                            <el-input
+                        <el-form-item label="详情内容" label-width="0">
+                            <RichEditor
                                 v-model="editForm.content"
-                                type="textarea"
-                                :rows="10"
-                                placeholder="请输入商品详情HTML内容，支持富文本"
+                                height="600px"
+                                placeholder="请输入商品详情内容，支持图文混排、表格等多种格式"
                             />
-                            <div class="form-tip">支持HTML格式，建议使用富文本编辑器生成</div>
+                            <div class="form-tip" style="margin-top: 10px;">
+                                <el-alert type="info" :closable="false">
+                                    <template #title>
+                                        <div style="font-size: 13px;">
+                                            <strong>使用提示：</strong>
+                                            <ul style="margin: 5px 0; padding-left: 20px;">
+                                                <li>点击工具栏中的图片按钮可直接上传图片</li>
+                                                <li>使用「参数表」按钮快速插入商品参数表格</li>
+                                                <li>使用「图片组」按钮批量上传商品详情图</li>
+                                                <li>选中图片后，点击「750px」或「375px」快速调整图片宽度</li>
+                                                <li>建议商品详情图宽度设置为750px，适配大多数移动设备</li>
+                                            </ul>
+                                        </div>
+                                    </template>
+                                </el-alert>
+                            </div>
                         </el-form-item>
                     </el-tab-pane>
                 </el-tabs>
@@ -764,10 +802,13 @@ import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import dayjs from 'dayjs';
 
+// 组件引入
+import RichEditor from '@/components/Editor/RichEditor.vue';
+
 // 图标引入
 import {
     Search, Plus, Download, Delete, Refresh, Setting, Edit, View, Picture,
-    RefreshLeft, CircleCheck, CircleClose, ShoppingBag, Top, Bottom, Box, Clock
+    RefreshLeft, CircleCheck, CircleClose, ShoppingBag, Top, Bottom, Box, Clock, List
 } from '@element-plus/icons-vue';
 
 // API导入
@@ -784,6 +825,7 @@ import {
     getMerchantCategoryCacheTree,
     createProduct,
     updateProduct,
+    getProductPaymentRecords,
     Product,
     ProductListResponse,
     ProductStats,
@@ -794,7 +836,7 @@ import {
 // 类型定义
 interface SearchForm {
     name: string;
-    categoryId: number | string;
+    categoryId: number | undefined;
     isShow: boolean | string;
     auditStatus: number | string;
     priceMin: string;
@@ -812,9 +854,18 @@ const loading = ref(false);
 const productList = ref<Product[]>([]);
 const selectedRows = ref<Product[]>([]);
 const categoryTreeOptions = ref<ProductCategoryTreeNode[]>([]);
-const editCategoryPath = ref<number | undefined>(undefined);
+const firstLevelCategories = ref<{value: number, label: string}[]>([]);
 const viewDialogVisible = ref(false);
+const orderDialogVisible = ref(false);
 const currentProduct = ref<Product | null>(null);
+const currentProductId = ref<number>(0);
+const orderList = ref<any[]>([]);
+const orderLoading = ref(false);
+const orderPagination = reactive({
+    current: 1,
+    size: 10,
+    total: 0
+});
 const editDialogVisible = ref(false);
 const editFormRef = ref();
 const saving = ref(false);
@@ -858,7 +909,7 @@ const editFormRules = {
     intro: [{ required: true, message: '请输入商品简介', trigger: 'blur' }],
     image: [{ required: true, message: '请输入商品主图', trigger: 'blur' }],
     sliderImage: [{ required: true, message: '请输入轮播图', trigger: 'blur' }],
-    categoryId: [{ required: true, message: '请选择商品分类（必须选择二级分类）', trigger: 'change' }],
+    categoryId: [{ required: true, message: '请选择商品分类（必须选择一级分类）', trigger: 'change' }],
     unitName: [{ required: true, message: '请输入商品单位', trigger: 'blur' }]
 };
 
@@ -871,7 +922,7 @@ const stats = reactive<ProductStats>({
 
 const searchForm = reactive<SearchForm>({
     name: '',
-    categoryId: '',
+    categoryId: undefined,
     isShow: '',
     auditStatus: '',
     priceMin: '',
@@ -899,7 +950,7 @@ const loadProductList = async () => {
             page: pagination.current,
             limit: pagination.size,
             name: searchForm.name || undefined,
-            categoryId: searchForm.categoryId !== '' ? Number(searchForm.categoryId) : undefined,
+            categoryId: searchForm.categoryId,
             isShow: searchForm.isShow !== '' ? Boolean(searchForm.isShow) : undefined,
             auditStatus: searchForm.auditStatus !== '' ? Number(searchForm.auditStatus) : undefined,
             priceMin: searchForm.priceMin || undefined,
@@ -935,6 +986,12 @@ const loadMerchantCategoryTree = async () => {
         const response = await getMerchantCategoryCacheTree() as unknown as ProductCategory[];
         // 将ProductCategory转换为级联选择器需要的格式
         categoryTreeOptions.value = convertToCascaderOptions(response || []);
+        
+        // 提取一级分类用于下拉选择器
+        firstLevelCategories.value = (response || []).map(cat => ({
+            value: cat.id,
+            label: cat.name
+        }));
     } catch (error) {
         console.error('加载商户分类树失败:', error);
     }
@@ -954,9 +1011,9 @@ const convertToCascaderOptions = (categories: ProductCategory[]): ProductCategor
         const option: ProductCategoryTreeNode = {
             value: cat.id,
             label: cat.name,
-            // 一级分类：有子分类不禁用（可展开），没有子分类禁用（避免被选中）
-            // 二级分类：不禁用（可选中）
-            disabled: level === 1 && !hasChildren,
+            // 一级分类：不禁用（可选中）
+            // 二级及以下分类：禁用（不可选中）
+            disabled: level !== 1,
             children: undefined
         };
         
@@ -986,7 +1043,7 @@ const handleSearch = () => {
 const handleReset = () => {
     Object.assign(searchForm, {
         name: '',
-        categoryId: '',
+        categoryId: undefined,
         isShow: '',
         auditStatus: '',
         priceMin: '',
@@ -1047,7 +1104,6 @@ const handleAddProduct = () => {
     deliveryMethods.value = ['1'];
     specList.value = [];
     skuList.value = [];
-    editCategoryPath.value = undefined;
     activeTab.value = 'basic';
     editDialogVisible.value = true;
 };
@@ -1056,9 +1112,6 @@ const handleAddProduct = () => {
 const handleEdit = async (row: Product) => {
     try {
         const detail = await getProductDetail(row.id) as unknown as any;
-        
-        // 同步分类ID到级联选择器
-        editCategoryPath.value = detail.categoryId;
         
         Object.assign(editForm, {
             id: detail.id,
@@ -1090,27 +1143,75 @@ const handleEdit = async (row: Product) => {
         // 如果是多规格商品，回显规格数据
         if (detail.specType && detail.attrList && detail.attrValueList) {
             // 回显规格列表
-            specList.value = detail.attrList.map((attr: any) => ({
-                attributeName: attr.attributeName,
-                isShowImage: attr.isShowImage,
-                optionList: attr.optionList || [],
-                showInput: false,
-                inputValue: ''
-            }));
+            specList.value = detail.attrList.map((attr: any) => {
+                let optionList = attr.optionList || [];
+                
+                // 如果optionList为空，尝试从SKU列表中提取
+                if (optionList.length === 0 && detail.attrValueList) {
+                    const options = new Set<string>();
+                    detail.attrValueList.forEach((sku: any) => {
+                        try {
+                            const attrValueObj = JSON.parse(sku.attrValue);
+                            if (attrValueObj[attr.attributeName]) {
+                                options.add(attrValueObj[attr.attributeName]);
+                            }
+                        } catch (e) {
+                            console.error('解析SKU规格失败:', e);
+                        }
+                    });
+                    
+                    optionList = Array.from(options).map(opt => ({
+                        optionName: opt,
+                        image: ''
+                    }));
+                }
+
+                return {
+                    attributeName: attr.attributeName,
+                    isShowImage: attr.isShowImage,
+                    optionList: optionList,
+                    showInput: false,
+                    inputValue: ''
+                };
+            });
             
             // 回显SKU列表
-            skuList.value = detail.attrValueList.map((sku: any) => ({
-                stock: sku.stock,
-                price: sku.price,
-                image: sku.image,
-                cost: sku.cost,
-                otPrice: sku.otPrice,
-                weight: sku.weight || 0,
-                volume: sku.volume || 0,
-                attrValue: sku.attrValue,
-                barCode: sku.barCode || '',
-                isDefault: sku.isDefault || false
-            }));
+            skuList.value = detail.attrValueList.map((sku: any) => {
+                // 解析attrValue生成specText
+                let specText = '';
+                try {
+                    const attrValueObj = JSON.parse(sku.attrValue);
+                    // 根据specList的顺序拼接规格值
+                    const values: string[] = [];
+                    specList.value.forEach((spec: any) => {
+                        if (attrValueObj[spec.attributeName]) {
+                            values.push(attrValueObj[spec.attributeName]);
+                        }
+                    });
+                    specText = values.join(' / ');
+                    
+                    // 如果没有匹配到（可能是旧数据或格式不一致），尝试直接获取所有值
+                    if (!specText) {
+                        specText = Object.values(attrValueObj).join(' / ');
+                    }
+                } catch (e) {
+                    console.error('解析SKU规格失败:', e);
+                }
+
+                return {
+                    stock: sku.stock,
+                    price: sku.price,
+                    image: sku.image,
+                    cost: sku.cost,
+                    otPrice: sku.otPrice,
+                    weight: sku.weight || 0,
+                    volume: sku.volume || 0,
+                    attrValue: sku.attrValue,
+                    barCode: sku.barCode || '',
+                    isDefault: sku.isDefault || false,
+                    specText
+                };
+            });
         } else {
             // 单规格商品，清空规格数据
             specList.value = [];
@@ -1336,6 +1437,45 @@ const handleSaveProduct = async () => {
     } finally {
         saving.value = false;
     }
+};
+
+// 查看商品下单信息
+const handleViewOrders = (row: Product) => {
+    currentProductId.value = row.id;
+    orderPagination.current = 1;
+    orderDialogVisible.value = true;
+    loadProductOrders();
+};
+
+const loadProductOrders = async () => {
+    if (!currentProductId.value) return;
+    
+    orderLoading.value = true;
+    try {
+        const response: any = await getProductPaymentRecords(currentProductId.value, {
+            page: orderPagination.current,
+            limit: orderPagination.size
+        });
+        
+        orderList.value = response.list || [];
+        orderPagination.total = response.total || 0;
+    } catch (error) {
+        console.error('加载下单信息失败:', error);
+        ElMessage.error('加载下单信息失败');
+    } finally {
+        orderLoading.value = false;
+    }
+};
+
+const handleOrderPageChange = (page: number) => {
+    orderPagination.current = page;
+    loadProductOrders();
+};
+
+const handleOrderSizeChange = (size: number) => {
+    orderPagination.size = size;
+    orderPagination.current = 1;
+    loadProductOrders();
 };
 
 // 查看商品

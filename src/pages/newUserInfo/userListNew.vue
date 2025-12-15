@@ -6,12 +6,12 @@
         <h1 class="page-title">用户管理</h1>
         <el-tag type="info" size="large">共 {{ pagination.total }} 位用户</el-tag>
       </div>
-      <div class="header-actions">
-        <el-button type="primary" @click="handleExport">
-          <el-icon><Download /></el-icon>
-          导出数据
-        </el-button>
-      </div>
+<!--      <div class="header-actions">-->
+<!--        <el-button type="primary" @click="handleExport">-->
+<!--          <el-icon><Download /></el-icon>-->
+<!--          导出数据-->
+<!--        </el-button>-->
+<!--      </div>-->
     </div>
 
     <!-- 搜索筛选区 -->

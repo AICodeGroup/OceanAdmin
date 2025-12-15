@@ -57,6 +57,12 @@ const routes: RouteRecordRaw[] = [
                 meta: { title: "用户列表", icon: "List" },
             },
             {
+                path: "familyRelationship",
+                name: "familyRelationship",
+                component: () => import("@/pages/userManagement/familyRelationship.vue"),
+                meta: { title: "家人绑定管理", icon: "Link" },
+            },
+            {
                 path: "userEnrollList",
                 name: "userEnrollList",
                 component: () =>
@@ -380,6 +386,13 @@ const routes: RouteRecordRaw[] = [
                             import("@/pages/newBadge/badgeAdmin.vue"),
                         meta: { title: "徽章配置", icon: "Setting" },
                     },
+                    {
+                        path: "type",
+                        name: "BadgeType",
+                        component: () =>
+                            import("@/pages/newBadge/badgeType.vue"),
+                        meta: { title: "徽章分类", icon: "Folder" },
+                    },
                 ],
             },
             {
@@ -402,6 +415,42 @@ const routes: RouteRecordRaw[] = [
                 name: "SystemConfig",
                 component: () => import("@/pages/system/config.vue"),
                 meta: { title: "系统配置", icon: "Tools" },
+            },
+        ],
+    },
+    {
+        path: "/websiteConfig",
+        component: Layout,
+        redirect: "/websiteConfig/contactInfo",
+        name: "WebsiteConfig",
+        meta: { title: "网站配置", icon: "Monitor" },
+        children: [
+            {
+                path: "contactInfo",
+                name: "ContactInfo",
+                component: () => import("@/pages/websiteConfig/contactInfo.vue"),
+                meta: { title: "联系方式管理", icon: "Phone" },
+            },
+            {
+                path: "consultation",
+                name: "Consultation",
+                component: () => import("@/pages/websiteConfig/consultation.vue"),
+                meta: { title: "在线咨询管理", icon: "ChatDotRound" },
+            },
+        ],
+    },
+    {
+        path: "/sensitiveLog",
+        component: Layout,
+        redirect: "/sensitiveLog/index",
+        name: "SensitiveLogRoot",
+        meta: { title: "敏感操作日志", icon: "List" },
+        children: [
+            {
+                path: "index",
+                name: "SensitiveLog",
+                component: () => import("@/pages/system/sensitiveLog.vue"),
+                meta: { title: "敏感操作日志", icon: "List" },
             },
         ],
     },
