@@ -226,25 +226,22 @@
             <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" size="large" label-position="right">
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="文章分类" prop="cid">
-                            <el-select v-model="form.cid" placeholder="请选择分类" filterable style="width: 100%">
-                                <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id">
-                                    <span style="float: left">{{ item.name }}</span>
-                                    <span style="float: right; color: #8492a6; font-size: 13px">ID: {{ item.id }}</span>
-                                </el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
                         <el-form-item label="文章类型" prop="type">
                             <el-select v-model="form.type" placeholder="请选择类型" style="width: 100%">
                                 <el-option label="新闻" :value="0">
-                                    <el-tag type="primary" size="small">新闻</el-tag>
+                                    <div class="type-option">
+                                        <el-icon class="type-option-icon" color="#409eff"><Notification /></el-icon>
+                                        <span class="type-option-label">新闻</span>
+                                        <el-tag type="primary" size="small" effect="light">NEWS</el-tag>
+                                    </div>
                                 </el-option>
                                 <el-option label="咨询" :value="1">
-                                    <el-tag type="success" size="small">咨询</el-tag>
+                                    <div class="type-option">
+                                        <el-icon class="type-option-icon" color="#67c23a"><ChatDotRound /></el-icon>
+                                        <span class="type-option-label">咨询</span>
+                                        <el-tag type="success" size="small" effect="light">INFO</el-tag>
+                                    </div>
                                 </el-option>
-
                             </el-select>
                         </el-form-item>
                     </el-col>
@@ -370,7 +367,8 @@ import dayjs from 'dayjs';
 import {
     Search, Plus, Download, Check, Close, Delete,
     Refresh, Setting, Edit, View, Picture, Management,
-    RefreshLeft, CircleCheck, CircleClose, Document, User
+    RefreshLeft, CircleCheck, CircleClose, Document, User,
+    Notification, ChatDotRound
 } from '@element-plus/icons-vue';
 
 // 组件引入
@@ -433,7 +431,7 @@ const pagination = reactive<Pagination>({
 
 const form = reactive({
     id: undefined as number | undefined,
-    cid: undefined as number | undefined,
+    cid: 0 as number,
     type: undefined as number | undefined,
     title: '',
     author: '',
@@ -446,7 +444,6 @@ const form = reactive({
 });
 
 const rules: FormRules = {
-    cid: [{ required: true, message: '请选择文章分类', trigger: 'change' }],
     type: [{ required: true, message: '请选择文章类型', trigger: 'change' }],
     title: [
         { required: true, message: '请输入文章标题', trigger: 'blur' },
@@ -541,7 +538,7 @@ const handleAddArticle = () => {
     dialogTitle.value = '新增文章';
     Object.assign(form, {
         id: undefined,
-        cid: undefined,
+        cid: 0,
         type: undefined,
         title: '',
         author: '',
@@ -991,6 +988,26 @@ const getTypeText = (type: number) => {
     color: #909399;
     margin-top: 4px;
     line-height: 1.5;
+}
+
+// 文章类型选项样式
+.type-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+    width: 100%;
+
+    .type-option-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .type-option-label {
+        flex: 1;
+        font-size: 14px;
+        color: #303133;
+    }
 }
 
 // 封面上传容器

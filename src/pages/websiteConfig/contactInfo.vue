@@ -1,9 +1,9 @@
 <template>
   <div class="app-container">
     <!-- Search/Actions -->
-    <div class="filter-container">
-      <el-button type="primary" icon="Plus" @click="handleCreate">添加联系方式</el-button>
-    </div>
+<!--    <div class="filter-container">-->
+<!--      <el-button type="primary" icon="Plus" @click="handleCreate">添加联系方式</el-button>-->
+<!--    </div>-->
 
     <!-- Table -->
     <el-table
@@ -74,18 +74,18 @@
       </el-table-column>
     </el-table>
 
-    <!-- Pagination -->
-    <div class="pagination-container" v-if="total > 0">
-      <el-pagination
-        v-model:current-page="listQuery.page"
-        v-model:page-size="listQuery.limit"
-        :page-sizes="[10, 20, 30, 50]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
+<!--    &lt;!&ndash; Pagination &ndash;&gt;-->
+<!--    <div class="pagination-container" v-if="total > 0">-->
+<!--      <el-pagination-->
+<!--        v-model:current-page="listQuery.page"-->
+<!--        v-model:page-size="listQuery.limit"-->
+<!--        :page-sizes="[10, 20, 30, 50]"-->
+<!--        :total="total"-->
+<!--        layout="total, sizes, prev, pager, next, jumper"-->
+<!--        @size-change="handleSizeChange"-->
+<!--        @current-change="handleCurrentChange"-->
+<!--      />-->
+<!--    </div>-->
 
     <!-- Dialog -->
     <el-dialog :title="textMap[dialogStatus]" v-model="dialogFormVisible" width="800px">
@@ -97,6 +97,10 @@
         label-width="120px"
         style="width: 100%; padding: 0 20px"
       >
+        <el-form-item label="公司名称" prop="companyName">
+          <el-input v-model="temp.companyName" placeholder="请输入公司名称" />
+        </el-form-item>
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="公司电话" prop="companyPhone">
@@ -180,6 +184,12 @@
         <el-form-item label="备注" prop="remark">
           <el-input type="textarea" v-model="temp.remark" :rows="2" placeholder="请输入备注信息" />
         </el-form-item>
+
+        <el-divider content-position="left">关于我们</el-divider>
+
+        <el-form-item label="关于我们" prop="aboutUs">
+          <RichEditor v-model="temp.aboutUs" height="300px" placeholder="请输入关于我们的内容..." />
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -197,6 +207,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ImageUpload from '@/components/ImageUpload/index.vue'
+import RichEditor from '@/components/Editor/RichEditor.vue'
 import { 
   getContactList, 
   addContact, 
@@ -222,9 +233,11 @@ const textMap: Record<string, string> = {
 
 const temp = reactive({
   id: undefined,
+  companyName: '',
   companyPhone: '',
   companyEmail: '',
   companyAddress: '',
+  aboutUs: '',
   wechatOfficialQrCode: '',
   wechatOfficialName: '',
   wechatMiniQrCode: '',
@@ -247,9 +260,11 @@ const rules = {
 
 const resetTemp = () => {
   temp.id = undefined
+  temp.companyName = ''
   temp.companyPhone = ''
   temp.companyEmail = ''
   temp.companyAddress = ''
+  temp.aboutUs = ''
   temp.wechatOfficialQrCode = ''
   temp.wechatOfficialName = ''
   temp.wechatMiniQrCode = ''

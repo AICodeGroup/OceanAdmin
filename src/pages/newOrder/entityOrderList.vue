@@ -96,10 +96,8 @@
             <el-option label="待支付" :value="0" />
             <el-option label="已支付" :value="1" />
             <el-option label="已取消" :value="2" />
-            <el-option label="已退款" :value="3" />
-            <el-option label="待发货" :value="4" />
-            <el-option label="已发货" :value="5" />
-            <el-option label="已完成" :value="6" />
+            <el-option label="已发货" :value="3" />
+            <el-option label="已完成" :value="4" />
           </el-select>
         </el-form-item>
 
@@ -181,12 +179,20 @@
               改状态
             </el-button>
             <el-button 
-              v-if="scope.row.status === 1 || scope.row.status === 4" 
+              v-if="scope.row.status === 1" 
               type="success" 
               size="small" 
               @click="handleShip(scope.row)"
             >
               发货
+            </el-button>
+            <el-button 
+              v-if="scope.row.status === 3" 
+              type="success" 
+              size="small" 
+              @click="handleShip(scope.row)"
+            >
+              修改发货信息
             </el-button>
             <el-button 
               type="danger" 
@@ -288,10 +294,7 @@
             <el-option label="待支付" :value="0" />
             <el-option label="已支付" :value="1" />
             <el-option label="已取消" :value="2" />
-            <el-option label="已退款" :value="3" />
-            <el-option label="待发货" :value="4" />
-            <el-option label="已发货" :value="5" />
-            <el-option label="已完成" :value="6" />
+            <el-option label="已完成" :value="4" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -302,7 +305,7 @@
     </el-dialog>
 
     <!-- 发货对话框 -->
-    <el-dialog v-model="shipDialogVisible" title="订单发货" width="700px">
+    <el-dialog v-model="shipDialogVisible" :title="isEditShipping ? '修改发货信息' : '订单发货'" width="700px">
       <!-- 订单基本信息 -->
       <el-descriptions :column="2" border class="mb-4">
         <el-descriptions-item label="订单号">{{ shippingInfo.orderNo }}</el-descriptions-item>
@@ -353,7 +356,7 @@
 
       <template #footer>
         <el-button @click="shipDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmShip">确认发货</el-button>
+        <el-button type="primary" @click="confirmShip">{{ isEditShipping ? '确认修改' : '确认发货' }}</el-button>
       </template>
     </el-dialog>
 
@@ -433,6 +436,7 @@ const newStatus = ref<number | null>(null)
 // 发货对话框
 const shipDialogVisible = ref(false)
 const shippingInfo = ref<any>({})
+const isEditShipping = ref(false) // 是否是修改发货信息
 const shipForm = reactive({
   orderNo: '',
   expressCompany: '顺丰速运',
@@ -575,12 +579,16 @@ const handleShip = async (row: any) => {
     const res: any = await getShippingInfo(row.orderNo)
     shippingInfo.value = res || {}
     
-    // 重置表单
+    // 检查是否已有发货信息
+    const hasShippingInfo = res?.expressNo && res?.expressCompany
+    isEditShipping.value = hasShippingInfo
+    
+    // 填充表单（如果有现有数据则回显，否则使用默认值）
     Object.assign(shipForm, {
       orderNo: row.orderNo,
-      expressCompany: '顺丰速运',
-      expressNo: '',
-      shippingRemark: ''
+      expressCompany: res?.expressCompany || '顺丰速运',
+      expressNo: res?.expressNo || '',
+      shippingRemark: res?.shippingRemark || ''
     })
     
     shipDialogVisible.value = true
@@ -604,12 +612,12 @@ const confirmShip = async () => {
       expressNo: shipForm.expressNo,
       shippingRemark: shipForm.shippingRemark
     })
-    ElMessage.success('发货成功')
+    ElMessage.success(isEditShipping.value ? '发货信息修改成功' : '发货成功')
     shipDialogVisible.value = false
     fetchData()
   } catch (error) {
     console.error('发货失败:', error)
-    ElMessage.error('发货失败')
+    ElMessage.error(isEditShipping.value ? '修改发货信息失败' : '发货失败')
   }
 }
 
@@ -665,10 +673,8 @@ const formatStatus = (status: number) => {
     0: '待支付',
     1: '已支付',
     2: '已取消',
-    3: '已退款',
-    4: '待发货',
-    5: '已发货',
-    6: '已完成',
+    3: '已发货',
+    4: '已完成',
   }
   return statusMap[status] || '未知'
 }
@@ -679,10 +685,8 @@ const statusType = (status: number) => {
     0: 'warning',
     1: 'success',
     2: 'info',
-    3: 'danger',
-    4: '',
-    5: 'primary',
-    6: 'success',
+    3: 'primary',
+    4: 'success',
   }
   return typeMap[status] || ''
 }

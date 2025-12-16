@@ -98,7 +98,7 @@
     <!-- 批量图片上传对话框 -->
     <el-dialog
       v-model="batchImageDialogVisible"
-      title="批量上传图片"
+      title="上传图片"
       width="600px"
       :close-on-click-modal="false"
     >
@@ -109,12 +109,14 @@
         :action="uploadUrl"
         :headers="uploadHeaders"
         :data="uploadData"
-        multiple
+        :limit="1"
         :auto-upload="false"
         :on-success="handleUploadSuccess"
         :on-error="handleUploadError"
+        :on-exceed="handleExceed"
         accept="image/*"
         list-type="picture"
+        name="multipart"
       >
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text">
@@ -126,6 +128,7 @@
           </div>
         </template>
       </el-upload>
+      
       <template #footer>
         <el-button @click="batchImageDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="submitUpload" :loading="uploading">
@@ -179,7 +182,7 @@ const templates = ref<ProductTemplate[]>(productTemplates)
 const batchImageDialogVisible = ref(false)
 const uploadRef = ref()
 const uploading = ref(false)
-const uploadUrl = 'http://localhost:8080/api/admin/platform/uploadOss'
+const uploadUrl = '/admin/platform/upload/image'
 
 // 动态获取认证请求头
 const getUploadHeaders = () => {
@@ -188,7 +191,10 @@ const getUploadHeaders = () => {
 }
 
 const uploadHeaders = ref(getUploadHeaders())
-const uploadData = ref({})
+const uploadData = ref({
+  model: 'product',
+  pid: 1
+})
 
 // 监听外部值变化
 watch(() => props.modelValue, (newVal) => {
@@ -266,7 +272,9 @@ const editorConfig: Partial<IEditorConfig> = {
       // 自定义上传
       async customUpload(file: File, insertFn: Function) {
         const formData = new FormData()
-        formData.append('file', file)
+        formData.append('multipart', file)
+        formData.append('model', 'product')
+        formData.append('pid', '1')
         
         const loadingInstance = ElLoading.service({
           lock: true,
@@ -290,9 +298,9 @@ const editorConfig: Partial<IEditorConfig> = {
           
           console.log('单张上传响应:', response.data)
           
-          // 处理后端响应：{code: 200, data: "url", message: null}
-          if (response.data && response.data.code === 200 && response.data.data) {
-            const imageUrl = response.data.data
+          // 处理后端响应：{code: 200, data: { url: "..." }, message: null}
+          if (response.data && response.data.code === 200 && response.data.data?.url) {
+            const imageUrl = response.data.data.url
             console.log('准备插入图片URL:', imageUrl)
             insertFn(imageUrl, '', imageUrl)
             console.log('图片已通过insertFn插入')
@@ -390,7 +398,7 @@ const insertTemplate = (type: string) => {
 </table>
     `
   } else if (type === 'images') {
-    // 打开批量图片上传对话框前，刷新认证头
+    // 打开图片上传对话框前，刷新认证头
     uploadHeaders.value = getUploadHeaders()
     batchImageDialogVisible.value = true
     return
@@ -449,33 +457,38 @@ const submitUpload = () => {
 
 // 上传成功回调
 const handleUploadSuccess = (response: any) => {
-  console.log('批量上传响应:', response)
-  console.log('editorRef.value 状态:', editorRef.value)
-  console.log('响应检查:', {
-    hasResponse: !!response,
-    code: response?.code,
-    hasData: !!response?.data,
-    hasEditor: !!editorRef.value
-  })
+  console.log('上传响应:', response)
   
   // el-upload的回调接收的是原始响应：{code: 200, data: { url: "..." }, message: null}
   if (response && response.code === 200 && response.data?.url && editorRef.value) {
     const imageUrl = response.data.url
-    console.log('准备插入图片:', imageUrl)
+    console.log('图片上传成功:', imageUrl)
     
-    // 插入图片，设置宽度为750px
-    const imgHtml = `<p style="text-align: center;"><img src="${imageUrl}" style="width: 750px; max-width: 100%; height: auto;" /></p>`
+    // 关闭弹窗
+    batchImageDialogVisible.value = false
     
+    // 插入图片到编辑器
     try {
+      editorRef.value.focus()
+      const imgHtml = `<p style="text-align: center;"><img src="${imageUrl}" style="width: 750px; max-width: 100%; height: auto;" /></p>`
       editorRef.value.dangerouslyInsertHtml(imgHtml)
-      console.log('图片插入成功')
-      ElMessage.success('图片上传并插入成功')
+      
+      // 同步编辑器内容到v-model
+      valueHtml.value = editorRef.value.getHtml()
+      emit('update:modelValue', valueHtml.value)
+      
+      ElMessage.success('图片上传成功')
     } catch (error) {
       console.error('插入图片失败:', error)
-      ElMessage.error('图片插入失败')
+      ElMessage.error('插入图片失败')
+    }
+    
+    // 清空上传列表
+    if (uploadRef.value) {
+      uploadRef.value.clearFiles()
     }
   } else {
-    console.error('上传失败或条件不满足，响应数据:', response)
+    console.error('上传失败，响应数据:', response)
     ElMessage.error('图片上传失败：' + (response?.message || '未知错误'))
   }
   
@@ -487,6 +500,11 @@ const handleUploadError = (error: any) => {
   console.error('上传失败:', error)
   ElMessage.error('图片上传失败: ' + (error.message || '网络错误'))
   uploading.value = false
+}
+
+// 超出限制回调
+const handleExceed = () => {
+  ElMessage.warning('只能上传一张图片，请先删除已选择的图片')
 }
 
 // 组件销毁前
