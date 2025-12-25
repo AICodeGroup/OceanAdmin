@@ -21,7 +21,7 @@
         <!-- 数据表格区域 -->
         <div class="table-section">
             <el-card>
-                <el-table v-loading="loading" :data="categoryList" style="width: 100%">
+                <el-table v-loading="loading" :data="sortedCategoryList" style="width: 100%" @sort-change="handleSortChange">
                     <el-table-column label="ID" prop="id" width="80" align="center" />
 
                     <el-table-column label="分类图标" width="100" align="center">
@@ -48,7 +48,7 @@
 
                     <el-table-column label="分类名称" prop="name" min-width="150" />
 
-                    <el-table-column label="排序" prop="sort" width="100" align="center" />
+                    <el-table-column label="排序" prop="sort" width="100" align="center" sortable="custom" />
 
                     <el-table-column label="状态" width="100" align="center">
                         <template #default="{ row }">
@@ -123,6 +123,8 @@ import {
 const loading = ref(false);
 const submitLoading = ref(false);
 const categoryList = ref<ArticleCategory[]>([]);
+const sortOrder = ref<'ascending' | 'descending' | null>(null);
+const sortProp = ref<string>('');
 const dialogVisible = ref(false);
 const isEdit = ref(false);
 const formRef = ref<FormInstance>();
@@ -145,6 +147,30 @@ const rules: FormRules = {
 };
 
 const dialogTitle = computed(() => isEdit.value ? '编辑分类' : '新增分类');
+
+// 排序后的分类列表
+const sortedCategoryList = computed(() => {
+    if (!sortProp.value || !sortOrder.value) {
+        return categoryList.value;
+    }
+    const list = [...categoryList.value];
+    list.sort((a, b) => {
+        const aVal = (a as any)[sortProp.value];
+        const bVal = (b as any)[sortProp.value];
+        if (sortOrder.value === 'ascending') {
+            return aVal - bVal;
+        } else {
+            return bVal - aVal;
+        }
+    });
+    return list;
+});
+
+// 排序变化处理
+const handleSortChange = ({ prop, order }: { prop: string; order: 'ascending' | 'descending' | null }) => {
+    sortProp.value = prop;
+    sortOrder.value = order;
+};
 
 // 生命周期
 onMounted(() => {

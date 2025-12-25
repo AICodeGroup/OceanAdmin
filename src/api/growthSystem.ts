@@ -28,6 +28,49 @@ export function configIntegralGrantTask(data: { cronExpression: string; status: 
   })
 }
 
+// 积分/经验任务配置接口类型
+export interface IntegralTaskConfig {
+  // 积分配置
+  speciesLcIntegral: number         // 无危物种(LC)积分
+  speciesNtIntegral: number         // 近危物种(NT)积分
+  speciesVuIntegral: number         // 易危物种(VU)积分
+  speciesEnIntegral: number         // 濒危物种(EN)积分
+  speciesCrIntegral: number         // 极危物种(CR)积分
+  campDomesticHalfIntegral: number  // 国内营期半天积分
+  campDomesticFullIntegral: number  // 国内营期一天积分
+  campAbroadHalfIntegral: number    // 国外营期半天积分
+  campAbroadFullIntegral: number    // 国外营期一天积分
+  observationIntegral: number       // 观察记录积分
+  // 经验配置
+  speciesLcExperience: number         // 无危物种(LC)经验
+  speciesNtExperience: number         // 近危物种(NT)经验
+  speciesVuExperience: number         // 易危物种(VU)经验
+  speciesEnExperience: number         // 濒危物种(EN)经验
+  speciesCrExperience: number         // 极危物种(CR)经验
+  campDomesticHalfExperience: number  // 国内营期半天经验
+  campDomesticFullExperience: number  // 国内营期一天经验
+  campAbroadHalfExperience: number    // 国外营期半天经验
+  campAbroadFullExperience: number    // 国外营期一天经验
+  observationExperience: number       // 观察记录经验
+}
+
+// 获取积分任务配置
+export function getIntegralTaskConfig() {
+  return request<IntegralTaskConfig>({
+    url: '/admin/platform/integral/get/task/config',
+    method: 'get'
+  })
+}
+
+// 设置积分任务配置
+export function setIntegralTaskConfig(data: IntegralTaskConfig) {
+  return request({
+    url: '/admin/platform/integral/set/task/config',
+    method: 'post',
+    data
+  })
+}
+
 // 积分记录分页列表
 export function getIntegralList(params: any) {
   return request({
@@ -79,6 +122,44 @@ export function toggleUserLevelShow(id: number, isShow: boolean) {
     url: `/admin/platform/system/user/level/show/${id}`,
     method: 'post',
     data: { isShow }
+  })
+}
+
+// 获取等级规则
+export function getUserLevelRule() {
+  return request({
+    url: '/admin/platform/system/user/level/get/rule',
+    method: 'get'
+  })
+}
+
+// 更新等级规则
+export function updateUserLevelRule(data: { rule: string }) {
+  return request({
+    url: '/admin/platform/system/user/level/update/rule',
+    method: 'post',
+    data
+  })
+}
+
+// 获取等级配置
+export function getUserLevelConfig() {
+  return request({
+    url: '/admin/platform/system/user/level/get/config',
+    method: 'get'
+  })
+}
+
+// 更新等级配置
+export function updateUserLevelConfig(data: {
+  userLevelSwitch: string
+  userLevelCommunityNotesExp: number
+  userLevelCommunityNotesNum: number
+}) {
+  return request({
+    url: '/admin/platform/system/user/level/update/config',
+    method: 'post',
+    data
   })
 }
 

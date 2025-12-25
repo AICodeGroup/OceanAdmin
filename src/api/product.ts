@@ -299,7 +299,7 @@ export interface ProductCategoryTreeNode {
 // 获取商户分类列表（树形）
 export const getMerchantCategoryList = () => {
     return request({
-        url: "/admin/merchant/store/product/category/cache/tree",
+        url: "/admin/platform/store/product/category/cache/tree",
         method: "get",
     });
 };
@@ -313,7 +313,7 @@ export const createMerchantCategory = (data: {
     sort: number;
 }) => {
     return request({
-        url: "/admin/merchant/store/product/category/add",
+        url: "/admin/platform/store/product/category/add",
         method: "post",
         data,
     });
@@ -329,7 +329,7 @@ export const updateMerchantCategory = (data: {
     sort: number;
 }) => {
     return request({
-        url: "/admin/merchant/store/product/category/update",
+        url: "/admin/platform/store/product/category/update",
         method: "post",
         data,
     });
@@ -338,7 +338,7 @@ export const updateMerchantCategory = (data: {
 // 删除商户分类
 export const deleteMerchantCategory = (id: number) => {
     return request({
-        url: `/admin/merchant/store/product/category/delete/${id}`,
+        url: `/admin/platform/store/product/category/delete/${id}`,
         method: "post",
     });
 };
@@ -346,7 +346,7 @@ export const deleteMerchantCategory = (id: number) => {
 // 显示/隐藏商户分类
 export const toggleMerchantCategoryShow = (id: number) => {
     return request({
-        url: `/admin/merchant/store/product/category/update/show/${id}`,
+        url: `/admin/platform/store/product/category/update/show/${id}`,
         method: "post",
     });
 };
@@ -354,7 +354,7 @@ export const toggleMerchantCategoryShow = (id: number) => {
 // 获取商户分类缓存树（用于级联选择器）
 export const getMerchantCategoryCacheTree = () => {
     return request({
-        url: "/admin/merchant/store/product/category/cache/tree",
+        url: "/admin/platform/store/product/category/cache/tree",
         method: "get",
     });
 };

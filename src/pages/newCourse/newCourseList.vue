@@ -9,8 +9,8 @@
         <h1 class="page-title">课程管理</h1>
       </div>
       <div class="header-actions">
-        <el-button type="primary" size="large" @click="handleAdd" round>
-          <el-icon class="btn-icon"><Plus /></el-icon>
+        <el-button type="primary" size="large" class="add-course-btn" @click="handleAdd">
+          <el-icon><Plus /></el-icon>
           新增课程
         </el-button>
       </div>
@@ -745,6 +745,19 @@ onMounted(() => {
   .header-actions {
     display: flex;
     gap: 12px;
+    
+    .add-course-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 20px;
+      font-size: 14px;
+      color: #fff !important;
+      
+      .el-icon {
+        font-size: 16px;
+      }
+    }
   }
 }
 

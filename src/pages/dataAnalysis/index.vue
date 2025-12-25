@@ -181,7 +181,7 @@
             :remote-method="searchProducts"
             :loading="productSearchLoading"
             style="width: 300px"
-            @change="handleFunnelQuery"
+            @change="handleProductChange"
           >
             <el-option
               v-for="item in productOptions"
@@ -295,6 +295,7 @@ const funnelForm = ref({
   dateRange: null as any
 })
 const productOptions = ref<any[]>([])
+const selectedProduct = ref<{ label: string; value: number } | null>(null)
 const productSearchLoading = ref(false)
 const funnelData = ref<any>(null)
 const funnelLoading = ref(false)
@@ -501,30 +502,37 @@ const initCharts = () => {
 // 搜索商品/课程
 const searchProducts = async (query: string) => {
   if (!query) {
-    productOptions.value = []
+    // 保留已选中的项
+    productOptions.value = selectedProduct.value ? [selectedProduct.value] : []
     return
   }
   productSearchLoading.value = true
   try {
     let res: any
+    let newOptions: any[] = []
     if (funnelForm.value.productType === 0) {
       // 搜索课程
       res = await getAdminCourseList({ name: query, page: 1, limit: 20 })
       // 假设API返回结构包含list
       const list = res.list || res.data?.list || []
-      productOptions.value = list.map((item: any) => ({
-        label: item.title,
+      newOptions = list.map((item: any) => ({
+        label: item.name || item.title,
         value: item.id
       }))
     } else {
       // 搜索实物商品
       res = await getProductList({ name: query, page: 1, limit: 20 })
       const list = res.list || res.data?.list || []
-      productOptions.value = list.map((item: any) => ({
+      newOptions = list.map((item: any) => ({
         label: item.name,
         value: item.id
       }))
     }
+    // 如果已有选中项且不在新搜索结果中，要保留它
+    if (selectedProduct.value && !newOptions.find(o => o.value === selectedProduct.value?.value)) {
+      newOptions.unshift(selectedProduct.value)
+    }
+    productOptions.value = newOptions
   } catch (error) {
     console.error('搜索失败:', error)
   } finally {
@@ -532,9 +540,19 @@ const searchProducts = async (query: string) => {
   }
 }
 
+// 商品选择变化
+const handleProductChange = (value: number) => {
+  const selected = productOptions.value.find(o => o.value === value)
+  if (selected) {
+    selectedProduct.value = selected
+  }
+  handleFunnelQuery()
+}
+
 const handleFunnelTypeChange = () => {
   funnelForm.value.productId = undefined
   productOptions.value = []
+  selectedProduct.value = null
   funnelData.value = null
 }
 
@@ -545,6 +563,8 @@ const handleFunnelQuery = () => {
 const handleFunnelReset = () => {
   funnelForm.value.productId = undefined
   funnelForm.value.dateRange = null
+  selectedProduct.value = null
+  productOptions.value = []
   funnelData.value = null
 }
 

@@ -57,94 +57,62 @@
     <!-- 关联关系树形表格 -->
     <div class="card-container">
       <el-table
+        ref="tableRef"
         v-loading="loading"
         :data="tableData"
         style="width: 100%"
         row-key="_key"
-        :tree-props="{ children: 'children' }"
+        border
+        :indent="20"
+        :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
       >
         <!-- 课程/物种信息列 - 根据节点类型显示不同内容 -->
-        <el-table-column label="课程信息" min-width="250">
-          <template #default="scope">
+        <el-table-column label="课程/物种信息" min-width="350">
+          <template #default="{ row }">
             <!-- 课程节点显示 -->
-            <div class="course-info" v-if="!scope.row.isSpecies">
-              <!-- 课程封面图片 -->
+            <span class="tree-node-content" v-if="!row.isSpecies">
               <el-image
-                v-if="scope.row.courseCover"
-                :src="scope.row.courseCover"
-                style="width: 40px; height: 40px; border-radius: 4px; margin-right: 10px"
+                v-if="row.courseCover"
+                :src="row.courseCover"
+                class="node-image course-cover"
                 fit="cover"
               />
-              <div class="course-detail">
-                <!-- 课程标题 -->
-                <div class="course-title">{{ scope.row.courseTitle }}</div>
-                <div class="course-meta">
-                  <!-- 课程分类标签 -->
-                  <!-- <el-tag size="small" type="info">{{ scope.row.courseCategory }}</el-tag> -->
-                  <!-- 课程级别 -->
-                  <span class="course-level">{{ scope.row.courseLevel }}</span>
+              <div class="node-detail">
+                <div class="node-title">{{ row.courseTitle }}</div>
+                <div class="node-meta" v-if="row.courseLevel">
+                  <span class="meta-text">{{ row.courseLevel }}</span>
                 </div>
               </div>
-            </div>
+              <el-tag size="small" type="success" class="node-type-tag">课程</el-tag>
+            </span>
             <!-- 物种子节点显示 -->
-            <div class="species-info" v-else>
-              <!-- 物种图片 -->
+            <span class="tree-node-content species-node" v-else>
               <el-image
-                v-if="scope.row.speciesImage"
-                :src="scope.row.speciesImage"
-                style="width: 24px; height: 24px; border-radius: 4px; margin-right: 8px"
+                v-if="row.speciesImage"
+                :src="row.speciesImage"
+                class="node-image species-image"
                 fit="cover"
               />
-              <div class="species-detail">
-                <!-- 物种中文名 -->
-                <div class="species-name">{{ scope.row.speciesChineseName }}</div>
-                <!-- 物种学名 -->
-                <div class="species-scientific">{{ scope.row.speciesScientificName }}</div>
+              <el-icon v-else class="species-icon"><Postcard /></el-icon>
+              <div class="node-detail">
+                <div class="node-title">{{ row.speciesChineseName }}</div>
+                <div class="node-meta">
+                  <span class="scientific-name">{{ row.speciesScientificName }}</span>
+                </div>
               </div>
-            </div>
+              <el-tag size="small" type="info" class="node-type-tag">物种</el-tag>
+            </span>
           </template>
         </el-table-column>
-        <!-- 隐藏的物种信息列（当前未使用） -->
-        <el-table-column v-if="false" label="物种信息" min-width="200">
-          <template #default="scope">
-            <div class="species-info">
-              <el-image
-                v-if="scope.row.speciesImage"
-                :src="scope.row.speciesImage"
-                style="width: 40px; height: 40px; border-radius: 4px; margin-right: 10px"
-                fit="cover"
-              />
-              <div class="species-detail">
-                <div class="species-name">{{ scope.row.speciesChineseName }}</div>
-                <div class="species-scientific">{{ scope.row.speciesScientificName }}</div>
-              </div>
-            </div>
-          </template>
-        </el-table-column>
-        <!-- 所属信息 -->
-        <el-table-column label="所属信息" width="200">
-          <template #default="scope">
-            <el-tag  size="small" type="success" v-if="!scope.row.isSpecies">课程</el-tag>
-             <el-tag  size="small" type="info" v-else>物种</el-tag>
-          </template>
-        </el-table-column>
-        <!-- 是否已删除列 -->
-        <!-- <el-table-column prop="isDel" label="是否已删除" width="200">
-          <template #default="scope">
-            <span v-if="!scope.row.isSpecies">{{ scope.row.isDel ? '是' : '否' }}</span>
-          </template>
-        </el-table-column> -->
         <!-- ID列 -->
-        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="id" label="ID" width="100" align="center" />
         <!-- 操作列 -->
-        <el-table-column label="操作" width="350" fixed="right">
-          <template #default="scope">
-            <!-- 编辑关联按钮 -->
-            <el-button type="primary" size="small" @click="handleEdit(scope.row)">
+        <el-table-column label="操作" width="200" fixed="right" align="center">
+          <template #default="{ row }">
+            <el-button type="primary" size="small" @click="handleEdit(row)">
               编辑
             </el-button>
-            <!-- 删除关联按钮 -->
-            <el-button type="danger" size="small" @click="handleDelete(scope.row)">
+            <el-button type="danger" size="small" @click="handleDelete(row)" v-if="row.isSpecies">
               删除
             </el-button>
           </template>
@@ -258,6 +226,8 @@ import request from '@/utils/request'
 // ========== 响应式数据定义 ==========
 // 页面加载状态
 const loading = ref(false)
+// 表格引用
+const tableRef = ref()
 // 表单对话框显示状态
 const formVisible = ref(false)
 // 表单对话框标题
@@ -693,39 +663,105 @@ onMounted(() => {
     margin-bottom: 0;
   }
 }
-.species-info {
-  margin-left: 30px;
-}
 
-.course-info, .species-info {
-  display: flex;
+// 树形节点内容样式
+.tree-node-content {
+  display: inline-flex;
   align-items: center;
+  gap: 10px;
+  white-space: nowrap;
   
-  .course-detail, .species-detail {
-    flex: 1;
+  .node-image {
+    flex-shrink: 0;
+    border-radius: 4px;
     
-    .course-title, .species-name {
-      font-weight: 500;
-      color: #303133;
-      margin-bottom: 4px;
+    &.course-cover {
+      width: 40px;
+      height: 40px;
     }
     
-    .course-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      
-      .course-level {
+    &.species-image {
+      width: 28px;
+      height: 28px;
+    }
+  }
+  
+  .species-icon {
+    font-size: 20px;
+    color: #67c23a;
+    flex-shrink: 0;
+  }
+  
+  .node-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    
+    .node-title {
+      font-weight: 500;
+      color: #303133;
+      white-space: nowrap;
+    }
+    
+    .node-meta {
+      .meta-text {
         font-size: 12px;
         color: #909399;
       }
+      
+      .scientific-name {
+        font-size: 12px;
+        font-style: italic;
+        color: #606266;
+      }
+    }
+  }
+  
+  .node-type-tag {
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+}
+
+// 表格样式增强
+:deep(.el-table) {
+  .el-table__row {
+    &:hover > td {
+      background-color: #f5f7fa;
+    }
+  }
+  
+  .el-table__expand-icon {
+    color: #409eff;
+    font-size: 14px;
+    margin-right: 6px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+    flex-shrink: 0;
+    
+    &:hover {
+      color: #337ecc;
     }
     
-    .species-scientific {
-      font-style: italic;
-      color: #606266;
-      font-size: 12px;
+    &.el-table__expand-icon--expanded {
+      transform: rotate(90deg);
     }
+  }
+  
+  .el-table__placeholder {
+    display: inline-block;
+    width: 20px;
+    flex-shrink: 0;
+  }
+  
+  td:first-child .cell {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+  
+  .el-table__indent {
+    flex-shrink: 0;
   }
 }
 

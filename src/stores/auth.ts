@@ -64,7 +64,7 @@ export const useAuthStore = defineStore("auth", () => {
                 {
                     path: "integralConfig",
                     name: "IntegralConfig",
-                    meta: { title: "积分配置", icon: "Coin" },
+                    meta: { title: "积分/经验配置", icon: "Coin" },
                 },
                 {
                     path: "integralRecord",
@@ -154,6 +154,12 @@ export const useAuthStore = defineStore("auth", () => {
                     path: "newCourseList",
                     name: "newCourseList",
                     meta: { title: "课程列表", icon: "List" },
+                },
+                {
+                    path: "categoryList",
+                    name: "courseCategoryList",
+                    component: () => import("@/pages/newCourse/categoryList.vue"),
+                    meta: { title: "课程分类", icon: "Menu" },
                 },
                 {
                     path: "newBannerList",
@@ -402,11 +408,11 @@ export const useAuthStore = defineStore("auth", () => {
                     name: "articleList",
                     meta: { title: "文章列表", icon: "List" },
                 },
-                {
-                    path: "categoryList",
-                    name: "articleCategoryList",
-                    meta: { title: "文章分类", icon: "Menu" },
-                },
+                // {
+                //     path: "categoryList",
+                //     name: "articleCategoryList",
+                //     meta: { title: "文章分类", icon: "Menu" },
+                // },
                 {
                     path: "bannerList",
                     name: "articleBannerList",

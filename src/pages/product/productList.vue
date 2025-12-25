@@ -482,13 +482,13 @@
                         </el-form-item>
 
                         <el-form-item label="商品主图" prop="image">
-                            <el-input v-model="editForm.image" placeholder="请输入商品主图URL" />
-                            <div class="form-tip">建议尺寸：800x800px</div>
+                            <ImageUpload v-model="editForm.image" placeholder="上传商品主图" />
+                            <div class="form-tip">建议尺寸：800x800px，支持jpg、png格式</div>
                         </el-form-item>
 
                         <el-form-item label="商品轮播图" prop="sliderImage">
-                            <el-input v-model="editForm.sliderImage" placeholder="请输入轮播图URLs，多个用逗号分隔" />
-                            <div class="form-tip">多张图片URL用英文逗号分隔</div>
+                            <MultiImageUpload v-model="editForm.sliderImage" :limit="5" placeholder="上传轮播图" />
+                            <div class="form-tip">最多上传5张轮播图，建议尺寸：800x800px</div>
                         </el-form-item>
 
                         <el-row :gutter="20">
@@ -804,6 +804,8 @@ import dayjs from 'dayjs';
 
 // 组件引入
 import RichEditor from '@/components/Editor/RichEditor.vue';
+import ImageUpload from '@/components/ImageUpload/index.vue';
+import MultiImageUpload from '@/components/ImageUpload/MultiImageUpload.vue';
 
 // 图标引入
 import {

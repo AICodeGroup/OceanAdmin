@@ -7,6 +7,8 @@ export interface Banner {
   latinName: string
   imageUrl: string
   linkUrl: string
+  webLinkUrl?: string
+  wechatArticleUrl?: string
   description?: string
   sort: number
   status: boolean

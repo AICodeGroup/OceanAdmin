@@ -217,3 +217,69 @@ export const exportCourses = (params?: any) => {
     responseType: 'blob'
   })
 }
+
+// ==================== 课程分类管理接口 ====================
+
+// 课程分类接口类型定义
+export interface CourseProductCategory {
+  id: number
+  pid: number
+  name: string
+  icon?: string
+  level: number
+  sort: number
+  isShow: boolean
+  createTime?: string
+  updateTime?: string
+  child?: CourseProductCategory[]
+}
+
+// 获取所有课程分类（树形结构）
+export const getAllCourseCategory = () => {
+  return request({
+    url: '/admin/platform/getAllCategory',
+    method: 'get'
+  })
+}
+
+// 根据ID获取课程分类详情
+export const getCourseCategoryById = (id: number) => {
+  return request({
+    url: `/admin/platform/getCategoryById/${id}`,
+    method: 'get'
+  })
+}
+
+// 新增课程分类
+export const addCourseCategory = (data: Partial<CourseProductCategory>) => {
+  return request({
+    url: '/admin/platform/addCategory',
+    method: 'post',
+    data
+  })
+}
+
+// 修改课程分类
+export const updateCourseCategory = (data: Partial<CourseProductCategory>) => {
+  return request({
+    url: '/admin/platform/updateCategory',
+    method: 'post',
+    data
+  })
+}
+
+// 删除课程分类
+export const deleteCourseCategory = (id: number) => {
+  return request({
+    url: `/admin/platform/deleteCategory/${id}`,
+    method: 'post'
+  })
+}
+
+// 修改课程分类显示状态
+export const updateCourseCategoryStatus = (id: number) => {
+  return request({
+    url: `/admin/platform/updateCategoryStatus/${id}`,
+    method: 'post'
+  })
+}

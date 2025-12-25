@@ -36,7 +36,32 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  (response) => {
+  async (response) => {
+    // 如果是 blob 响应（文件下载）
+    if (response.config.responseType === 'blob') {
+      // 检查响应是否是 JSON 错误信息（后端可能返回错误时返回 JSON）
+      const contentType = response.headers['content-type'] || ''
+      if (contentType.includes('application/json')) {
+        // 尝试解析 JSON 错误信息
+        try {
+          const text = await response.data.text()
+          const json = JSON.parse(text)
+          if (json.code !== 200) {
+            ElMessage({
+              message: json.message || '导出失败',
+              type: 'error',
+              duration: 5 * 1000,
+            })
+            return Promise.reject(new Error(json.message || '导出失败'))
+          }
+        } catch (e) {
+          // 解析失败，继续返回 blob
+        }
+      }
+      // 返回 blob 数据
+      return response.data
+    }
+    
     const res: CommonResult = response.data
 
     // 如果自定义 code 不是 200，则视为错误

@@ -78,6 +78,14 @@ export function deleteSpeciesTree(id: number) {
   })
 }
 
+// 根据分类ID获取物种列表
+export function getSpeciesListByCategory(categoryId: number) {
+  return request({
+    url: `admin/platform/species/listByCategory/${categoryId}`,
+    method: 'get'
+  })
+}
+
 // ==================== 课程物种关联管理 ====================
 
 export function exportSpecies(params: any) {

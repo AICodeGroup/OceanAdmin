@@ -42,21 +42,21 @@
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item label="用户标签" prop="tagId">
-        <el-select
-          v-model="tagIds"
-          multiple
-          placeholder="请选择用户标签"
-          style="width: 100%"
-        >
-          <el-option
-            v-for="tag in tagList"
-            :key="tag.id"
-            :label="tag.name"
-            :value="tag.id"
-          />
-        </el-select>
-      </el-form-item>
+<!--      <el-form-item label="用户标签" prop="tagId">-->
+<!--        <el-select-->
+<!--          v-model="tagIds"-->
+<!--          multiple-->
+<!--          placeholder="请选择用户标签"-->
+<!--          style="width: 100%"-->
+<!--        >-->
+<!--          <el-option-->
+<!--            v-for="tag in tagList"-->
+<!--            :key="tag.id"-->
+<!--            :label="tag.name"-->
+<!--            :value="tag.id"-->
+<!--          />-->
+<!--        </el-select>-->
+<!--      </el-form-item>-->
 
       <el-form-item label="备注" prop="mark">
         <el-input
@@ -192,7 +192,7 @@ const handleSubmit = async () => {
     try {
       // 只提交有值的字段
       const submitData: any = {
-        userId: form.id
+        id: form.id
       }
       
       // 只添加有值的字段
@@ -203,7 +203,7 @@ const handleSubmit = async () => {
       if (form.sex !== undefined) submitData.sex = form.sex
       if (form.tagId) submitData.tagId = form.tagId
       if (form.mark) submitData.mark = form.mark
-      
+      submitData.status = 1
       await updateUserInfo(submitData)
       ElMessage.success(isEdit.value ? '修改成功' : '新增成功')
       emit('success')

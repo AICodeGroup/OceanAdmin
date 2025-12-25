@@ -1,5 +1,16 @@
 <template>
   <div class="statistics-container">
+    <!-- 操作栏 -->
+    <el-card shadow="never" class="mb-4">
+      <div class="flex justify-between items-center">
+        <span class="text-lg font-bold">订单统计</span>
+        <el-button type="primary" :loading="exportLoading" @click="handleExport">
+          <el-icon><Download /></el-icon>
+          导出订单数据
+        </el-button>
+      </div>
+    </el-card>
+
     <!-- 综合统计 - 顶部卡片 -->
     <el-row :gutter="16" class="mb-4">
       <el-col :span="6">
@@ -296,11 +307,14 @@ import {
   SuccessFilled, 
   Money,
   List,
-  Calendar
+  Calendar,
+  Download
 } from '@element-plus/icons-vue'
 import { getCourseOrderStatistics, getEntityOrderStatistics, getAllOrderStatistics, getCourseOrderList, getEntityOrderList } from '@/api/order'
+import { exportOrderStatistics } from '@/utils/export'
 
 const loading = ref(false)
+const exportLoading = ref(false)
 const courseOrders = ref<any[]>([])
 const entityOrders = ref<any[]>([])
 
@@ -453,6 +467,20 @@ const statusType = (status: number) => {
 onMounted(() => {
   fetchData()
 })
+
+// 导出订单数据
+const handleExport = async () => {
+  exportLoading.value = true
+  try {
+    await exportOrderStatistics()
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('导出失败:', error)
+    ElMessage.error('导出失败')
+  } finally {
+    exportLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -466,6 +494,26 @@ onMounted(() => {
 
 .ml-2 {
   margin-left: 8px;
+}
+
+.flex {
+  display: flex;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.text-lg {
+  font-size: 18px;
+}
+
+.font-bold {
+  font-weight: bold;
 }
 
 .card-header {

@@ -115,17 +115,13 @@
         <el-form-item label="小程序跳转课程" prop="linkUrl">
           <el-select
             v-model="selectedMiniCourseId"
-            filterable
-            remote
-            reserve-keyword
-            placeholder="请输入课程名称搜索"
-            :remote-method="searchMiniCourse"
-            :loading="miniCourseLoading"
+            placeholder="请选择课程"
+            clearable
             style="width: 100%"
             @change="handleMiniCourseChange"
           >
             <el-option
-              v-for="item in miniCourseOptions"
+              v-for="item in allCourseOptions"
               :key="item.id"
               :label="item.name || item.title"
               :value="item.id"
@@ -135,21 +131,23 @@
         <el-form-item label="网站跳转课程" prop="webLinkUrl" v-if="form.bannerType === 0">
           <el-select
             v-model="form.webLinkUrl"
-            filterable
-            remote
-            reserve-keyword
-            placeholder="请输入课程名称搜索"
-            :remote-method="searchCourse"
-            :loading="courseLoading"
+            placeholder="请选择课程"
+            clearable
             style="width: 100%"
           >
             <el-option
-              v-for="item in courseOptions"
+              v-for="item in allCourseOptions"
               :key="item.id"
               :label="item.name || item.title"
               :value="String(item.id)"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item label="公众号推文地址" prop="wechatArticleUrl" v-if="form.bannerType === 0">
+          <el-input 
+            v-model="form.wechatArticleUrl" 
+            placeholder="请输入公众号推文地址"
+          />
         </el-form-item>
         <el-form-item label="排序" prop="sort">
           <el-input-number v-model="form.sort" :min="0" controls-position="right" />
@@ -179,7 +177,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules, UploadProps, UploadUserFile } from 'element-plus';
 import { getBannersList, createBanner, updateBanner, deleteBanner, Banner } from '@/api/banner';
-import { getAdminCourseList, getAdminCourseDetail } from '@/api/course';
+import { getAdminCourseList } from '@/api/course';
 import { getToken } from '@/utils/auth';
 import { Plus, Picture } from '@element-plus/icons-vue';
 
@@ -196,10 +194,7 @@ const dialogVisible = ref(false);
 const dialogTitle = ref('');
 const formRef = ref<FormInstance>();
 const fileList = ref<UploadUserFile[]>([]);
-const courseLoading = ref(false);
-const courseOptions = ref<{ id: number; name: string; title?: string }[]>([]);
-const miniCourseLoading = ref(false);
-const miniCourseOptions = ref<{ id: number; name: string; title?: string }[]>([]);
+const allCourseOptions = ref<{ id: number; name: string; title?: string }[]>([]);
 const selectedMiniCourseId = ref<number | null>(null);
 
 const getInitialForm = (): Omit<Banner, 'id' | 'createdAt' | 'updatedAt' | 'isDel'> => ({
@@ -208,6 +203,7 @@ const getInitialForm = (): Omit<Banner, 'id' | 'createdAt' | 'updatedAt' | 'isDe
   imageUrl: '',
   linkUrl: '',
   webLinkUrl: '',
+  wechatArticleUrl: '',
   description: '',
   sort: 0,
   status: true,
@@ -223,39 +219,14 @@ const rules = reactive<FormRules>({
   bannerType: [{ required: true, message: '请选择轮播图类型', trigger: 'change' }],
 });
 
-// 搜索课程（网站跳转）
-const searchCourse = async (query: string) => {
-  if (!query) {
-    courseOptions.value = [];
-    return;
-  }
-  courseLoading.value = true;
+// 加载所有课程列表
+const loadAllCourses = async () => {
   try {
-    const response = await getAdminCourseList({ name: query, page: 1, limit: 20 });
-    courseOptions.value = response.list || [];
+    const response = await getAdminCourseList({ page: 1, limit: 1000, isShow: true });
+    allCourseOptions.value = (response.list || []).filter((item: any) => item.isShow === true);
   } catch (error) {
-    console.error('搜索课程失败:', error);
-    courseOptions.value = [];
-  } finally {
-    courseLoading.value = false;
-  }
-};
-
-// 搜索课程（小程序跳转）
-const searchMiniCourse = async (query: string) => {
-  if (!query) {
-    miniCourseOptions.value = [];
-    return;
-  }
-  miniCourseLoading.value = true;
-  try {
-    const response = await getAdminCourseList({ name: query, page: 1, limit: 20 });
-    miniCourseOptions.value = response.list || [];
-  } catch (error) {
-    console.error('搜索课程失败:', error);
-    miniCourseOptions.value = [];
-  } finally {
-    miniCourseLoading.value = false;
+    console.error('加载课程列表失败:', error);
+    allCourseOptions.value = [];
   }
 };
 
@@ -310,8 +281,6 @@ const resetForm = () => {
   Object.assign(form, getInitialForm());
   fileList.value = [];
   selectedMiniCourseId.value = null;
-  miniCourseOptions.value = [];
-  courseOptions.value = [];
 };
 
 // 新增按钮操作
@@ -328,35 +297,11 @@ const handleUpdate = async (row: Banner) => {
   if (row.imageUrl) {
     fileList.value = [{ name: row.imageUrl, url: row.imageUrl }];
   }
-  // 如果有小程序跳转链接，提取课程ID并获取课程详情
+  // 如果有小程序跳转链接，提取课程ID
   if (row.linkUrl) {
     const miniCourseId = extractCourseIdFromUrl(row.linkUrl);
     if (miniCourseId) {
       selectedMiniCourseId.value = miniCourseId;
-      try {
-        const response = await getAdminCourseDetail(miniCourseId);
-        if (response) {
-          const courseName = response.name || response.title || response.productName || '';
-          miniCourseOptions.value = [{ id: miniCourseId, name: courseName, title: courseName }];
-        }
-      } catch (error) {
-        console.error('加载小程序课程信息失败:', error);
-      }
-    }
-  }
-  // 如果有网站跳转课程，获取课程详情
-  if (row.webLinkUrl && row.bannerType === 0) {
-    const webCourseId = parseInt(row.webLinkUrl);
-    if (!isNaN(webCourseId)) {
-      try {
-        const response = await getAdminCourseDetail(webCourseId);
-        if (response) {
-          const courseName = response.name || response.title || response.productName || '';
-          courseOptions.value = [{ id: webCourseId, name: courseName, title: courseName }];
-        }
-      } catch (error) {
-        console.error('加载课程信息失败:', error);
-      }
     }
   }
   dialogTitle.value = '修改轮播图';
@@ -442,6 +387,7 @@ const handleCurrentChange = (val: number) => {
 
 onMounted(() => {
   getList();
+  loadAllCourses();
 });
 </script>
 

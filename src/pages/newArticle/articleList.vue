@@ -131,7 +131,7 @@
                 </div>
 
                 <!-- 文章数据表格 -->
-                <el-table v-loading="loading" :data="articleList" @selection-change="handleSelectionChange" style="width: 100%">
+                <el-table v-loading="loading" :data="sortedArticleList" @selection-change="handleSelectionChange" @sort-change="handleSortChange" style="width: 100%">
                     <el-table-column type="selection" width="55" />
 
                     <!-- 文章信息列 -->
@@ -168,7 +168,7 @@
                     </el-table-column>
 
                     <!-- 排序列 -->
-                    <el-table-column label="排序" prop="sort" width="80" align="center" />
+                    <el-table-column label="排序" prop="sort" width="80" align="center" sortable="custom" />
 
                     <!-- 状态列 -->
                     <el-table-column label="状态" width="100" align="center">
@@ -359,7 +359,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus';
 import dayjs from 'dayjs';
 
@@ -410,6 +410,8 @@ const submitLoading = ref(false);
 const articleList = ref<Article[]>([]);
 const selectedRows = ref<Article[]>([]);
 const categoryList = ref<ArticleCategory[]>([]);
+const sortOrder = ref<'ascending' | 'descending' | null>(null);
+const sortProp = ref<string>('');
 const dialogVisible = ref(false);
 const viewDialogVisible = ref(false);
 const dialogTitle = ref('新增文章');
@@ -459,6 +461,30 @@ const rules: FormRules = {
         { max: 200, message: '简介最多200个字符', trigger: 'blur' }
     ],
     content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }]
+};
+
+// 排序后的文章列表
+const sortedArticleList = computed(() => {
+    if (!sortProp.value || !sortOrder.value) {
+        return articleList.value;
+    }
+    const list = [...articleList.value];
+    list.sort((a, b) => {
+        const aVal = (a as any)[sortProp.value];
+        const bVal = (b as any)[sortProp.value];
+        if (sortOrder.value === 'ascending') {
+            return aVal - bVal;
+        } else {
+            return bVal - aVal;
+        }
+    });
+    return list;
+});
+
+// 排序变化处理
+const handleSortChange = ({ prop, order }: { prop: string; order: 'ascending' | 'descending' | null }) => {
+    sortProp.value = prop;
+    sortOrder.value = order;
 };
 
 // 生命周期
